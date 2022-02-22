@@ -395,3 +395,13 @@ pub extern fn mrb_class_defined_id(mrb: *mrb_state, name: mrb_sym) mrb_bool;
 /// @return [struct RClass *] A reference to the class.
 pub extern fn mrb_class_get(mrb: *mrb_state, name: [*:0]const u8) ?*RClass;
 pub extern fn mrb_class_get_id(mrb: *mrb_state, name: mrb_sym) ?*RClass;
+
+/// Gets a exception class.
+/// @param mrb The current mruby state.
+/// @param name The name of the class.
+/// @return [struct RClass *] A reference to the class.
+pub extern fn mrb_exc_get_id(mrb: *mrb_state, name: mrb_sym) ?*RClass;
+pub fn mrb_exc_get(mrb: *mrb_state, name: [*:0]const u8) ?*RClass {
+    const name_sym = mrb_intern_cstr(mrb, name);
+    mrb_exc_get_id(mrb, name_sym);
+}
