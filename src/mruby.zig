@@ -9,10 +9,12 @@ pub const mrb_irep = opaque {};
 pub const mrb_callinfo = opaque {};
 pub const mrb_contect = opaque {};
 pub const mrb_jumpbuf = opaque {};
+pub const mrb_pool = opaque {};
 pub const mrb_code = u8;
 pub const mrb_aspec = u32;
 pub const mrb_sym = u32;
 pub const mrb_bool = bool;
+pub const mrb_noreturn = noreturn;
 pub const mrb_int = if (@hasDecl(c, "MRB_INT64")) i64 else i32;
 pub const mrb_uint = if (@hasDecl(c, "MRB_INT64")) u64 else u32;
 pub const mrb_value = if (@hasDecl(c, "MRB_NAN_BOXING"))
@@ -94,6 +96,7 @@ pub const mrb_vtype = enum {
 
 pub const RClass = opaque {};
 pub const RObject = opaque {};
+pub const RProc = opaque {};
 
 /// Function pointer type for a function callable by mruby.
 ///
@@ -996,3 +999,162 @@ pub extern fn mrb_open_core(f: mrb_allocf, ud: *anyopaque) ?*mrb_state;
 /// @param mrb
 ///      Pointer to the mrb_state to be closed.
 pub extern fn mrb_close(mrb: *mrb_state) void;
+
+// TODO: find proper signature names
+// /// The default allocation function.
+// ///
+// /// @see mrb_allocf
+// pub extern fn mrb_default_allocf(mrb: *mrb_state, *anyopaque, size: usize, *anyopaque) ?*anyopaque;
+
+pub extern fn mrb_top_self(mrb: *mrb_state) mrb_value;
+pub extern fn mrb_top_run(mrb: *mrb_state, proc: *const RProc, self: mrb_value, stack_keep: mrb_int) mrb_value;
+pub extern fn mrb_vm_run(mrb: *mrb_state, proc: *const RProc, self: mrb_value, stack_keep: mrb_int) mrb_value;
+pub extern fn mrb_vm_exec(mrb: *mrb_state, proc: *const RProc, iseq: [*]const mrb_code) mrb_value;
+
+pub extern fn mrb_p(mrb: *mrb_state, val: mrb_value) void;
+pub extern fn mrb_obj_id(obj: mrb_value) mrb_int;
+pub extern fn mrb_obj_to_sym(mrb: *mrb_state, name: mrb_value) mrb_sym;
+
+pub extern fn mrb_obj_eq(mrb: *mrb_state, a: mrb_value, b: mrb_value) mrb_bool;
+pub extern fn mrb_obj_equal(mrb: *mrb_state, a: mrb_value, b: mrb_value) mrb_bool;
+pub extern fn mrb_equal(mrb: *mrb_state, obj1: mrb_value, obj2: mrb_value) mrb_bool;
+
+pub extern fn mrb_ensure_float_type(mrb: *mrb_state, val: mrb_value) mrb_value;
+// TODO: #define mrb_as_float(mrb, x) mrb_float(mrb_ensure_float_type(mrb, x))
+
+pub extern fn mrb_inspect(mrb: *mrb_state, obj: mrb_value) mrb_value;
+pub extern fn mrb_eql(mrb: *mrb_state, obj1: mrb_value, obj2: mrb_value) mrb_bool;
+/// mrb_cmp(mrb, obj1, obj2): 1:0:-1; -2 for error
+pub extern fn mrb_cmp(mrb: *mrb_state, obj1: mrb_value, obj2: mrb_value) mrb_int;
+
+// TODO: non-opaque mrb_state required
+// MRB_INLINE int
+// mrb_gc_arena_save(mrb_state *mrb)
+// {
+//   return mrb->gc.arena_idx;
+// }
+
+// MRB_INLINE void
+// mrb_gc_arena_restore(mrb_state *mrb, int idx)
+// {
+//   mrb->gc.arena_idx = idx;
+// }
+
+pub extern fn mrb_garbage_collect(mrb: *mrb_state) void;
+pub extern fn mrb_full_gc(mrb: *mrb_state) void;
+pub extern fn mrb_incremental_gc(mrb: *mrb_state) void;
+pub extern fn mrb_gc_mark(mrb: *mrb_state, obj: *RBasic) void;
+
+// TODO: garbage collection
+// #define mrb_gc_mark_value(mrb,val) do {\
+//   if (!mrb_immediate_p(val)) mrb_gc_mark((mrb), mrb_basic_ptr(val)); \
+// } while (0)
+// MRB_API void mrb_field_write_barrier(mrb_state *, struct RBasic*, struct RBasic*);
+// #define mrb_field_write_barrier_value(mrb, obj, val) do{\
+//   if (!mrb_immediate_p(val)) mrb_field_write_barrier((mrb), (obj), mrb_basic_ptr(val)); \
+// } while (0)
+// MRB_API void mrb_write_barrier(mrb_state *, struct RBasic*);
+
+pub extern fn mrb_type_convert(mrb: *mrb_state, val: mrb_value, typ: mrb_vtype, method: mrb_sym) mrb_value;
+pub extern fn mrb_type_convert_check(mrb: *mrb_state, val: mrb_value, typ: mrb_vtype, method: mrb_sym) mrb_value;
+
+pub extern fn mrb_any_to_s(mrb: *mrb_state, obj: mrb_value) mrb_value;
+pub extern fn mrb_obj_classname(mrb: *mrb_state, obj: mrb_value) ?[*:0]const u8;
+pub extern fn mrb_obj_class(mrb: *mrb_state, obj: mrb_value) ?*RClass;
+pub extern fn mrb_class_path(mrb: *mrb_state, cla: *RClass) mrb_value;
+pub extern fn mrb_obj_is_kind_of(mrb: *mrb_state, obj: mrb_value, cla: *RClass) mrb_bool;
+pub extern fn mrb_obj_inspect(mrb: *mrb_state, self: mrb_value) mrb_value;
+pub extern fn mrb_obj_clone(mrb: *mrb_state, self: mrb_value) mrb_value;
+
+pub extern fn mrb_exc_new(mrb: *mrb_state, cla: *RClass, ptr: [*:0]const u8, len: size_t) mrb_value;
+pub extern fn mrb_exc_raise(mrb: *mrb_state, exc: mrb_value) mrb_noreturn;
+pub extern fn mrb_raise(mrb: *mrb_state, cla: *RClass, msg: [*:0]const u8) mrb_noreturn;
+pub extern fn mrb_raisef(mrb: *mrb_state, cla: *RClass, fmt: [*:0]const u8, ...) mrb_noreturn;
+pub extern fn mrb_name_error(mrb: *mrb_state, id: mrb_sym, fmt: [*:0]const u8, ...) mrb_noreturn;
+pub extern fn mrb_frozen_error(mrb: *mrb_state, frozen_obj: *anyopaque) mrb_noreturn;
+pub extern fn mrb_argnum_error(mrb: *mrb_state, argc: mrb_int, min: int, max: int) mrb_noreturn;
+pub extern fn mrb_warn(mrb: *mrb_state, fmt: [*:0]const u8, ...) void;
+pub extern fn mrb_bug(mrb: *mrb_state, fmt: [*:0]const u8, ...) mrb_noreturn;
+pub extern fn mrb_print_backtrace(mrb: *mrb_state) void;
+pub extern fn mrb_print_error(mrb: *mrb_state) void;
+// function for `raisef` formatting
+// pub extern fn mrb_vformat(mrb: *mrb_state, format: [*:0]const u8, ap: va_list) mrb_value;
+
+pub extern fn mrb_yield(mrb: *mrb_state, b: mrb_value, arg: mrb_value) mrb_value;
+pub extern fn mrb_yield_argv(mrb: *mrb_state, b: mrb_value, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
+pub extern fn mrb_yield_with_class(mrb: *mrb_state, b: mrb_value, argc: mrb_int, argv: [*]const mrb_value, self: mrb_value, cla: *RClass) mrb_value;
+/// continue execution to the proc
+/// this function should always be called as the last function of a method
+/// e.g. return mrb_yield_cont(mrb, proc, self, argc, argv);
+pub extern fn mrb_yield_cont(mrb: *mrb_state, b: mrb_value, self: mrb_value, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
+
+/// mrb_gc_protect() leaves the object in the arena
+pub extern fn mrb_gc_protect(mrb: *mrb_state, obj: mrb_value) void;
+/// mrb_gc_register() keeps the object from GC.
+pub extern fn mrb_gc_register(mrb: *mrb_state, obj: mrb_value) void;
+/// mrb_gc_unregister() removes the object from GC root.
+pub extern fn mrb_gc_unregister(mrb: *mrb_state, obj: mrb_value) void;
+
+/// type conversion/check functions
+pub extern fn mrb_ensure_array_type(mrb: *mrb_state, self: mrb_value) mrb_value;
+pub extern fn mrb_check_array_type(mrb: *mrb_state, self: mrb_value) mrb_value;
+pub extern fn mrb_ensure_hash_type(mrb: *mrb_state, hash: mrb_value) mrb_value;
+pub extern fn mrb_check_hash_type(mrb: *mrb_state, hash: mrb_value) mrb_value;
+pub extern fn mrb_ensure_string_type(mrb: *mrb_state, str: mrb_value) mrb_value;
+pub extern fn mrb_check_string_type(mrb: *mrb_state, str: mrb_value) mrb_value;
+pub extern fn mrb_ensure_int_type(mrb: *mrb_state, val: mrb_value) mrb_value;
+
+/// string type checking (contrary to the name, it doesn't convert)
+pub extern fn mrb_check_type(mrb: *mrb_state, x: mrb_value, t: mrb_vtype) void;
+
+// TODO: When frozen_p is implemented
+// MRB_INLINE void mrb_check_frozen(mrb_state *mrb, void *o)
+// {
+//   if (mrb_frozen_p((struct RBasic*)o)) mrb_frozen_error(mrb, o);
+// }
+
+pub extern fn mrb_define_alias(mrb: *mrb_state, cla: *RClass, a: [*:0]const u8, b: [*:0]const u8) void;
+pub extern fn mrb_define_alias_id(mrb: *mrb_state, cla: *RClass, a: mrb_sym, b: mrb_sym) void;
+pub extern fn mrb_class_name(mrb: *mrb_state, klass: *RClass) ?[*:0]const u8;
+pub extern fn mrb_define_global_const(mrb: *mrb_state, name: [*:0]const u8, val: mrb_value) void;
+
+pub extern fn mrb_attr_get(mrb: *mrb_state, obj: mrb_value, id: mrb_sym) mrb_value;
+
+pub extern fn mrb_respond_to(mrb: *mrb_state, obj: mrb_value, mid: mrb_sym) mrb_bool;
+pub extern fn mrb_obj_is_instance_of(mrb: *mrb_state, obj: mrb_value, cla: *RClass) mrb_bool;
+pub extern fn mrb_func_basic_p(mrb: *mrb_state, obj: mrb_value, mid: mrb_sym, func: mrb_func_t) mrb_bool;
+
+/// Resume a Fiber
+///
+/// Implemented in mruby-fiber
+pub extern fn mrb_fiber_resume(mrb: *mrb_state, fib: mrb_value, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
+
+/// Yield a Fiber
+///
+/// Implemented in mruby-fiber
+pub extern fn mrb_fiber_yield(mrb: *mrb_state, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
+
+/// Check if a Fiber is alive
+///
+/// Implemented in mruby-fiber
+pub extern fn mrb_fiber_alive_p(mrb: *mrb_state, fib: mrb_value) mrb_value;
+
+pub extern fn mrb_stack_extend(mrb_state: *mrb_state, mrb_int: mrb_int) void;
+
+// TODO: fiber errors
+// #define E_FIBER_ERROR mrb_exc_get_id(mrb, MRB_ERROR_SYM(FiberError))
+
+pub extern fn mrb_pool_open(mrb_state: *mrb_state) ?*mrb_pool;
+pub extern fn mrb_pool_close(pool: *mrb_pool) void;
+pub extern fn mrb_pool_alloc(pool: *mrb_pool, size: usize) ?*anyopaque;
+pub extern fn mrb_pool_realloc(pool: *mrb_pool, ptr: *anyopaque, oldlen: usize, newlen: usize) ?*anyopaque;
+pub extern fn mrb_pool_can_realloc(pool: *mrb_pool, ptr: *anyopaque, size: usize) mrb_bool;
+/// temporary memory allocation, only effective while GC arena is kept
+pub extern fn mrb_alloca(mrb: *mrb_state, size: usize) ?*anyopaque;
+
+pub extern fn mrb_state_atexit(mrb: *mrb_state, func: mrb_atexit_func) void;
+
+pub extern fn mrb_show_version(mrb: *mrb_state) void;
+pub extern fn mrb_show_copyright(mrb: *mrb_state) void;
+
+pub extern fn mrb_format(mrb: *mrb_state, format: [*:0]const u8, ...) mrb_value;
