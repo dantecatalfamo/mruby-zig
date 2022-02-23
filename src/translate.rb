@@ -19,8 +19,12 @@ def new_param(param)
     pointer = nil
   elsif pointer && param_parts[0] == 'const'
     # array
-    type = "[*]const #{param_parts[1]}"
+    type = "[*]const #{param_parts[1..-2].join(' ')}"
     pointer = nil
+  elsif pointer && param_parts[0] == 'void'
+    type = 'anyopaque'
+  elsif param_parts[0] == 'size_t'
+    type = 'usize'
   else
     # regular type
     type = param_parts[0]
@@ -35,6 +39,8 @@ def new_type(type)
   param_parts = pointerless.split(' ')
   type2 = if param_parts[0] == 'struct'
             param_parts[1]
+          elsif pointer && param_parts[0] == 'void'
+            'anyopaque'
           else
             param_parts[0]
           end
