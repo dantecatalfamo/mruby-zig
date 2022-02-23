@@ -7,6 +7,9 @@ def new_param(param)
   param_parts = param.split(' ')
   type = ''
   name = param_parts.last
+  # variadic
+  return '...' if param_parts[0] == '...'
+
   if param_parts[0] == 'struct'
     # struct
     type = param_parts[1]
@@ -22,6 +25,7 @@ def new_param(param)
     # regular type
     type = param_parts[0]
   end
+
   "#{name}: #{pointer}#{type}"
 end
 
@@ -38,16 +42,14 @@ def new_type(type)
 end
 
 ARGF.each_line do |line|
-  puts "/// #{line[3..]}" if line[0..2]['*'] # comment line
+  puts "/// #{line[3..].sub('*/', '')}" if line[0..2]['*'] # comment line
   next unless line.start_with?('MRB_API')
 
   line.sub!('MRB_API', '')
   line.sub!(';', '')
   return_type = line.match(/(.+?) mrb_/)[1].strip
   new_return_type = new_type(return_type)
-  puts "return type #{return_type}"
   line.sub!(return_type, '').strip!
-  puts "line after sub #{line}"
   func_split = line.split(/[()]/)
   func_name = func_split[0]
   params = func_split[1].split(',')
