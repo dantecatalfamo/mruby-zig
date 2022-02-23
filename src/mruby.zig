@@ -463,7 +463,7 @@ pub extern fn mrb_class_get_id(mrb: *mrb_state, name: mrb_sym) ?*RClass;
 /// @return [struct RClass *] A reference to the class.
 pub extern fn mrb_exc_get_id(mrb: *mrb_state, name: mrb_sym) ?*RClass;
 
-// TODO uncomment once mrb_intern_cstr works
+// TODO: uncomment once mrb_intern_cstr works
 // pub fn mrb_exc_get(mrb: *mrb_state, name: [*:0]const u8) ?*RClass {
 //     const name_sym = mrb_intern_cstr(mrb, name);
 //     mrb_exc_get_id(mrb, name_sym);
@@ -911,7 +911,7 @@ pub extern fn mrb_malloc_simple(mrb: *mrbf_state, size: usize) *anyopaque;
 pub extern fn mrb_obj_alloc(mrb: *mrb_state, vtype: mrb_vtype, cla: *RClass) ?*RClass;
 pub extern fn mrb_free(mrb: *mrb_state, ptr: *anyopaque) void;
 
-// /** TODO when MRB_VTYPE table works
+// /** TODO: when MRB_VTYPE table works
 //  * Allocates a Ruby object that matches the constant literal defined in
 //  * `enum mrb_vtype` and returns a pointer to the corresponding C type.
 //  *
