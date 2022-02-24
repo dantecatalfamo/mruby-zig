@@ -1,28 +1,148 @@
 const std = @import("std");
-const c = @cImport({
-    @cInclude("mruby.h");
-});
+
+///////////////////////////////////
+//            mruby.h            //
+///////////////////////////////////
 
 pub const mrb_gc = opaque {};
-pub const mrb_state = opaque {};
+// TODO: mrb_gc and mrb_state can only be opaque until the bitfield
+// situation is figured out
+
+// pub const mrb_gc = extern struct {
+//     heaps: ?*mrb_heap_page,
+//     sweeps: ?*mrb_heap_page,
+//     free_heaps: ?*mrb_heap_page,
+//     live: usize,
+//     arena_idx: i32,
+//     state: mrb_gc_state,
+//     current_white_part: i32,
+//     gray_list: ?*RBasic,
+//     atomic_gray_list: ?*RBasic,
+//     live_after_mark: usize,
+//     threshold: usize,
+//     interval_ratio: i32,
+//     step_ratio: i32,
+//     iterating: u1,
+//     disabled: u1,
+//     full: u1,
+//     generational: u1,
+//     majorgc_old_threshold: usize
+// };
 pub const mrb_irep = opaque {};
+pub const mrb_jmpbuf = opaque {};
+pub const mrb_context = opaque {};
+pub const mrb_state = opaque {};
+// TODO: Figure out if zero-width types can be used when fields are disabled
+// pub const mrb_state = extern struct {
+//     jmp: *mrb_jmpbuf,
+
+//     /// memory allocation function
+//     allocf: mrb_allocf,
+//     /// auxiliary data of allocf
+//     allocf_ud: *anyopaque,
+
+//     ctx: *mrb_context,
+//     root_ctx: *mrb_context,
+//     /// global variable table
+//     globals: *iv_tbl,
+
+//     /// exception
+//     exc: *RObject,
+
+//     top_self: *RObject,
+//     /// Object class
+//     object_class: *RClass,
+//     class_class:  *RClass,
+//     module_class: *RClass,
+//     proc_class:   *RClass,
+//     string_class: *RClass,
+//     array_class:  *RClass,
+//     hash_class:   *RClass,
+//     range_class:  *RClass,
+
+//     // HACK: Assume floats are enabled for now
+//     // #ifndef MRB_NO_FLOAT
+//     float_class: *RClass,
+//     // #endif
+//     integer_class: *RClass,
+//     true_class:    *RClass,
+//     false_class:   *RClass,
+//     nil_class:     *RClass,
+//     symbol_class:  *RClass,
+//     kernel_module: *RClass,
+
+//     gc: mrb_gc,
+
+//     // HACK: assume method cache for now
+//     // #ifndef MRB_NO_METHOD_CACHE
+//     // HACK: MRB_METHOD_CACHE_SIZE is based on profile, assume main profile for now
+//     cache: [1<<10]mrb_cache_entry,
+//     // #endif
+
+//     symidx: mrb_sym,
+//     symtbl: [*][*:0]const u8,
+//     symlink: *u8,
+//     symflags: *u8,
+//     symhash: [256]mrb_sym,
+//     symcapa: usize,
+//     // HACK: assume not using all_symbols for now
+//     // #ifndef MRB_USE_ALL_SYMBOLS
+//     /// buffer for small symbol names
+//     symbuf: [8]u8,
+//     //     #endif
+
+//     // HACK: assume no debug hook for now
+//     // #ifdef MRB_USE_DEBUG_HOOK
+//     // void (*code_fetch_hook)(struct mrb_state* mrb, const struct mrb_irep *irep, const mrb_code *pc, mrb_value *regs);
+//     // void (*debug_op_hook)(struct mrb_state* mrb, const struct mrb_irep *irep, const mrb_code *pc, mrb_value *regs);
+//     // #endif
+
+//     // HACK: assume bytecode decoder not used
+//     //#ifdef MRB_BYTECODE_DECODE_OPTION
+//     // mrb_code (*bytecode_decoder)(struct mrb_state* mrb, mrb_code code);
+//     // #endif
+
+//     eException_class: *RClass,
+//     eStandardError_class: *RClass,
+//     /// pre-allocated NoMemoryError
+//     nomem_err: *RObject,
+//     /// pre-allocated SysStackError
+//     stack_err: *RObject,
+
+//     // HACK: assume not fixed arena for now
+//     // #ifdef MRB_GC_FIXED_ARENA
+//     // struct RObject *arena_err;              /* pre-allocated arena overflow error */
+//     // #endif
+
+//     /// auxiliary data
+//     ud: *anyopaque,
+
+//     // HACK: assume not fixed atexit stack for now
+//     // #ifdef MRB_FIXED_STATE_ATEXIT_STACK
+//     // mrb_atexit_func atexit_stack[MRB_FIXED_STATE_ATEXIT_STACK_SIZE];
+//     // #else
+//     atexit_stack: [*]mrb_atexit_func,
+//     // #endif
+//     atexit_stack_len: u16,
+// };
+
 pub const mrb_callinfo = opaque {};
 pub const mrb_contect = opaque {};
 pub const mrb_jumpbuf = opaque {};
 pub const mrb_pool = opaque {};
+pub const mrb_method_t = opaque {};
+pub const mrb_cache_entry = opaque {};
 pub const mrb_code = u8;
 pub const mrb_aspec = u32;
 pub const mrb_sym = u32;
 pub const mrb_bool = bool;
 pub const mrb_noreturn = noreturn;
-pub const mrb_int = if (@hasDecl(c, "MRB_INT64")) i64 else i32;
-pub const mrb_uint = if (@hasDecl(c, "MRB_INT64")) u64 else u32;
-pub const mrb_value = if (@hasDecl(c, "MRB_NAN_BOXING"))
-    extern struct { u: u64 }
-else if (@hasDecl(c, "MRB_WORD_BOXING"))
-    extern struct { w: usize }
-else
-    @compileError("Not implemented");
+pub const mrb_ssize = isize;
+pub const mrb_int = isize;
+pub const mrb_uint = usize;
+pub const mrb_value = extern struct { w: usize }; // HACK: assume word boxing for now
+
+pub const iv_tbl = opaque {};
 
 pub const mrb_fiber_state = enum(c_int) {
   MRB_FIBER_CREATED,
@@ -32,6 +152,30 @@ pub const mrb_fiber_state = enum(c_int) {
   MRB_FIBER_TRANSFERRED,
   MRB_FIBER_TERMINATED,
 };
+
+pub const RClass = opaque {};
+pub const RObject = opaque {};
+pub const RBasic = opaque {};
+pub const RProc = opaque {};
+
+/// Function pointer type for a function callable by mruby.
+///
+/// The arguments to the function are stored on the mrb_state. To get them see mrb_get_args
+///
+/// @param mrb The mruby state
+/// @param self The self object
+/// @return [mrb_value] The function's return value
+pub const mrb_func_t = fn (mrb: *mrb_state, self: mrb_value) callconv(.C) mrb_value;
+pub const mrb_atexit_func = fn (mrb: *mrb_state) callconv(.C) void;
+
+/// Function pointer type of custom allocator used in @see mrb_open_allocf.
+///
+/// The function pointing it must behave similarly as realloc except:
+/// - If ptr is NULL it must allocate new space.
+/// - If s is NULL, ptr must be freed.
+///
+/// See @see mrb_default_allocf for the default implementation.
+pub const mrb_allocf = fn (mrb: *mrb_state, ptr: *anyopaque, size: usize, ud: *anyopaque) callconv(.C) *anyopaque;
 
 // TODO: make this work
 // #define MRB_VTYPE_FOREACH(f) \
@@ -64,7 +208,7 @@ pub const mrb_fiber_state = enum(c_int) {
 //   f(MRB_TT_COMPLEX,     struct RComplex,    "Complex") \
 //   f(MRB_TT_RATIONAL,    struct RRational,   "Rational")
 
-pub const mrb_vtype = enum {
+pub const mrb_vtype = enum(c_int) {
   MRB_TT_FALSE,
   MRB_TT_TRUE,
   MRB_TT_SYMBOL,
@@ -94,20 +238,6 @@ pub const mrb_vtype = enum {
   MRB_TT_RATIONAL,
 };
 
-pub const RClass = opaque {};
-pub const RObject = opaque {};
-pub const RProc = opaque {};
-
-/// Function pointer type for a function callable by mruby.
-///
-/// The arguments to the function are stored on the mrb_state. To get them see mrb_get_args
-///
-/// @param mrb The mruby state
-/// @param self The self object
-/// @return [mrb_value] The function's return value
-pub const mrb_func_t = fn (mrb: *mrb_state, self: mrb_value) callconv(.C) mrb_value;
-pub const mrb_atexit_func = fn (*mrb_state) void;
-
 /// Defines a new class.
 ///
 /// If you're creating a gem it may look something like this:
@@ -127,7 +257,7 @@ pub const mrb_atexit_func = fn (*mrb_state) void;
 /// @param super The new class parent.
 /// @return [struct RClass *] Reference to the newly defined class.
 /// @see mrb_define_class_under
-pub extern fn mrb_define_class(mrb: *mrb_state, name: [*:0]const u8, super: RClass) ?*RClass;
+pub extern fn mrb_define_class(mrb: *mrb_state, name: [*:0]const u8, super: *RClass) ?*RClass;
 pub extern fn mrb_define_class_id(mrb: *mrb_state, name: mrb_sym, super: *RClass) ?*RClass;
 
 /// Defines a new module.
@@ -320,7 +450,7 @@ pub extern fn mrb_define_const_id(mrb: *mrb_state, cla: *RClass, name: mrb_sym, 
 /// @param cla The class the method will be undefined from.
 /// @param name The name of the method to be undefined.
 pub extern fn mrb_undef_method(mrb: *mrb_state, cla: *RClass, name: [*:0]const u8) void;
-pub extern fn mrb_undef_method_id(mrb_state: *mrb_state, RClass: *RClass, mrb_sym: mrb_sym) void;
+pub extern fn mrb_undef_method_id(mrb_state: *mrb_state, RClass: *RClass, sym: mrb_sym) void;
 
 /// Undefine a class method.
 /// Example:
@@ -527,6 +657,7 @@ pub extern fn mrb_module_get_under_id(mrb: *mrb_state, outer: *RClass, name: mrb
 
 /// a function to raise NotImplementedError with current method name
 pub extern fn mrb_notimplement(mrb_state: *mrb_state) void;
+
 /// a function to be replacement of unimplemented method
 pub extern fn mrb_notimplement_m(mrb_state: *mrb_state, mrb_value: mrb_value) mrb_value;
 
@@ -597,7 +728,7 @@ pub extern fn mrb_define_module_under_id(mrb: *mrb_state, outer: *RClass, name: 
 ///
 /// @param n
 ///      The number of required arguments.
-pub fn mrb_args_req(n: u8) mrb_aspec {
+pub fn mrb_args_req(n: u32) mrb_aspec {
     return (n & 0x1f) << 18;
 }
 
@@ -605,7 +736,7 @@ pub fn mrb_args_req(n: u8) mrb_aspec {
 ///
 /// @param n
 ///      The number of optional arguments.
-pub fn mrb_args_opt(n: u8) mrb_aspec {
+pub fn mrb_args_opt(n: u32) mrb_aspec {
     return (n & 0x1f) << 13;
 }
 
@@ -615,7 +746,7 @@ pub fn mrb_args_opt(n: u8) mrb_aspec {
 ///      The number of required arguments.
 /// @param n2
 ///      The number of optional arguments.
-pub fn mrb_args_arg(n1: u8, n2: u8) mrb_aspec {
+pub fn mrb_args_arg(n1: u32, n2: u32) mrb_aspec {
     return mrb_args_req(n1) | mrb_args_opt(n2);
 }
 
@@ -631,7 +762,7 @@ pub fn mrb_args_post(n: u8) mrb_aspec {
 
 ///  keyword arguments (n of keys, kdict)
 pub fn mrb_args_key(n1: u8, n2: u8) mrb_aspec {
-    return ((n1 & 0x1f) << 2) | (if (n2 != 0) (1<<1) else 0);
+    return ((n1 & 0x1f) << 2) | (if (n2 != 0) @as(u8, 1<<1) else 0);
 }
 
 /// Function takes a block argument
@@ -648,7 +779,6 @@ pub fn mrb_args_any() mrb_aspec {
 pub fn mrb_args_none() mrb_aspec {
     return 0;
 }
-
 
 /// Format specifiers for {mrb_get_args} function
 ///
@@ -731,7 +861,6 @@ pub const mrb_args_format = [*:0]const u8;
 ///      // or: mrb_get_args(mrb, ":S", &kwargs, &str);
 ///      if (mrb_undef_p(kw_values[1])) { kw_values[1] = mrb_fixnum_value(2); }
 ///      if (mrb_undef_p(kw_values[2])) { kw_values[2] = mrb_str_new_cstr(mrb, "default string"); }
-
 pub const mrb_kwargs = extern struct {
     /// number of keyword arguments
     num: u32,
@@ -753,7 +882,6 @@ pub const mrb_kwargs = extern struct {
 /// @return the number of arguments retrieved.
 /// @see mrb_args_format
 /// @see mrb_kwargs
-///
 pub extern fn mrb_get_args(mrb: *mrb_state, format: mrb_args_format, ...) mrb_int;
 
 // TODO: after non-opaque mrb_state
@@ -850,9 +978,8 @@ pub extern fn mrb_funcall_with_block(mrb: *mrb_state, val: mrb_value, name: mrb_
 ///  If `lit` is not one, the compiler will report a syntax error:
 ///   MSVC: "error C2143: syntax error : missing ')' before 'string'"
 ///   GCC:  "error: expected ')' before string constant"
-///
-pub fn mrb_strlen_lit(lit: []const u8) usize {
-    return @sizeOf(lit);
+pub fn mrb_strlen_lit(lit: [*:0]const u8) usize {
+    return std.mem.len(lit);
 }
 
 /// Create a symbol from C string. But usually it's better to use MRB_SYM,
@@ -872,8 +999,8 @@ pub fn mrb_strlen_lit(lit: []const u8) usize {
 /// @param str The string to be symbolized
 /// @return [mrb_sym] mrb_sym A symbol.
 pub extern fn mrb_intern_cstr(mrb: *mrb_state, str: [*:0]const u8) mrb_sym;
-pub extern fn mrb_intern(mrb_state: *mrb_state, char: [*:0]const u8, size_t: size_t) mrb_sym;
-pub extern fn mrb_intern_static(mrb_state: *mrb_state, char: [*:0]const u8, size_t: size_t) mrb_sym;
+pub extern fn mrb_intern(mrb_state: *mrb_state, char: [*:0]const u8, size: usize) mrb_sym;
+pub extern fn mrb_intern_static(mrb_state: *mrb_state, char: [*:0]const u8, size: usize) mrb_sym;
 pub fn mrb_intern_lit(mrb: *mrb_state, lit: [:0]const u8) mrb_sym {
     return mrb_intern_static(mrb, lit, mrb_strlen_lit(lit));
 }
@@ -892,13 +1019,13 @@ pub extern fn mrb_sym_name_len(mrb: *mrb_state, sym: mrb_sym, len: *mrb_int) [*:
 pub extern fn mrb_sym_dump(mrb: *mrb_state, sym: mrb_sym) [*:0]const u8;
 pub extern fn mrb_sym_str(mrb: *mrb_state, sym: mrb_sym) mrb_value;
 pub fn mrb_sym2name(mrb: *mrb_state, sym: mrb_sym) [*:0]const u8 {
-    mrb_sym_name(mrb, sym);
+    return mrb_sym_name(mrb, sym);
 }
-pub fn mrb_sym2name_len(mrb: *mrb_state, mrb_sym: sym, len: *mrb_int) [*:0]const u8 {
+pub fn mrb_sym2name_len(mrb: *mrb_state, sym: mrb_sym, len: *mrb_int) [*:0]const u8 {
     return mrb_sym_name_len(mrb, sym, len);
 }
 pub fn mrb_sym2str(mrb: *mrb_state, sym: mrb_sym) mrb_value {
-    mrb_sym_str(mrb, sym);
+    return mrb_sym_str(mrb, sym);
 }
 
 /// raise RuntimeError if no mem
@@ -910,7 +1037,7 @@ pub extern fn mrb_realloc(mrb: *mrb_state, ptr: *anyopaque, size: usize) *anyopa
 /// return NULL if no memory available
 pub extern fn mrb_realloc_simple(mrb: *mrb_state, ptr: *anyopaque, size: usize) *anyopaque;
 /// return NULL if no memory available
-pub extern fn mrb_malloc_simple(mrb: *mrbf_state, size: usize) *anyopaque;
+pub extern fn mrb_malloc_simple(mrb: *mrb_state, size: usize) *anyopaque;
 pub extern fn mrb_obj_alloc(mrb: *mrb_state, vtype: mrb_vtype, cla: *RClass) ?*RClass;
 pub extern fn mrb_free(mrb: *mrb_state, ptr: *anyopaque) void;
 
@@ -929,7 +1056,7 @@ pub extern fn mrb_str_new(mrb: *mrb_state, p: [*:0]const u8, len: usize) mrb_val
 
 /// Turns a C string into a Ruby string value.
 pub extern fn mrb_str_new_cstr(mrb: *mrb_state, str: [*:0]const u8) mrb_value;
-pub extern fn mrb_str_new_static(mrb: *mrb_state, p: [*:0]const u8, len: len) mrb_value;
+pub extern fn mrb_str_new_static(mrb: *mrb_state, p: [*:0]const u8, len: usize) mrb_value;
 pub fn mrb_str_new_lit(mrb: *mrb_state, lit: [*:0]const u8) mrb_value {
     return mrb_str_new_static(mrb, lit, mrb_strlen_lit(lit));
 }
@@ -943,7 +1070,7 @@ pub fn mrb_str_new_cstr_frozen(mrb: *mrb_state, p: [*:0]const u8) mrb_value {
     const value = mrb_str_new_cstr(mrb, p);
     return mrb_obj_freeze(mrb, value);
 }
-pub fn mrb_str_new_static_frozen(mrb: *mrb_state, p: [*:0]const u8, len: len) mrb_value {
+pub fn mrb_str_new_static_frozen(mrb: *mrb_state, p: [*:0]const u8, len: usize) mrb_value {
     const value = mrb_str_new_static(mrb, p, len);
     return mrb_obj_freeze(mrb, value);
 }
@@ -1066,13 +1193,13 @@ pub extern fn mrb_obj_is_kind_of(mrb: *mrb_state, obj: mrb_value, cla: *RClass) 
 pub extern fn mrb_obj_inspect(mrb: *mrb_state, self: mrb_value) mrb_value;
 pub extern fn mrb_obj_clone(mrb: *mrb_state, self: mrb_value) mrb_value;
 
-pub extern fn mrb_exc_new(mrb: *mrb_state, cla: *RClass, ptr: [*:0]const u8, len: size_t) mrb_value;
+pub extern fn mrb_exc_new(mrb: *mrb_state, cla: *RClass, ptr: [*:0]const u8, len: usize) mrb_value;
 pub extern fn mrb_exc_raise(mrb: *mrb_state, exc: mrb_value) mrb_noreturn;
 pub extern fn mrb_raise(mrb: *mrb_state, cla: *RClass, msg: [*:0]const u8) mrb_noreturn;
 pub extern fn mrb_raisef(mrb: *mrb_state, cla: *RClass, fmt: [*:0]const u8, ...) mrb_noreturn;
 pub extern fn mrb_name_error(mrb: *mrb_state, id: mrb_sym, fmt: [*:0]const u8, ...) mrb_noreturn;
 pub extern fn mrb_frozen_error(mrb: *mrb_state, frozen_obj: *anyopaque) mrb_noreturn;
-pub extern fn mrb_argnum_error(mrb: *mrb_state, argc: mrb_int, min: int, max: int) mrb_noreturn;
+pub extern fn mrb_argnum_error(mrb: *mrb_state, argc: mrb_int, min: c_int, max: c_int) mrb_noreturn;
 pub extern fn mrb_warn(mrb: *mrb_state, fmt: [*:0]const u8, ...) void;
 pub extern fn mrb_bug(mrb: *mrb_state, fmt: [*:0]const u8, ...) mrb_noreturn;
 pub extern fn mrb_print_backtrace(mrb: *mrb_state) void;
@@ -1158,3 +1285,19 @@ pub extern fn mrb_show_version(mrb: *mrb_state) void;
 pub extern fn mrb_show_copyright(mrb: *mrb_state) void;
 
 pub extern fn mrb_format(mrb: *mrb_state, format: [*:0]const u8, ...) mrb_value;
+
+
+/////////////////////////////////////////
+//            mruby/array.h            //
+/////////////////////////////////////////
+
+
+pub const mrb_shared_array = struct {
+    redcnt: c_int,
+    mrb_ssize: len,
+    ptr: *mrb_value,
+};
+
+test "ref all decls" {
+    std.testing.refAllDecls(@This());
+}
