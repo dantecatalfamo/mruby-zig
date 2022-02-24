@@ -1303,6 +1303,182 @@ pub const mrb_shared_array = struct {
     ptr: *mrb_value,
 };
 
+// TODO: Many array macros not added yet
+
+/// Initializes a new array.
+///
+/// Equivalent to:
+///
+///      Array.new
+///
+/// @param mrb The mruby state reference.
+/// @return The initialized array.
+pub extern fn mrb_ary_new(mrb: *mrb_state) mrb_value;
+
+/// Initializes a new array with initial values
+///
+/// Equivalent to:
+///
+///      Array[value1, value2, ...]
+///
+/// @param mrb The mruby state reference.
+/// @param size The number of values.
+/// @param vals The actual values.
+/// @return The initialized array.
+pub extern fn mrb_ary_new_from_values(mrb: *mrb_state, size: mrb_int, vals: [*]const mrb_value) mrb_value;
+
+/// Initializes a new array with two initial values
+///
+/// Equivalent to:
+///
+///      Array[car, cdr]
+///
+/// @param mrb The mruby state reference.
+/// @param car The first value.
+/// @param cdr The second value.
+/// @return The initialized array.
+pub extern fn mrb_assoc_new(mrb: *mrb_state, car: mrb_value, cdr: mrb_value) mrb_value;
+
+/// Concatenate two arrays. The target array will be modified
+///
+/// Equivalent to:
+///      ary.concat(other)
+///
+/// @param mrb The mruby state reference.
+/// @param self The target array.
+/// @param other The array that will be concatenated to self.
+pub extern fn mrb_ary_concat(mrb: *mrb_state, self: mrb_value, other: mrb_value) void;
+
+/// Create an array from the input. It tries calling to_a on the
+/// value. If value does not respond to that, it creates a new
+/// array with just this value.
+///
+/// @param mrb The mruby state reference.
+/// @param value The value to change into an array.
+/// @return An array representation of value.
+pub extern fn mrb_ary_splat(mrb: *mrb_state, value: mrb_value) mrb_value;
+
+/// Pushes value into array.
+///
+/// Equivalent to:
+///
+///      ary << value
+///
+/// @param mrb The mruby state reference.
+/// @param ary The array in which the value will be pushed
+/// @param value The value to be pushed into array
+pub extern fn mrb_ary_push(mrb: *mrb_state, array: mrb_value, value: mrb_value) void;
+
+/// Pops the last element from the array.
+///
+/// Equivalent to:
+///
+///      ary.pop
+///
+/// @param mrb The mruby state reference.
+/// @param ary The array from which the value will be popped.
+/// @return The popped value.
+pub extern fn mrb_ary_pop(mrb: *mrb_state, ary: mrb_value) mrb_value;
+
+/// Sets a value on an array at the given index
+///
+/// Equivalent to:
+///
+///      ary[n] = val
+///
+/// @param mrb The mruby state reference.
+/// @param ary The target array.
+/// @param n The array index being referenced.
+/// @param val The value being set.
+pub extern fn mrb_ary_set(mrb: *mrb_state, ary: mrb_value, n: mrb_int, val: mrb_value) void;
+
+/// Replace the array with another array
+///
+/// Equivalent to:
+///
+///      ary.replace(other)
+///
+/// @param mrb The mruby state reference
+/// @param self The target array.
+/// @param other The array to replace it with.
+pub extern fn mrb_ary_replace(mrb: *mrb_state, self: mrb_value, other: mrb_value) void;
+
+/// Unshift an element into the array
+///
+/// Equivalent to:
+///
+///     ary.unshift(item)
+///
+/// @param mrb The mruby state reference.
+/// @param self The target array.
+/// @param item The item to unshift.
+pub extern fn mrb_ary_unshift(mrb: *mrb_state, self: mrb_value, item: mrb_value) mrb_value;
+
+/// Get nth element in the array
+///
+/// Equivalent to:
+///
+///     ary[offset]
+///
+/// @param ary The target array.
+/// @param offset The element position (negative counts from the tail).
+pub extern fn mrb_ary_entry(ary: mrb_value, offset: mrb_int) mrb_value;
+
+/// Replace subsequence of an array.
+///
+/// Equivalent to:
+///
+///      ary[head, len] = rpl
+///
+/// @param mrb The mruby state reference.
+/// @param self The array from which the value will be partiality replaced.
+/// @param head Beginning position of a replacement subsequence.
+/// @param len Length of a replacement subsequence.
+/// @param rpl The array of replacement elements.
+///            It is possible to pass `mrb_undef_value()` instead of an empty array.
+/// @return The receiver array.
+pub extern fn mrb_ary_splice(mrb: *mrb_state, self: mrb_value, head: mrb_int, len: mrb_int, rpl: mrb_value) mrb_value;
+
+/// Shifts the first element from the array.
+///
+/// Equivalent to:
+///
+///      ary.shift
+///
+/// @param mrb The mruby state reference.
+/// @param self The array from which the value will be shifted.
+/// @return The shifted value.
+pub extern fn mrb_ary_shift(mrb: *mrb_state, self: mrb_value) mrb_value;
+
+/// Removes all elements from the array
+///
+/// Equivalent to:
+///
+///      ary.clear
+///
+/// @param mrb The mruby state reference.
+/// @param self The target array.
+/// @return self
+pub extern fn mrb_ary_clear(mrb: *mrb_state, self: mrb_value) mrb_value;
+
+/// Join the array elements together in a string
+///
+/// Equivalent to:
+///
+///      ary.join(sep="")
+///
+/// @param mrb The mruby state reference.
+/// @param ary The target array
+/// @param sep The separator, can be NULL
+pub extern fn mrb_ary_join(mrb: *mrb_state, ary: mrb_value, sep: mrb_value) mrb_value;
+
+/// Update the capacity of the array
+///
+/// @param mrb The mruby state reference.
+/// @param ary The target array.
+/// @param new_len The new capacity of the array
+pub extern fn mrb_ary_resize(mrb: *mrb_state, ary: mrb_value, new_len: mrb_int) mrb_value;
+
 
 ///////////////////////////////////////////
 //            mruby/compile.h            //
