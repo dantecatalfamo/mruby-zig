@@ -24,8 +24,6 @@ pub extern fn mrb_state_get_false_class(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_state_get_nil_class(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_state_get_symbol_class(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_state_get_kernel_module(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_gc_arena_save(mrb: *mrb_state) c_int;
-pub extern fn mrb_gc_arena_restore(mrb: *mrb_state) void;
 
 
 ///////////////////////////////////
@@ -1182,18 +1180,8 @@ pub extern fn mrb_eql(mrb: *mrb_state, obj1: mrb_value, obj2: mrb_value) mrb_boo
 /// mrb_cmp(mrb, obj1, obj2): 1:0:-1; -2 for error
 pub extern fn mrb_cmp(mrb: *mrb_state, obj1: mrb_value, obj2: mrb_value) mrb_int;
 
-// TODO: non-opaque mrb_state required
-// MRB_INLINE int
-// mrb_gc_arena_save(mrb_state *mrb)
-// {
-//   return mrb->gc.arena_idx;
-// }
-
-// MRB_INLINE void
-// mrb_gc_arena_restore(mrb_state *mrb, int idx)
-// {
-//   mrb->gc.arena_idx = idx;
-// }
+pub extern fn mrb_gc_arena_save(mrb: *mrb_state) c_int;
+pub extern fn mrb_gc_arena_restore(mrb: *mrb_state) void;
 
 pub extern fn mrb_garbage_collect(mrb: *mrb_state) void;
 pub extern fn mrb_full_gc(mrb: *mrb_state) void;
