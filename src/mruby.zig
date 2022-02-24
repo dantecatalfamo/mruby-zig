@@ -1,4 +1,9 @@
 const std = @import("std");
+const FILE = std.c.FILE;
+
+test "ref all decls" {
+    std.testing.refAllDecls(@This());
+}
 
 ///////////////////////////////////
 //            mruby.h            //
@@ -127,7 +132,6 @@ pub const mrb_state = opaque {};
 // };
 
 pub const mrb_callinfo = opaque {};
-pub const mrb_contect = opaque {};
 pub const mrb_jumpbuf = opaque {};
 pub const mrb_pool = opaque {};
 pub const mrb_method_t = opaque {};
@@ -1291,13 +1295,54 @@ pub extern fn mrb_format(mrb: *mrb_state, format: [*:0]const u8, ...) mrb_value;
 //            mruby/array.h            //
 /////////////////////////////////////////
 
+pub const RArray = opaque {};
 
 pub const mrb_shared_array = struct {
     redcnt: c_int,
-    mrb_ssize: len,
+    len: mrb_ssize,
     ptr: *mrb_value,
 };
 
-test "ref all decls" {
-    std.testing.refAllDecls(@This());
-}
+
+///////////////////////////////////////////
+//            mruby/compile.h            //
+///////////////////////////////////////////
+
+pub const mrb_parser_state = opaque {};
+
+/// load context
+pub const mrbc_context = opaque {};
+
+pub extern fn mrbc_context_new(mrb: *mrb_state) ?*mrbc_context;
+pub extern fn mrbc_context_free(mrb: *mrb_state, cxt: *mrbc_context) void;
+pub extern fn mrbc_filename(mrb: *mrb_state, cxt: *mrbc_context, s: [*:0]const u8) ?[*:0]const u8;
+pub extern fn mrbc_partial_hook(mrb: *mrb_state, cxt: *mrbc_context, partial_hook: fn (state: *mrb_parser_state) callconv(.C) c_int, data: *anyopaque) void;
+pub extern fn mrbc_cleanup_local_variables(mrb: *mrb_state, cxt: *mrbc_context) void;
+
+/// AST node structure
+pub const mrb_ast_node = extern struct {
+    car: *mrb_ast_node,
+    cdr: *mrb_ast_node,
+    lineno: u16,
+    filename_index: u16,
+};
+
+// TODO: lexer/parser structs and functions not added yet
+
+/// program load functions
+/// Please note! Currently due to interactions with the GC calling these functions will
+/// leak one RProc object per function call.
+/// To prevent this save the current memory arena before calling and restore the arena
+/// right after, like so
+/// int ai = mrb_gc_arena_save(mrb);
+/// mrb_value status = mrb_load_string(mrb, buffer);
+/// mrb_gc_arena_restore(mrb, ai);
+// #ifndef MRB_NO_STDIO
+pub extern fn mrb_load_file(mrb: *mrb_state, fp: *FILE) mrb_value;
+pub extern fn mrb_load_file_cxt(mrb: *mrb_state, fp: *FILE, cxt: *mrbc_context) mrb_value;
+pub extern fn mrb_load_detect_file_cxt(mrb: *mrb_state, fp: *FILE, cxt: *mrbc_context) mrb_value;
+// #endif
+pub extern fn mrb_load_string(mrb: *mrb_state, s: [*:0]const u8) mrb_value;
+pub extern fn mrb_load_nstring(mrb: *mrb_state, s: [*:0]const u8, len: usize) mrb_value;
+pub extern fn mrb_load_string_cxt(mrb: *mrb_state, s: [*:0]const u8, cxt: *mrbc_context) mrb_value;
+pub extern fn mrb_load_nstring_cxt(mrb: *mrb_state, s: [*:0]const u8, len: usize, cxt: *mrbc_context) mrb_value;
