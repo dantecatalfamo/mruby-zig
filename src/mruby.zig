@@ -27,6 +27,29 @@ pub extern fn mrb_state_get_kernel_module(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_gc_arena_save(mrb: *mrb_state) c_int;
 pub extern fn mrb_gc_arena_restore(mrb: *mrb_state) void;
 
+/// Returns a float in Ruby.
+///
+/// Takes a float and boxes it into an mrb_value
+pub extern fn mrb_float_value(mrb: *mrb_state, f: mrb_float) mrb_value;
+pub extern fn mrb_cptr_value(mrb: *mrb_state, p: *anyopaque) mrb_value;
+/// Returns an integer in Ruby.
+pub extern fn mrb_int_value(mrb: *mrb_state, i: mrb_int) mrb_value;
+pub extern fn mrb_fixnum_value(i: mrb_int) mrb_value;
+pub extern fn mrb_symbol_value(i: mrb_sym) mrb_value;
+pub extern fn mrb_obj_value(p: *anyopaque) mrb_value;
+/// Get a nil mrb_value object.
+///
+/// @return
+///      nil mrb_value object reference.
+pub extern fn mrb_nil_value() mrb_value;
+/// Returns false in Ruby.
+pub extern fn mrb_false_value() mrb_value;
+/// Returns true in Ruby.
+pub extern fn mrb_true_value() mrb_value;
+pub extern fn mrb_bool_value(boolean: mrb_bool) mrb_value;
+pub extern fn mrb_undef_value() mrb_value;
+
+
 ///////////////////////////////////
 //            mruby.h            //
 ///////////////////////////////////
@@ -166,6 +189,7 @@ pub const mrb_noreturn = noreturn;
 pub const mrb_ssize = isize;
 pub const mrb_int = isize;
 pub const mrb_uint = usize;
+pub const mrb_float = f64; // HACK: assume 64-bit float for now
 pub const mrb_value = extern struct { w: usize }; // HACK: assume word boxing for now
 
 pub const iv_tbl = opaque {};
