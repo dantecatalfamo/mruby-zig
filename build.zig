@@ -18,6 +18,7 @@ pub fn build(b: *std.build.Builder) void {
     exe.addLibraryPath("../../mruby/mruby/build/host/lib");
     exe.linkSystemLibrary("mruby");
     exe.linkLibC();
+    exe.addCSourceFile("src/mrb_state_hack.c", &.{});
     exe.install();
 
     const run_cmd = exe.run();

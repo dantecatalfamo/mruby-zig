@@ -7,7 +7,19 @@ pub fn main() anyerror!void {
     std.log.debug("state pointer: {p}", .{ mrb });
     mruby.mrb_show_version(mrb);
     mruby.mrb_show_copyright(mrb);
-    _ = mruby.mrb_load_string(mrb, "puts 'hello from ruby!'");
+    const program =
+        \\ puts "hello from ruby!"
+    ;
+    _ = mruby.mrb_load_string(mrb, program);
+    const kptr = mruby.mrb_state_get_kernel_module(mrb).?;
+    std.log.debug("kernel module ponter: {p}", .{ kptr });
+    mruby.mrb_define_module_function(mrb, kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
+    _ = mruby.mrb_load_string(mrb, "zigfunc");
+}
+
+export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
+    std.log.debug("Zig function called from ruby! mrb: {p}, self: {}", .{ mrb, self });
+    return self;
 }
 
 test "ref all decls" {

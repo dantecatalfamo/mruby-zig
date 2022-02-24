@@ -5,6 +5,27 @@ test "ref all decls" {
     std.testing.refAllDecls(@This());
 }
 
+// Struct hacks
+
+pub extern fn mrb_state_get_exc(mrb: *mrb_state) ?*RObject;
+pub extern fn mrb_state_get_top_self(mrb: *mrb_state) ?*RObject;
+pub extern fn mrb_state_get_object_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_class_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_module_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_proc_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_string_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_array_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_hash_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_range_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_float_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_integer_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_true_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_false_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_nil_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_symbol_class(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_kernel_module(mrb: *mrb_state) ?*RClass;
+
+
 ///////////////////////////////////
 //            mruby.h            //
 ///////////////////////////////////
