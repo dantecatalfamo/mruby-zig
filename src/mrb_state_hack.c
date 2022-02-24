@@ -51,3 +51,9 @@ struct RClass *mrb_state_get_symbol_class(mrb_state *mrb) {
 struct RClass *mrb_state_get_kernel_module(mrb_state *mrb) {
     return mrb->kernel_module;
 }
+int mrb_gc_arena_save(mrb_state *mrb) {
+  return mrb->gc.arena_idx;
+}
+void mrb_gc_arena_restore(mrb_state *mrb, int idx) {
+  mrb->gc.arena_idx = idx;
+}

@@ -24,7 +24,8 @@ pub extern fn mrb_state_get_false_class(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_state_get_nil_class(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_state_get_symbol_class(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_state_get_kernel_module(mrb: *mrb_state) ?*RClass;
-
+pub extern fn mrb_gc_arena_save(mrb: *mrb_state) c_int;
+pub extern fn mrb_gc_arena_restore(mrb: *mrb_state) void;
 
 ///////////////////////////////////
 //            mruby.h            //
