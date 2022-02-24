@@ -17,6 +17,7 @@ pub fn build(b: *std.build.Builder) void {
     exe.addSystemIncludePath("../../mruby/mruby/include/");
     exe.addLibraryPath("../../mruby/mruby/build/host/lib");
     exe.linkSystemLibrary("mruby");
+    exe.linkLibC();
     exe.install();
 
     const run_cmd = exe.run();
@@ -34,6 +35,7 @@ pub fn build(b: *std.build.Builder) void {
     exe_tests.addSystemIncludePath("../../mruby/mruby/include/");
     exe_tests.addLibraryPath("../../mruby/mruby/build/host/lib");
     exe_tests.linkSystemLibrary("mruby");
+    exe_tests.linkLibC();
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&exe_tests.step);
