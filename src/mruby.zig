@@ -1522,3 +1522,84 @@ pub extern fn mrb_load_string(mrb: *mrb_state, s: [*:0]const u8) mrb_value;
 pub extern fn mrb_load_nstring(mrb: *mrb_state, s: [*:0]const u8, len: usize) mrb_value;
 pub extern fn mrb_load_string_cxt(mrb: *mrb_state, s: [*:0]const u8, cxt: *mrbc_context) mrb_value;
 pub extern fn mrb_load_nstring_cxt(mrb: *mrb_state, s: [*:0]const u8, len: usize, cxt: *mrbc_context) mrb_value;
+
+
+////////////////////////////////////////////
+//            mruby/variable.h            //
+////////////////////////////////////////////
+
+pub extern fn mrb_const_get(mrb_state: *mrb_state, mrb_value: mrb_value, mrb_sym: mrb_sym) mrb_value;
+pub extern fn mrb_const_set(mrb_state: *mrb_state, mrb_value: mrb_value, mrb_sym: mrb_sym, mrb_value: mrb_value) void;
+pub extern fn mrb_const_defined(mrb_state: *mrb_state, mrb_value: mrb_value, mrb_sym: mrb_sym) mrb_bool;
+pub extern fn mrb_const_remove(mrb_state: *mrb_state, mrb_value: mrb_value, mrb_sym: mrb_sym) void;
+
+pub extern fn mrb_iv_name_sym_p(mrb: *mrb_state, sym: mrb_sym) mrb_bool;
+pub extern fn mrb_iv_name_sym_check(mrb: *mrb_state, sym: mrb_sym) void;
+pub extern fn mrb_obj_iv_get(mrb: *mrb_state, obj: *RObject, sym: mrb_sym) mrb_value;
+pub extern fn mrb_obj_iv_set(mrb: *mrb_state, obj: *RObject, sym: mrb_sym, v: mrb_value) void;
+pub extern fn mrb_obj_iv_defined(mrb: *mrb_state, obj: *RObject, sym: mrb_sym) mrb_bool;
+pub extern fn mrb_iv_get(mrb: *mrb_state, obj: mrb_value, sym: mrb_sym) mrb_value;
+pub extern fn mrb_iv_set(mrb: *mrb_state, obj: mrb_value, sym: mrb_sym, v: mrb_value) void;
+pub extern fn mrb_iv_defined(mrb_state: *mrb_state, mrb_value: mrb_value, mrb_sym: mrb_sym) mrb_bool;
+pub extern fn mrb_iv_remove(mrb: *mrb_state, obj: mrb_value, sym: mrb_sym) mrb_value;
+pub extern fn mrb_iv_copy(mrb: *mrb_state, dst: mrb_value, src: mrb_value) void;
+pub extern fn mrb_const_defined_at(mrb: *mrb_state, mod: mrb_value, id: mrb_sym) mrb_bool;
+
+/// Get a global variable. Will return nil if the var does not exist
+///
+/// Example:
+///
+///     !!!ruby
+///     # Ruby style
+///     var = $value
+///
+///     !!!c
+///     // C style
+///     mrb_sym sym = mrb_intern_lit(mrb, "$value");
+///     mrb_value var = mrb_gv_get(mrb, sym);
+///
+/// @param mrb The mruby state reference
+/// @param sym The name of the global variable
+/// @return The value of that global variable. May be nil
+pub extern fn mrb_gv_get(mrb: *mrb_state, sym: mrb_sym) mrb_value;
+
+/// Set a global variable
+///
+/// Example:
+///
+///     !!!ruby
+///     # Ruby style
+///     $value = "foo"
+///
+///     !!!c
+///     // C style
+///     mrb_sym sym = mrb_intern_lit(mrb, "$value");
+///     mrb_gv_set(mrb, sym, mrb_str_new_lit("foo"));
+///
+/// @param mrb The mruby state reference
+/// @param sym The name of the global variable
+/// @param val The value of the global variable
+pub extern fn mrb_gv_set(mrb: *mrb_state, sym: mrb_sym, val: mrb_value) void;
+
+/// Remove a global variable.
+///
+/// Example:
+///
+///     # Ruby style
+///     $value = nil
+///
+///     // C style
+///     mrb_sym sym = mrb_intern_lit(mrb, "$value");
+///     mrb_gv_remove(mrb, sym);
+///
+/// @param mrb The mruby state reference
+/// @param sym The name of the global variable
+pub extern fn mrb_gv_remove(mrb: *mrb_state, sym: mrb_sym) void;
+
+pub extern fn mrb_cv_get(mrb: *mrb_state, mod: mrb_value, sym: mrb_sym) mrb_value;
+pub extern fn mrb_mod_cv_set(mrb: *mrb_state, c: *RClass, sym: mrb_sym, v: mrb_value) void;
+pub extern fn mrb_cv_set(mrb: *mrb_state, mod: mrb_value, sym: mrb_sym, v: mrb_value) void;
+pub extern fn mrb_cv_defined(mrb: *mrb_state, mod: mrb_value, sym: mrb_sym) mrb_bool;
+
+pub const mrb_iv_foreach_func = fn (mrb: *mrb_state, sym: mrb_sym, val: mrb_value, ptr: *anyopaque) callconv(.C) c_int;
+pub extern fn mrb_iv_foreach(mrb: *mrb_state, obj: mrb_value, func: mrb_iv_foreach_func, ptr: *anyopaque) void;
