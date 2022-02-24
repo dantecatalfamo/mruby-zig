@@ -7,6 +7,7 @@ pub fn main() anyerror!void {
     std.log.debug("state pointer: {p}", .{ mrb });
     mruby.mrb_show_version(mrb);
     mruby.mrb_show_copyright(mrb);
+    _ = mruby.mrb_load_string(mrb, "puts 'hello from ruby!'");
 }
 
 test "ref all decls" {
