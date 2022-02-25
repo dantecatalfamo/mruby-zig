@@ -1491,6 +1491,10 @@ pub extern fn mrb_ary_join(mrb: *mrb_state, ary: mrb_value, sep: mrb_value) mrb_
 /// @param new_len The new capacity of the array
 pub extern fn mrb_ary_resize(mrb: *mrb_state, ary: mrb_value, new_len: mrb_int) mrb_value;
 
+// hacks
+pub extern fn mrb_ary_get_ptr(val: mrb_value) *RArray;
+pub extern fn mrb_ary_get_value(ptr: *RArray) mrb_value;
+pub extern fn mrb_ary_len(ptr: *RArray) mrb_int;
 
 ///////////////////////////////////////////
 //            mruby/compile.h            //
@@ -1621,6 +1625,8 @@ pub extern fn mrb_iv_foreach(mrb: *mrb_state, obj: mrb_value, func: mrb_iv_forea
 //            mruby/value.h            //
 /////////////////////////////////////////
 
+pub const RCptr = opaque {};
+
 /// Returns a float in Ruby.
 ///
 /// Takes a float and boxes it into an mrb_value
@@ -1642,6 +1648,24 @@ pub extern fn mrb_false_value() mrb_value;
 pub extern fn mrb_true_value() mrb_value;
 pub extern fn mrb_bool_value(boolean: mrb_bool) mrb_value;
 pub extern fn mrb_undef_value() mrb_value;
+
+
+/////////////////////////////////////////////////
+//            mruby/<boxing_type>.h            //
+/////////////////////////////////////////////////
+
+
+pub const RInteger = opaque {};
+pub const RFloat = opaque {};
+pub extern fn mrb_integer_func(o: mrb_value) mrb_int;
+pub extern fn mrb_type(o: mrb_value) mrb_vtype;
+pub extern fn mrb_get_prt(v: mrb_value) *anyopaque;
+pub extern fn mrb_get_cptr(v: mrb_value) *anyopaque;
+pub extern fn mrb_get_float(v: mrb_value) mrb_float;
+pub extern fn mrb_get_integer(v: mrb_value) mrb_int;
+pub extern fn mrb_get_sym(v: mrb_value) mrb_sym;
+pub extern fn mrb_get_bool(v: mrb_value) mrb_bool;
+
 
 /////////////////////////////////////////
 //            mruby/class.h            //

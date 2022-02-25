@@ -1,4 +1,9 @@
 #include <mruby.h>
+#include <mruby/array.h>
+
+/*
+ *  mruby.h
+ */
 
 struct RObject *mrb_state_get_exc(mrb_state *mrb) {
     return mrb->exc;
@@ -50,4 +55,41 @@ struct RClass *mrb_state_get_symbol_class(mrb_state *mrb) {
 }
 struct RClass *mrb_state_get_kernel_module(mrb_state *mrb) {
     return mrb->kernel_module;
+}
+
+/*
+ *   mruby/array.h
+ */
+
+struct RArray *mrb_ary_get_ptr(mrb_value val) {
+    return mrb_ary_ptr(val);
+}
+mrb_value mrb_ary_get_value(struct RArray *p) {
+    return mrb_ary_value(p);
+}
+mrb_int mrb_ary_len(struct RArray *p) {
+    return ARY_LEN(p);
+}
+
+/*
+ *  mruby/<boxing>.h
+ */
+
+void *mrb_get_prt(mrb_value v) {
+    return mrb_ptr(v);
+}
+void *mrb_get_cptr(mrb_value v) {
+    return mrb_cptr(v);
+}
+mrb_float mrb_get_float(mrb_value v) {
+    return mrb_float(v);
+}
+mrb_int mrb_get_integer(mrb_value v) {
+    return mrb_integer(v);
+}
+mrb_sym mrb_get_sym(mrb_value v) {
+    return mrb_symbol(v);
+}
+mrb_bool mrb_get_bool(mrb_value v) {
+    return mrb_bool(v);
 }
