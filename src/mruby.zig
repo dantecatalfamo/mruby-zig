@@ -1659,7 +1659,7 @@ pub const RInteger = opaque {};
 pub const RFloat = opaque {};
 pub extern fn mrb_integer_func(o: mrb_value) mrb_int;
 pub extern fn mrb_type(o: mrb_value) mrb_vtype;
-pub extern fn mrb_get_prt(v: mrb_value) *anyopaque;
+pub extern fn mrb_get_ptr(v: mrb_value) *anyopaque;
 pub extern fn mrb_get_cptr(v: mrb_value) *anyopaque;
 pub extern fn mrb_get_float(v: mrb_value) mrb_float;
 pub extern fn mrb_get_integer(v: mrb_value) mrb_int;
@@ -1672,15 +1672,15 @@ pub extern fn mrb_get_bool(v: mrb_value) mrb_bool;
 /////////////////////////////////////////
 
 pub extern fn mrb_class(mrb: *mrb_state, v: mrb_value) ?*RClass;
-pub extern fn mrb_define_method_raw(mrb: *mrb_state, cla: *RClass, sym: mrb_sym, method: mrb_method_t) void;
+// pub extern fn mrb_define_method_raw(mrb: *mrb_state, cla: *RClass, sym: mrb_sym, method: mrb_method_t) void;
 pub extern fn mrb_alias_method(mrb: *mrb_state, cla: *RClass, a: mrb_sym, b: mrb_sym) void;
 pub extern fn mrb_remove_method(mrb: *mrb_state, cla: *RClass, sym: mrb_sym) void;
-pub extern fn mrb_method_search_vm(mrb: *mrb_state, cla: *RClass, sym: mrb_sym) mrb_method_t;
-pub extern fn mrb_method_search(mrb: *mrb_state, cla: *RClass, sym: mrb_sym) mrb_method_t;
+// pub extern fn mrb_method_search_vm(mrb: *mrb_state, cla: *RClass, sym: mrb_sym) mrb_method_t;
+// pub extern fn mrb_method_search(mrb: *mrb_state, cla: *RClass, sym: mrb_sym) mrb_method_t;
 pub extern fn mrb_class_real(cl: *RClass) ?*RClass;
 
-pub const mrb_mt_foreach_func = fn (mrb: *mrb_state, sym: mrb_sym, method: mrb_method_t, data: *anyopaque) c_int;
-pub extern fn mrb_mt_foreach(mrb: *mrb_state, cla: *RClass, func: *mrb_mt_foreach_func, data: *anyopaque) void;
+// pub const mrb_mt_foreach_func = fn (mrb: *mrb_state, sym: mrb_sym, method: mrb_method_t, data: *anyopaque) c_int;
+// pub extern fn mrb_mt_foreach(mrb: *mrb_state, cla: *RClass, func: *mrb_mt_foreach_func, data: *anyopaque) void;
 
 
 ////////////////////////////////////////
@@ -1692,8 +1692,35 @@ pub const mrb_data_type = extern struct {
     dfree: fn (mrb: *mrb_state, ptr: *anyopaque) callconv(.C) void,
 };
 pub const RData = opaque {};
-pub extern fn mrb_data_object_alloc(mrb: *mrb_state, klass: *RClass, datap: *anyopaque, data_type: *mrb_data_type) ?*RData;
-pub extern fn mrb_data_check_type(mrb: *mrb_state, value: mrb_value, data_type: *mrb_data_type) void;
-pub extern fn mrb_data_get_ptr(mrb: *mrb_state, value: mrb_value, data_type: *mrb_data_type) *anyopaque;
-pub extern fn mrb_data_check_get_ptr(mrb: *mrb_state, value: mrb_value, data_type: *mrb_data_type) *anyopaque;
-pub extern fn mrb_data_init(value: mrb_value, ptr: *anyopaque, data_type: *mrb_data_type) void;
+/// Create RData object with klass, add data pointer and data type
+pub extern fn mrb_data_object_alloc(mrb: *mrb_state, klass: *RClass, data_ptr: *anyopaque, data_type: *const mrb_data_type) ?*RData;
+pub extern fn mrb_data_check_type(mrb: *mrb_state, value: mrb_value, data_type: *const mrb_data_type) void;
+/// Get data pointer from RData object pointed to by mrb_value
+pub extern fn mrb_data_get_ptr(mrb: *mrb_state, value: mrb_value, data_type: *const mrb_data_type) ?*anyopaque;
+pub extern fn mrb_data_check_get_ptr(mrb: *mrb_state, value: mrb_value, data_type: *const mrb_data_type) ?*anyopaque;
+/// Define data pointer and data type of existing RData object
+pub extern fn mrb_data_init(value: mrb_value, data_ptr: *anyopaque, data_type: *mrb_data_type) void;
+pub fn mrb_rdata(obj: mrb_value) ?*RData {
+    return @ptrCast(*RData, mrb_get_ptr(obj));
+}
+pub extern fn mrb_rdata_data(data: *RData) ?*anyopaque;
+pub extern fn mrb_rdata_type(data: *RData) ?*mrb_data_type;
+
+
+/////////////////////////////////////////
+//            mruby/error.h            //
+/////////////////////////////////////////
+
+pub const RException = opaque {};
+pub extern fn mrb_sys_fail(mrb: *mrb_state, mesg: [*:0]const u8) void;
+pub extern fn mrb_exc_new_str(mrb: *mrb_state, cla: *RClass, str: mrb_value) mrb_value;
+pub fn mrb_exc_new_lit(mrb: *mrb_state, cla: *RClass, lit: [*:0]const u8) mrb_value {
+    return mrb_exc_new_str(mrb, cla, mrb_str_new_lit(mrb, lit));
+}
+pub fn mrb_exc_new_str_lit(mrb: *mrb_state, cla: *RClass, lit: [*:0]const u8) mrb_value {
+    return mrb_exc_new_lit(mrb, cla, lit);
+}
+pub extern fn mrb_make_exception(mrb: *mrb_state, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
+pub extern fn mrb_exc_backtrace(mrb: *mrb_state, exc: mrb_value) mrb_value;
+pub extern fn mrb_get_backtrace(mrb: *mrb_state) mrb_value;
+pub extern fn mrb_no_method_error(mrb: *mrb_state, id: mrb_sym, args: mrb_value, fmt: [*:0]const u8, ...) mrb_noreturn;
