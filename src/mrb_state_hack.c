@@ -1,5 +1,6 @@
 #include <mruby.h>
 #include <mruby/array.h>
+#include <mruby/data.h>
 
 /*
  *  mruby.h
@@ -92,4 +93,15 @@ mrb_sym mrb_get_sym(mrb_value v) {
 }
 mrb_bool mrb_get_bool(mrb_value v) {
     return mrb_bool(v);
+}
+
+/*
+ *  mruby/data.h
+ */
+
+void *mrb_rdata_data(struct RData *data) {
+    return data->data;
+}
+void *mrb_rdata_type(struct RData *data) {
+    return data->type;
 }
