@@ -1670,3 +1670,30 @@ pub extern fn mrb_get_bool(v: mrb_value) mrb_bool;
 /////////////////////////////////////////
 //            mruby/class.h            //
 /////////////////////////////////////////
+
+pub extern fn mrb_class(mrb: *mrb_state, v: mrb_value) ?*RClass;
+pub extern fn mrb_define_method_raw(mrb: *mrb_state, cla: *RClass, sym: mrb_sym, method: mrb_method_t) void;
+pub extern fn mrb_alias_method(mrb: *mrb_state, cla: *RClass, a: mrb_sym, b: mrb_sym) void;
+pub extern fn mrb_remove_method(mrb: *mrb_state, cla: *RClass, sym: mrb_sym) void;
+pub extern fn mrb_method_search_vm(mrb: *mrb_state, cla: *RClass, sym: mrb_sym) mrb_method_t;
+pub extern fn mrb_method_search(mrb: *mrb_state, cla: *RClass, sym: mrb_sym) mrb_method_t;
+pub extern fn mrb_class_real(cl: *RClass) ?*RClass;
+
+pub const mrb_mt_foreach_func = fn (mrb: *mrb_state, sym: mrb_sym, method: mrb_method_t, data: *anyopaque) c_int;
+pub extern fn mrb_mt_foreach(mrb: *mrb_state, cla: *RClass, func: *mrb_mt_foreach_func, data: *anyopaque) void;
+
+
+////////////////////////////////////////
+//            mruby/data.h            //
+////////////////////////////////////////
+
+pub const mrb_data_type = extern struct {
+    struct_name: [*:0]const u8,
+    dfree: fn (mrb: *mrb_state, ptr: *anyopaque) callconv(.C) void,
+};
+pub const RData = opaque {};
+pub extern fn mrb_data_object_alloc(mrb: *mrb_state, klass: *RClass, datap: *anyopaque, data_type: *mrb_data_type) ?*RData;
+pub extern fn mrb_data_check_type(mrb: *mrb_state, value: mrb_value, data_type: *mrb_data_type) void;
+pub extern fn mrb_data_get_ptr(mrb: *mrb_state, value: mrb_value, data_type: *mrb_data_type) *anyopaque;
+pub extern fn mrb_data_check_get_ptr(mrb: *mrb_state, value: mrb_value, data_type: *mrb_data_type) *anyopaque;
+pub extern fn mrb_data_init(value: mrb_value, ptr: *anyopaque, data_type: *mrb_data_type) void;
