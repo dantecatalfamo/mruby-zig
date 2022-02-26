@@ -27,7 +27,16 @@ pub extern fn mrb_state_get_symbol_class(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_state_get_kernel_module(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_state_get_context(mrb: *mrb_state) ?*mrb_context;
 pub extern fn mrb_state_get_root_context(mrb: *mrb_state) ?*mrb_context;
-
+pub extern fn mrb_context_prev(cxt: *mrb_context) ?*mrb_context;
+pub extern fn mrb_context_callinfo(cxt: *mrb_context) ?*mrb_callinfo;
+pub extern fn mrb_context_fiber_state(cxt: *mrb_context) mrb_fiber_state;
+pub extern fn mrb_context_fiber(cxt: *mrb_context) ?*RFiber;
+pub extern fn mrb_callinfo_n(ci: *mrb_callinfo) u4;
+pub extern fn mrb_callinfo_nk(ci: *mrb_callinfo) u4;
+pub extern fn mrb_callinfo_cci(ci: *mrb_callinfo) u8;
+pub extern fn mrb_callinfo_mid(ci: *mrb_callinfo) mrb_sym;
+pub extern fn mrb_callinfo_stack(ci: *mrb_callinfo) mrb_value;
+pub extern fn mrb_callinfo_proc(ci: *mrb_callinfo) ?*RProc;
 
 ///////////////////////////////////
 //            mruby.h            //
@@ -723,9 +732,45 @@ pub const mrb_state = opaque {
     }
 };
 
-pub const mrb_context = opaque {};
+pub const mrb_context = opaque {
+    const Self = @This();
 
-pub const mrb_callinfo = opaque {};
+    pub fn context_prev(self: *Self) ?*mrb_context {
+        return mrb_context_prev(self);
+    }
+    pub fn context_callinfo(self: *Self) ?*mrb_callinfo {
+        return mrb_context_callinfo(self);
+    }
+    pub fn context_fiber_state(self: *Self) mrb_fiber_state {
+        return mrb_context_fiber_state(self);
+    }
+    pub fn context_fiber(self: *Self) ?*RFiber {
+        return mrb_context_fiber(self);
+    }
+};
+
+pub const mrb_callinfo = opaque {
+    const Self = @This();
+
+    pub fn n(self: *Self) u4 {
+        return mrb_callinfo_n(self);
+    }
+    pub fn nk(self: *Self) u4 {
+        return mrb_callinfo_nk(self);
+    }
+    pub fn cci(self: *Self) u8 {
+        return mrb_callinfo_cci(self);
+    }
+    pub fn mid(self: *Self) mrb_sym {
+        return mrb_callinfo_mid(self);
+    }
+    pub fn stack(self: *Self) mrb_value {
+        return mrb_callinfo_stack(self);
+    }
+    pub fn proc(self: *Self) ?*RProc {
+        return mrb_callinfo_proc(self);
+    }
+};
 
 pub const mrb_gc = opaque {};
 pub const mrb_irep = opaque {};
