@@ -11,13 +11,16 @@ pub fn main() anyerror!void {
         \\ puts "hello from ruby!"
     ;
     _ = mruby.mrb_load_string(mrb, program);
-    const kptr = mruby.mrb_state_get_kernel_module(mrb).?;
+    const kptr = mrb.kernel_module().?;
     std.log.debug("kernel module ponter: {p}", .{ kptr });
     mruby.mrb_define_module_function(mrb, kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
     _ = mruby.mrb_load_string(mrb, "zigfunc");
-    mruby.mrb_p(mrb, mruby.mrb_obj_value(kptr));
+    _ = mruby.mrb_funcall(mrb, kptr.value(), "puts", 1, mruby.mrb_str_new_lit(mrb, "hello from puts called in zig!"));
+    mrb.p(kptr.value());
+
+    // Exception test
     mruby.mrb_sys_fail(mrb, "intentional system failure");
-    mruby.mrb_p(mrb, mruby.mrb_obj_value(mrb.exc().?));
+    mruby.mrb_p(mrb, mrb.exc().?.value());
 }
 
 export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {

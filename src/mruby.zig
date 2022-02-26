@@ -1,4 +1,5 @@
 const std = @import("std");
+const assert = std.debug.assert;
 const FILE = std.c.FILE;
 
 test "ref all decls" {
@@ -32,6 +33,8 @@ pub extern fn mrb_state_get_kernel_module(mrb: *mrb_state) ?*RClass;
 
 pub const mrb_state = opaque {
     const Self = @This();
+
+    // Struct getters
 
     pub fn exc(self: *Self) ?*RObject {
         return mrb_state_get_exc(self);
@@ -84,6 +87,12 @@ pub const mrb_state = opaque {
     pub fn kernel_module(self: *Self) ?*RClass {
         return mrb_state_get_kernel_module(self);
     }
+
+    //  Functions
+
+    pub fn p(self: *Self, value: mrb_value) void {
+        return mrb_p(self, value);
+    }
 };
 
 pub const mrb_gc = opaque {};
@@ -104,7 +113,24 @@ pub const mrb_ssize = isize;
 pub const mrb_int = isize;
 pub const mrb_uint = usize;
 pub const mrb_float = f64; // HACK: assume 64-bit float for now
-pub const mrb_value = extern struct { w: usize }; // HACK: assume word boxing for now
+pub const mrb_value = extern struct {  // HACK: assume word boxing for now
+    w: usize,
+
+    const Self = @This();
+
+    pub fn vType(self: Self) mrb_vtype {
+        return mrb_type(self);
+    }
+
+    pub fn ptr(self: Self) *anyopaque {
+        return mrb_get_ptr(self);
+    }
+
+    pub fn rObject(self: Self) *RObject {
+        assert(self.vType() == mrb_vtype.MRB_TT_OBJECT);
+        return @ptrCast(*RObject, self.ptr());
+    }
+};
 
 pub const iv_tbl = opaque {};
 
@@ -117,10 +143,143 @@ pub const mrb_fiber_state = enum(c_int) {
   MRB_FIBER_TERMINATED,
 };
 
-pub const RClass = opaque {};
-pub const RObject = opaque {};
-pub const RBasic = opaque {};
-pub const RProc = opaque {};
+// Opaque types
+
+pub const RBasic = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RFloat = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+
+pub const RData = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RInteger = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RCptr = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RObject = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RClass = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RProc = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RArray = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RHash = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RString = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RRange = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RException = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const REnv = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RFiber = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RIStruct = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RBreak = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RComplex = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+pub const RRational = opaque {
+    const Self = @This();
+
+    pub fn value(self: *Self) mrb_value {
+        return mrb_obj_value(self);
+    }
+};
+
 
 /// Function pointer type for a function callable by mruby.
 ///
@@ -1245,7 +1404,6 @@ pub extern fn mrb_format(mrb: *mrb_state, format: [*:0]const u8, ...) mrb_value;
 //            mruby/array.h            //
 /////////////////////////////////////////
 
-pub const RArray = opaque {};
 
 pub const mrb_shared_array = struct {
     redcnt: c_int,
@@ -1570,8 +1728,6 @@ pub extern fn mrb_iv_foreach(mrb: *mrb_state, obj: mrb_value, func: mrb_iv_forea
 //            mruby/value.h            //
 /////////////////////////////////////////
 
-pub const RCptr = opaque {};
-
 /// Returns a float in Ruby.
 ///
 /// Takes a float and boxes it into an mrb_value
@@ -1635,8 +1791,6 @@ pub extern fn mrb_get_undef_value() mrb_value;
 /////////////////////////////////////////////////
 
 
-pub const RInteger = opaque {};
-pub const RFloat = opaque {};
 pub extern fn mrb_integer_func(o: mrb_value) mrb_int;
 pub extern fn mrb_type(o:mrb_value) mrb_vtype;
 // hacks
@@ -1672,7 +1826,6 @@ pub const mrb_data_type = extern struct {
     struct_name: [*:0]const u8,
     dfree: fn (mrb: *mrb_state, ptr: *anyopaque) callconv(.C) void,
 };
-pub const RData = opaque {};
 /// Create RData object with klass, add data pointer and data type
 pub extern fn mrb_data_object_alloc(mrb: *mrb_state, klass: *RClass, data_ptr: *anyopaque, data_type: *const mrb_data_type) ?*RData;
 pub extern fn mrb_data_check_type(mrb: *mrb_state, value: mrb_value, data_type: *const mrb_data_type) void;
@@ -1692,7 +1845,6 @@ pub extern fn mrb_rdata_type(data: *RData) ?*mrb_data_type;
 //            mruby/error.h            //
 /////////////////////////////////////////
 
-pub const RException = opaque {};
 pub extern fn mrb_sys_fail(mrb: *mrb_state, mesg: [*:0]const u8) void;
 pub extern fn mrb_exc_new_str(mrb: *mrb_state, cla: *RClass, str: mrb_value) mrb_value;
 pub fn mrb_exc_new_lit(mrb: *mrb_state, cla: *RClass, lit: [*:0]const u8) mrb_value {
