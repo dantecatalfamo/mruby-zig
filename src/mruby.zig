@@ -35,7 +35,7 @@ pub extern fn mrb_callinfo_n(ci: *mrb_callinfo) u8;
 pub extern fn mrb_callinfo_nk(ci: *mrb_callinfo) u8;
 pub extern fn mrb_callinfo_cci(ci: *mrb_callinfo) u8;
 pub extern fn mrb_callinfo_mid(ci: *mrb_callinfo) mrb_sym;
-pub extern fn mrb_callinfo_stack(ci: *mrb_callinfo) [*]mrb_value;
+pub extern fn mrb_callinfo_stack(ci: *mrb_callinfo) [*]*?mrb_value;
 pub extern fn mrb_callinfo_proc(ci: *mrb_callinfo) ?*RProc;
 
 ///////////////////////////////////
@@ -753,11 +753,11 @@ pub const mrb_state = opaque {
     /// @param argc The number of arguments the method has.
     /// @param ... Variadic values(not type safe!).
     /// @return [mrb_value] mruby function value.
-    pub fn funcall(self: *Self, value: mrb_value, name: [*:0]const u8, argc: mrb_int, argv: anytype) mrb_value {
-        return @call(.{}, mrb_funcall, .{ self, value, name, argc } ++ argv);
+    pub fn funcall(self: *Self, value: mrb_value, name: [*:0]const u8, args: anytype) mrb_value {
+        return @call(.{}, mrb_funcall, .{ self, value, name, args.len } ++ args);
     }
-    pub fn funcall_id(self: *Self, value: mrb_value, mid: mrb_sym, argc: mrb_int, argv: anytype) mrb_value {
-        return @call(.{}, mrb_funcall_id, .{ self, value, mid, argc } ++ argv);
+    pub fn funcall_id(self: *Self, value: mrb_value, mid: mrb_sym, args: anytype) mrb_value {
+        return @call(.{}, mrb_funcall_id, .{ self, value, mid, args.len } ++ args);
     }
 
     /// Call existing ruby functions. This is basically the type safe version of mrb_funcall.
@@ -786,13 +786,13 @@ pub const mrb_state = opaque {
     /// @param obj Pointer to the object.
     /// @return [mrb_value] mrb_value mruby function value.
     /// @see mrb_funcall
-    pub fn funcall_argv(self: *Self, value: mrb_value, name: mrb_sym, argc: mrb_int, argv: [*]const mrb_value) mrb_value {
-        return mrb_funcall_argv(self, value, name, argc, argv);
+    pub fn funcall_argv(self: *Self, value: mrb_value, name: mrb_sym, args: []const *mrb_value) mrb_value {
+        return mrb_funcall_argv(self, value, name, args.len, args);
     }
 
     /// Call existing ruby functions with a block.
-    pub fn funcall_with_block(self: *Self, value: mrb_value, name: mrb_sym, argc: mrb_int, argv: [*]const mrb_value, block: mrb_value) mrb_value {
-        return mrb_funcall_with_block(self, value, name, argc, argv, block);
+    pub fn funcall_with_block(self: *Self, value: mrb_value, name: mrb_sym, args: []const *mrb_value, block: mrb_value) mrb_value {
+        return mrb_funcall_with_block(self, value, name, args.len, args, block);
     }
 
 
@@ -843,7 +843,7 @@ pub const mrb_callinfo = opaque {
     pub fn mid(self: *Self) mrb_sym {
         return mrb_callinfo_mid(self);
     }
-    pub fn stack(self: *Self) [*]mrb_value {
+    pub fn stack(self: *Self) [*]?*mrb_value {
         return mrb_callinfo_stack(self);
     }
     pub fn proc(self: *Self) ?*RProc {
@@ -1843,10 +1843,10 @@ pub extern fn mrb_funcall_id(mrb: *mrb_state, val: mrb_value, mid: mrb_sym, argc
 /// @param obj Pointer to the object.
 /// @return [mrb_value] mrb_value mruby function value.
 /// @see mrb_funcall
-pub extern fn mrb_funcall_argv(mrb: *mrb_state, val: mrb_value, name: mrb_sym, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
+pub extern fn mrb_funcall_argv(mrb: *mrb_state, val: mrb_value, name: mrb_sym, argc: mrb_int, argv: [*]const *mrb_value) mrb_value;
 
 /// Call existing ruby functions with a block.
-pub extern fn mrb_funcall_with_block(mrb: *mrb_state, val: mrb_value, name: mrb_sym, argc: mrb_int, argv: [*]const mrb_value, block: mrb_value) mrb_value;
+pub extern fn mrb_funcall_with_block(mrb: *mrb_state, val: mrb_value, name: mrb_sym, argc: mrb_int, argv: [*]const *mrb_value, block: mrb_value) mrb_value;
 
 
 /// `strlen` for character string literals (use with caution or `strlen` instead)

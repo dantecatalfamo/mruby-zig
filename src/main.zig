@@ -15,7 +15,7 @@ pub fn main() anyerror!void {
     std.log.debug("kernel module ponter: {p}", .{ kptr });
     mrb.define_module_function(kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
     _ = mruby.mrb_load_string(mrb, "zigfunc");
-    _ = mruby.mrb_funcall(mrb, kptr.value(), "puts", 1, mruby.mrb_str_new_lit(mrb, "hello from puts called in zig!"));
+    _ = mrb.funcall(kptr.value(), "puts", .{ mruby.mrb_str_new_lit(mrb, "hello from puts called in zig!") });
     mrb.p(kptr.value());
 
     // Exception test
@@ -25,7 +25,7 @@ pub fn main() anyerror!void {
 
 export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
     std.log.debug("Zig function called from ruby! mrb: {p}, self: {}", .{ mrb, self });
-    mruby.mrb_p(mrb, mruby.mrb_get_backtrace(mrb));
+    mrb.p(mruby.mrb_get_backtrace(mrb));
     return self;
 }
 
