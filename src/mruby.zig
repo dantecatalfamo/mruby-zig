@@ -1032,16 +1032,16 @@ pub extern fn mrb_define_module_under_id(mrb: *mrb_state, outer: *RClass, name: 
 ///
 /// @param n
 ///      The number of required arguments.
-pub fn mrb_args_req(n: u32) mrb_aspec {
-    return (n & 0x1f) << 18;
+pub fn mrb_args_req(n: u4) mrb_aspec {
+    return (@as(u32, n) & 0x1f) << 18;
 }
 
 /// Function takes n optional arguments
 ///
 /// @param n
 ///      The number of optional arguments.
-pub fn mrb_args_opt(n: u32) mrb_aspec {
-    return (n & 0x1f) << 13;
+pub fn mrb_args_opt(n: u4) mrb_aspec {
+    return (@as(u32, n) & 0x1f) << 13;
 }
 
 /// Function takes n1 mandatory arguments and n2 optional arguments
@@ -1050,7 +1050,7 @@ pub fn mrb_args_opt(n: u32) mrb_aspec {
 ///      The number of required arguments.
 /// @param n2
 ///      The number of optional arguments.
-pub fn mrb_args_arg(n1: u32, n2: u32) mrb_aspec {
+pub fn mrb_args_arg(n1: u4, n2: u4) mrb_aspec {
     return mrb_args_req(n1) | mrb_args_opt(n2);
 }
 
@@ -1065,8 +1065,8 @@ pub fn mrb_args_post(n: u8) mrb_aspec {
 }
 
 ///  keyword arguments (n of keys, kdict)
-pub fn mrb_args_key(n1: u8, n2: u8) mrb_aspec {
-    return ((n1 & 0x1f) << 2) | (if (n2 != 0) @as(u8, 1<<1) else 0);
+pub fn mrb_args_key(n1: u4, n2: u4) mrb_aspec {
+    return ((@as(u32, n1) & 0x1f) << 2) | (if (n2 != 0) @as(u8, 1<<1) else 0);
 }
 
 /// Function takes a block argument
