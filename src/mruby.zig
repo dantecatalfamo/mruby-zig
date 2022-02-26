@@ -30,11 +30,66 @@ pub extern fn mrb_state_get_kernel_module(mrb: *mrb_state) ?*RClass;
 //            mruby.h            //
 ///////////////////////////////////
 
+pub const mrb_state = opaque {
+    const Self = @This();
+
+    pub fn exc(self: *Self) ?*RObject {
+        return mrb_state_get_exc(self);
+    }
+    pub fn top_self(self: *Self) ?*RObject {
+        return mrb_state_get_top_self(self);
+    }
+    pub fn object_class(self: *Self) ?*RClass {
+        return mrb_state_get_object_class(self);
+    }
+    pub fn class_class(self: *Self) ?*RClass {
+        return mrb_state_get_class_class(self);
+    }
+    pub fn module_class(self: *Self) ?*RClass {
+        return mrb_state_get_module_class(self);
+    }
+    pub fn proc_class(self: *Self) ?*RClass {
+        return mrb_state_get_proc_class(self);
+    }
+    pub fn string_class(self: *Self) ?*RClass {
+        return mrb_state_get_string_class(self);
+    }
+    pub fn array_class(self: *Self) ?*RClass {
+        return mrb_state_get_array_class(self);
+    }
+    pub fn hash_class(self: *Self) ?*RClass {
+        return mrb_state_get_hash_class(self);
+    }
+    pub fn range_class(self: *Self) ?*RClass {
+        return mrb_state_get_range_class(self);
+    }
+    pub fn float_class(self: *Self) ?*RClass {
+        return mrb_state_get_float_class(self);
+    }
+    pub fn integer_class(self: *Self) ?*RClass {
+        return mrb_state_get_integer_class(self);
+    }
+    pub fn true_class(self: *Self) ?*RClass {
+        return mrb_state_get_true_class(self);
+    }
+    pub fn false_class(self: *Self) ?*RClass {
+        return mrb_state_get_false_class(self);
+    }
+    pub fn nil_class(self: *Self) ?*RClass {
+        return mrb_state_get_nil_class(self);
+    }
+    pub fn symbol_class(self: *Self) ?*RClass {
+        return mrb_state_get_symbol_class(self);
+    }
+    pub fn kernel_module(self: *Self) ?*RClass {
+        return mrb_state_get_kernel_module(self);
+    }
+};
+
 pub const mrb_gc = opaque {};
 pub const mrb_irep = opaque {};
 pub const mrb_jmpbuf = opaque {};
 pub const mrb_context = opaque {};
-pub const mrb_state = opaque {};
 pub const mrb_callinfo = opaque {};
 pub const mrb_jumpbuf = opaque {};
 pub const mrb_pool = opaque {};

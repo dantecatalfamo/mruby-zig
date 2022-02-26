@@ -16,10 +16,13 @@ pub fn main() anyerror!void {
     mruby.mrb_define_module_function(mrb, kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
     _ = mruby.mrb_load_string(mrb, "zigfunc");
     mruby.mrb_p(mrb, mruby.mrb_obj_value(kptr));
+    mruby.mrb_sys_fail(mrb, "intentional system failure");
+    mruby.mrb_p(mrb, mruby.mrb_obj_value(mrb.exc().?));
 }
 
 export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
     std.log.debug("Zig function called from ruby! mrb: {p}, self: {}", .{ mrb, self });
+    mruby.mrb_p(mrb, mruby.mrb_get_backtrace(mrb));
     return self;
 }
 
