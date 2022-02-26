@@ -61,27 +61,27 @@ struct RClass *mrb_state_get_kernel_module(mrb_state *mrb) {
 struct mrb_context *mrb_state_get_context(mrb_state *mrb) {
     return mrb->c;
 }
-struct mrb_contex *mrb_state_get_root_context(mrb_state *mrb) {
+struct mrb_context *mrb_state_get_root_context(mrb_state *mrb) {
     return mrb->root_c;
 }
 
-struct mrb_context *mrb_context_prev(mrb_context *cxt) {
+struct mrb_context *mrb_context_prev(struct mrb_context *cxt) {
     return cxt->prev;
 }
-struct mrb_callinfo *mrb_context_callinfo(mrb_context *cxt) {
+mrb_callinfo *mrb_context_callinfo(struct mrb_context *cxt) {
     return cxt->ci;
 }
-enum mrb_fiber_state mrb_context_fiber_state(mrb_context *cxt) {
+enum mrb_fiber_state mrb_context_fiber_state(struct mrb_context *cxt) {
     return cxt->status;
 }
-struct RFiber *mrb_context_fiber(mrb_context *cxt) {
+struct RFiber *mrb_context_fiber(struct mrb_context *cxt) {
     return cxt->fib;
 }
 
 uint8_t mrb_callinfo_n(mrb_callinfo *ci) {
     return ci->n;
 }
-uintu_t mrb_callinfo_nk(mrb_callinfo *ci) {
+uint8_t mrb_callinfo_nk(mrb_callinfo *ci) {
     return ci->nk;
 }
 uint8_t mrb_callinfo_cci(mrb_callinfo *ci) {
@@ -90,7 +90,7 @@ uint8_t mrb_callinfo_cci(mrb_callinfo *ci) {
 mrb_sym mrb_callinfo_mid(mrb_callinfo *ci) {
     return ci->mid;
 }
-mrb_value mrb_callinfo_stack(mrb_callinfo *ci) {
+mrb_value *mrb_callinfo_stack(mrb_callinfo *ci) {
     return ci->stack;
 }
 const struct RProc *mrb_callinfo_proc(mrb_callinfo *ci) {

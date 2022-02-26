@@ -31,11 +31,11 @@ pub extern fn mrb_context_prev(cxt: *mrb_context) ?*mrb_context;
 pub extern fn mrb_context_callinfo(cxt: *mrb_context) ?*mrb_callinfo;
 pub extern fn mrb_context_fiber_state(cxt: *mrb_context) mrb_fiber_state;
 pub extern fn mrb_context_fiber(cxt: *mrb_context) ?*RFiber;
-pub extern fn mrb_callinfo_n(ci: *mrb_callinfo) u4;
-pub extern fn mrb_callinfo_nk(ci: *mrb_callinfo) u4;
+pub extern fn mrb_callinfo_n(ci: *mrb_callinfo) u8;
+pub extern fn mrb_callinfo_nk(ci: *mrb_callinfo) u8;
 pub extern fn mrb_callinfo_cci(ci: *mrb_callinfo) u8;
 pub extern fn mrb_callinfo_mid(ci: *mrb_callinfo) mrb_sym;
-pub extern fn mrb_callinfo_stack(ci: *mrb_callinfo) mrb_value;
+pub extern fn mrb_callinfo_stack(ci: *mrb_callinfo) [*]mrb_value;
 pub extern fn mrb_callinfo_proc(ci: *mrb_callinfo) ?*RProc;
 
 ///////////////////////////////////
@@ -688,33 +688,112 @@ pub const mrb_state = opaque {
     /// @return the number of arguments retrieved.
     /// @see mrb_args_format
     /// @see mrb_kwargs
-    pub extern fn mrb_get_args(mrb: *mrb_state, format: mrb_args_format, ...) mrb_int;
+    pub fn get_args(self: *Self, comptime format: mrb_args_format, args: anytype) mrb_int {
+        return @call(.{}, mrb_get_args, .{ self, format } ++ args);
+    }
 
-    // TODO: after non-opaque mrb_state
-    // get method symbol
-    // pub fn mrb_get_mid(mrb: *mrb_state) mrb_sym {
-    //   return mrb.c.ci.mid;
-    // }
+    /// get method symbol
+    pub fn get_mid(self: *Self) mrb_sym {
+        return mrb_get_mid(self);
+    }
 
     /// Retrieve number of arguments from mrb_state.
     ///
     /// Correctly handles *splat arguments.
-    pub extern fn mrb_get_argc(mrb: *mrb_state) mrb_int;
+    pub fn get_argc(self: *Self) mrb_int {
+        return mrb_get_argc(self);
+    }
 
     /// Retrieve an array of arguments from mrb_state.
     ///
     /// Correctly handles *splat arguments.
-    pub extern fn mrb_get_argv(mrb: *mrb_state) [*]const mrb_value;
+    pub fn get_argv(self: *Self) [*]const mrb_value {
+        return mrb_get_argv(self);
+    }
 
     /// Retrieve the first and only argument from mrb_state.
     /// Raises ArgumentError unless the number of arguments is exactly one.
     ///
     /// Correctly handles *splat arguments.
-    pub extern fn mrb_get_arg1(mrb: *mrb_state) mrb_value;
+    pub fn get_arg1(self: *Self) mrb_value {
+        return mrb_get_arg1(self);
+    }
 
     /// Check if a block argument is given from mrb_state.
-    pub extern fn mrb_block_given_p(mrb: *mrb_state) mrb_bool;
+    pub fn block_given_p(self: *Self) mrb_bool {
+        return mrb_block_given_p(self);
+    }
 
+    /// Call existing ruby functions.
+    ///
+    /// Example:
+    ///
+    ///      #include <stdio.h>
+    ///      #include <mruby.h>
+    ///      #include "mruby/compile.h"
+    ///
+    ///      int
+    ///      main()
+    ///      {
+    ///        mrb_int i = 99;
+    ///        mrb_state *mrb = mrb_open();
+    ///
+    ///        if (!mrb) { }
+    ///        FILE *fp = fopen("test.rb","r");
+    ///        mrb_value obj = mrb_load_file(mrb,fp);
+    ///        mrb_funcall(mrb, obj, "method_name", 1, mrb_fixnum_value(i));
+    ///        mrb_funcall_id(mrb, obj, MRB_SYM(method_name), 1, mrb_fixnum_value(i));
+    ///        fclose(fp);
+    ///        mrb_close(mrb);
+    ///      }
+    ///
+    /// @param mrb The current mruby state.
+    /// @param val A reference to an mruby value.
+    /// @param name The name of the method.
+    /// @param argc The number of arguments the method has.
+    /// @param ... Variadic values(not type safe!).
+    /// @return [mrb_value] mruby function value.
+    pub fn funcall(self: *Self, value: mrb_value, name: [*:0]const u8, argc: mrb_int, argv: anytype) mrb_value {
+        return @call(.{}, mrb_funcall, .{ self, value, name, argc } ++ argv);
+    }
+    pub fn funcall_id(self: *Self, value: mrb_value, mid: mrb_sym, argc: mrb_int, argv: anytype) mrb_value {
+        return @call(.{}, mrb_funcall_id, .{ self, value, mid, argc } ++ argv);
+    }
+
+    /// Call existing ruby functions. This is basically the type safe version of mrb_funcall.
+    ///
+    ///      #include <stdio.h>
+    ///      #include <mruby.h>
+    ///      #include "mruby/compile.h"
+    ///      int
+    ///      main()
+    ///      {
+    ///        mrb_state *mrb = mrb_open();
+    ///        mrb_value obj = mrb_fixnum_value(1);
+    ///
+    ///        if (!mrb) { }
+    ///
+    ///        FILE *fp = fopen("test.rb","r");
+    ///        mrb_value obj = mrb_load_file(mrb,fp);
+    ///        mrb_funcall_argv(mrb, obj, MRB_SYM(method_name), 1, &obj); // Calling ruby function from test.rb.
+    ///        fclose(fp);
+    ///        mrb_close(mrb);
+    ///       }
+    /// @param mrb The current mruby state.
+    /// @param val A reference to an mruby value.
+    /// @param name_sym The symbol representing the method.
+    /// @param argc The number of arguments the method has.
+    /// @param obj Pointer to the object.
+    /// @return [mrb_value] mrb_value mruby function value.
+    /// @see mrb_funcall
+    pub fn funcall_argv(self: *Self, value: mrb_value, name: mrb_sym, argc: mrb_int, argv: [*]const mrb_value) mrb_value {
+        return mrb_funcall_argv(self, value, name, argc, argv);
+    }
+
+    /// Call existing ruby functions with a block.
+    pub fn funcall_with_block(self: *Self, value: mrb_value, name: mrb_sym, argc: mrb_int, argv: [*]const mrb_value, block: mrb_value) mrb_value {
+        return mrb_funcall_with_block(self, value, name, argc, argv, block);
+    }
 
 
 
@@ -735,16 +814,16 @@ pub const mrb_state = opaque {
 pub const mrb_context = opaque {
     const Self = @This();
 
-    pub fn context_prev(self: *Self) ?*mrb_context {
+    pub fn prev(self: *Self) ?*mrb_context {
         return mrb_context_prev(self);
     }
-    pub fn context_callinfo(self: *Self) ?*mrb_callinfo {
+    pub fn callinfo(self: *Self) ?*mrb_callinfo {
         return mrb_context_callinfo(self);
     }
-    pub fn context_fiber_state(self: *Self) mrb_fiber_state {
+    pub fn fiber_state(self: *Self) mrb_fiber_state {
         return mrb_context_fiber_state(self);
     }
-    pub fn context_fiber(self: *Self) ?*RFiber {
+    pub fn fiber(self: *Self) ?*RFiber {
         return mrb_context_fiber(self);
     }
 };
@@ -752,10 +831,10 @@ pub const mrb_context = opaque {
 pub const mrb_callinfo = opaque {
     const Self = @This();
 
-    pub fn n(self: *Self) u4 {
+    pub fn n(self: *Self) u8 {
         return mrb_callinfo_n(self);
     }
-    pub fn nk(self: *Self) u4 {
+    pub fn nk(self: *Self) u8 {
         return mrb_callinfo_nk(self);
     }
     pub fn cci(self: *Self) u8 {
@@ -764,7 +843,7 @@ pub const mrb_callinfo = opaque {
     pub fn mid(self: *Self) mrb_sym {
         return mrb_callinfo_mid(self);
     }
-    pub fn stack(self: *Self) mrb_value {
+    pub fn stack(self: *Self) [*]mrb_value {
         return mrb_callinfo_stack(self);
     }
     pub fn proc(self: *Self) ?*RProc {
@@ -1682,11 +1761,10 @@ pub const mrb_kwargs = extern struct {
 /// @see mrb_kwargs
 pub extern fn mrb_get_args(mrb: *mrb_state, format: mrb_args_format, ...) mrb_int;
 
-// TODO: after non-opaque mrb_state
 // get method symbol
-// pub fn mrb_get_mid(mrb: *mrb_state) mrb_sym {
-//   return mrb.c.ci.mid;
-// }
+pub fn mrb_get_mid(mrb: *mrb_state) mrb_sym {
+    return mrb.context().?.callinfo().?.mid();
+}
 
 /// Retrieve number of arguments from mrb_state.
 ///
