@@ -58,6 +58,12 @@ struct RClass *mrb_state_get_symbol_class(mrb_state *mrb) {
 struct RClass *mrb_state_get_kernel_module(mrb_state *mrb) {
     return mrb->kernel_module;
 }
+struct mrb_context *mrb_state_get_context(mrb_state *mrb) {
+    return mrb->c;
+}
+struct mrb_contex *mrb_state_get_root_context(mrb_state *mrb) {
+    return mrb->root_c;
+}
 
 /*
  *   mruby/array.h

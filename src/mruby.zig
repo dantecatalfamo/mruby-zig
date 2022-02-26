@@ -25,11 +25,15 @@ pub extern fn mrb_state_get_false_class(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_state_get_nil_class(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_state_get_symbol_class(mrb: *mrb_state) ?*RClass;
 pub extern fn mrb_state_get_kernel_module(mrb: *mrb_state) ?*RClass;
+pub extern fn mrb_state_get_context(mrb: *mrb_state) ?*mrb_context;
+pub extern fn mrb_state_get_root_context(mrb: *mrb_state) ?*mrb_context;
 
 
 ///////////////////////////////////
 //            mruby.h            //
 ///////////////////////////////////
+
+// TODO: Make a type to make mrb_aspec less combresome
 
 pub const mrb_state = opaque {
     const Self = @This();
@@ -86,6 +90,12 @@ pub const mrb_state = opaque {
     }
     pub fn kernel_module(self: *Self) ?*RClass {
         return mrb_state_get_kernel_module(self);
+    }
+    pub fn context(self: *Self) ?*mrb_context {
+        return mrb_state_get_context(self);
+    }
+    pub fn root_contect(self: *Self) ?*mrb_context {
+        return mrb_state_get_root_context(self);
     }
 
     //  mruby.h functions
@@ -260,6 +270,443 @@ pub const mrb_state = opaque {
         return mrb_define_module_function_id(self, cla, name, fun, aspec);
     }
 
+    ///  Defines a constant.
+    ///
+    /// Example:
+    ///
+    ///          # Ruby style
+    ///          class ExampleClass
+    ///            AGE = 22
+    ///          end
+    ///          // C style
+    ///          #include <stdio.h>
+    ///          #include <mruby.h>
+    ///
+    ///          void
+    ///          mrb_example_gem_init(mrb_state* mrb){
+    ///            mrb_define_const(mrb, mrb->kernel_module, "AGE", mrb_fixnum_value(22));
+    ///          }
+    ///
+    ///          mrb_value
+    ///          mrb_example_gem_final(mrb_state* mrb){
+    ///          }
+    ///  @param mrb The MRuby state reference.
+    ///  @param cla A class or module the constant is defined in.
+    ///  @param name The name of the constant being defined.
+    ///  @param val The value for the constant.
+    pub fn define_const(self: *Self, cla: *RClass, name: [*:0]const u8, value: mrb_value) void {
+        return mrb_define_const(self, cla, name, value);
+    }
+    pub fn define_const_id(self: *Self, cla: *RClass, name: mrb_sym, value: mrb_value) void {
+        return mrb_define_const_id(self, cla, name, value);
+    }
+
+    /// Undefines a method.
+    ///
+    /// Example:
+    ///
+    ///     # Ruby style
+    ///
+    ///     class ExampleClassA
+    ///       def example_method
+    ///         "example"
+    ///       end
+    ///     end
+    ///     ExampleClassA.new.example_method # => example
+    ///
+    ///     class ExampleClassB < ExampleClassA
+    ///       undef_method :example_method
+    ///     end
+    ///
+    ///     ExampleClassB.new.example_method # => undefined method 'example_method' for ExampleClassB (NoMethodError)
+    ///
+    ///     // C style
+    ///     #include <stdio.h>
+    ///     #include <mruby.h>
+    ///
+    ///     mrb_value
+    ///     mrb_example_method(mrb_state *mrb){
+    ///       return mrb_str_new_lit(mrb, "example");
+    ///     }
+    ///
+    ///     void
+    ///     mrb_example_gem_init(mrb_state* mrb){
+    ///       struct RClass *example_class_a;
+    ///       struct RClass *example_class_b;
+    ///       struct RClass *example_class_c;
+    ///
+    ///       example_class_a = mrb_define_class(mrb, "ExampleClassA", mrb->object_class);
+    ///       mrb_define_method(mrb, example_class_a, "example_method", mrb_example_method, MRB_ARGS_NONE());
+    ///       example_class_b = mrb_define_class(mrb, "ExampleClassB", example_class_a);
+    ///       example_class_c = mrb_define_class(mrb, "ExampleClassC", example_class_b);
+    ///       mrb_undef_method(mrb, example_class_c, "example_method");
+    ///     }
+    ///
+    ///     mrb_example_gem_final(mrb_state* mrb){
+    ///     }
+    /// @param mrb The mruby state reference.
+    /// @param cla The class the method will be undefined from.
+    /// @param name The name of the method to be undefined.
+    pub fn undef_method(self: *Self, cla: *RClass, name: [*:0]const u8) void {
+        return mrb_undef_method(self, cla, name);
+    }
+    pub fn undef_method_id(self: *Self, cla: *RClass, sym: mrb_sym) void {
+        return mrb_undef_method_id(self, cla, sym);
+    }
+
+    /// Undefine a class method.
+    /// Example:
+    ///
+    ///      # Ruby style
+    ///      class ExampleClass
+    ///        def self.example_method
+    ///          "example"
+    ///        end
+    ///      end
+    ///
+    ///     ExampleClass.example_method
+    ///
+    ///     // C style
+    ///     #include <stdio.h>
+    ///     #include <mruby.h>
+    ///
+    ///     mrb_value
+    ///     mrb_example_method(mrb_state *mrb){
+    ///       return mrb_str_new_lit(mrb, "example");
+    ///     }
+    ///
+    ///     void
+    ///     mrb_example_gem_init(mrb_state* mrb){
+    ///       struct RClass *example_class;
+    ///       example_class = mrb_define_class(mrb, "ExampleClass", mrb->object_class);
+    ///       mrb_define_class_method(mrb, example_class, "example_method", mrb_example_method, MRB_ARGS_NONE());
+    ///       mrb_undef_class_method(mrb, example_class, "example_method");
+    ///      }
+    ///
+    ///      void
+    ///      mrb_example_gem_final(mrb_state* mrb){
+    ///      }
+    /// @param mrb The mruby state reference.
+    /// @param cls A class the class method will be undefined from.
+    /// @param name The name of the class method to be undefined.
+    pub fn undef_class_method(self: *Self, cla: *RClass, name: [*:0]const u8) void {
+        return mrb_undef_class_method(self, cla, name);
+    }
+    pub fn undef_class_method_id(self: *Self, cla: *RClass, name: mrb_sym) void {
+        return mrb_undef_class_method_id(self, cla, name);
+    }
+
+    /// Initialize a new object instance of c class.
+    ///
+    /// Example:
+    ///
+    ///     # Ruby style
+    ///     class ExampleClass
+    ///     end
+    ///
+    ///     p ExampleClass # => #<ExampleClass:0x9958588>
+    ///     // C style
+    ///     #include <stdio.h>
+    ///     #include <mruby.h>
+    ///
+    ///     void
+    ///     mrb_example_gem_init(mrb_state* mrb) {
+    ///       struct RClass *example_class;
+    ///       mrb_value obj;
+    ///       example_class = mrb_define_class(mrb, "ExampleClass", mrb->object_class); # => class ExampleClass; end
+    ///       obj = mrb_obj_new(mrb, example_class, 0, NULL); # => ExampleClass.new
+    ///       mrb_p(mrb, obj); // => Kernel#p
+    ///      }
+    /// @param mrb The current mruby state.
+    /// @param cla Reference to the class of the new object.
+    /// @param argc Number of arguments in argv
+    /// @param argv Array of mrb_value to initialize the object
+    /// @return [mrb_value] The newly initialized object
+    pub fn obj_new(self: *Self, cla: *RClass, argc: mrb_int, argv: [*]const mrb_value) mrb_value {
+        return mrb_obj_new(self, cla, argc, argv);
+    }
+
+    /// @see mrb_obj_new
+    pub fn class_new_instance(self: *Self, argc: mrb_int, argv: [*]const mrb_value, cla: *RClass) mrb_value {
+      return mrb_class_new_instance(self, argc, argv, cla);
+    }
+
+    /// Creates a new instance of Class, Class.
+    ///
+    /// Example:
+    ///
+    ///      void
+    ///      mrb_example_gem_init(mrb_state* mrb) {
+    ///        struct RClass *example_class;
+    ///
+    ///        mrb_value obj;
+    ///        example_class = mrb_class_new(mrb, mrb->object_class);
+    ///        obj = mrb_obj_new(mrb, example_class, 0, NULL); // => #<#<Class:0x9a945b8>:0x9a94588>
+    ///        mrb_p(mrb, obj); // => Kernel#p
+    ///       }
+    ///
+    /// @param mrb The current mruby state.
+    /// @param super The super class or parent.
+    /// @return [struct RClass *] Reference to the new class.
+    pub fn class_new(self: *Self, super: *RClass) ?*RClass {
+        return mrb_class_new(self, super);
+    }
+
+    /// Creates a new module, Module.
+    ///
+    /// Example:
+    ///      void
+    ///      mrb_example_gem_init(mrb_state* mrb) {
+    ///        struct RClass *example_module;
+    ///
+    ///        example_module = mrb_module_new(mrb);
+    ///      }
+    ///
+    /// @param mrb The current mruby state.
+    /// @return [struct RClass *] Reference to the new module.
+    pub fn module_new(self: *Self) ?*RClass {
+        return mrb_module_new(self);
+    }
+
+    /// Returns an mrb_bool. True if class was defined, and false if the class was not defined.
+    ///
+    /// Example:
+    ///     void
+    ///     mrb_example_gem_init(mrb_state* mrb) {
+    ///       struct RClass *example_class;
+    ///       mrb_bool cd;
+    ///
+    ///       example_class = mrb_define_class(mrb, "ExampleClass", mrb->object_class);
+    ///       cd = mrb_class_defined(mrb, "ExampleClass");
+    ///
+    ///       // If mrb_class_defined returns 1 then puts "True"
+    ///       // If mrb_class_defined returns 0 then puts "False"
+    ///       if (cd == 1){
+    ///         puts("True");
+    ///       }
+    ///       else {
+    ///         puts("False");
+    ///       }
+    ///      }
+    ///
+    /// @param mrb The current mruby state.
+    /// @param name A string representing the name of the class.
+    /// @return [mrb_bool] A boolean value.
+    pub fn class_defined(self: *Self, name: [*:0]const u8) mrb_bool {
+        return mrb_class_defined(self, name);
+    }
+    pub fn class_defined_id(self: *Self, name: mrb_sym) mrb_bool {
+        return mrb_class_defined_id(self, name);
+    }
+
+    /// Gets a class.
+    /// @param mrb The current mruby state.
+    /// @param name The name of the class.
+    /// @return [struct RClass *] A reference to the class.
+    pub fn class_get(self: *Self, name: [*:0]const u8) ?*RClass {
+        return mrb_class_get(self, name);
+    }
+    pub fn class_get_id(self: *Self, name: mrb_sym) ?*RClass {
+        return mrb_class_get_id(self, name);
+    }
+
+    /// Gets a exception class.
+    /// @param mrb The current mruby state.
+    /// @param name The name of the class.
+    /// @return [struct RClass *] A reference to the class.
+    pub fn exc_get_id(self: *Self, name: mrb_sym) ?*RClass {
+        return mrb_exc_get_id(self, name);
+    }
+
+    /// Returns an mrb_bool. True if inner class was defined, and false if the inner class was not defined.
+    ///
+    /// Example:
+    ///     void
+    ///     mrb_example_gem_init(mrb_state* mrb) {
+    ///       struct RClass *example_outer, *example_inner;
+    ///       mrb_bool cd;
+    ///
+    ///       example_outer = mrb_define_module(mrb, "ExampleOuter");
+    ///
+    ///       example_inner = mrb_define_class_under(mrb, example_outer, "ExampleInner", mrb->object_class);
+    ///       cd = mrb_class_defined_under(mrb, example_outer, "ExampleInner");
+    ///
+    ///       // If mrb_class_defined_under returns 1 then puts "True"
+    ///       // If mrb_class_defined_under returns 0 then puts "False"
+    ///       if (cd == 1){
+    ///         puts("True");
+    ///       }
+    ///       else {
+    ///         puts("False");
+    ///       }
+    ///      }
+    ///
+    /// @param mrb The current mruby state.
+    /// @param outer The name of the outer class.
+    /// @param name A string representing the name of the inner class.
+    /// @return [mrb_bool] A boolean value.
+    pub fn class_defined_under(self: *Self, outer: *RClass, name: [*:0]const u8) mrb_bool {
+        return mrb_class_defined_under(self, outer, name);
+    }
+    pub fn class_defined_under_id(self: *Self, outer: *RClass, name: mrb_sym) mrb_bool {
+        return mrb_class_defined_under_id(self, outer, name);
+    }
+
+    /// Gets a child class.
+    /// @param mrb The current mruby state.
+    /// @param outer The name of the parent class.
+    /// @param name The name of the class.
+    /// @return [struct RClass *] A reference to the class.
+    pub fn class_get_under(self: *Self, outer: *RClass, name: [*:0]const u8) ?*RClass {
+        return mrb_class_get_under(self, outer, name);
+    }
+    pub fn class_get_under_id(self: *Self, outer: *RClass, name: mrb_sym) ?*RClass {
+        return mrb_class_get_under_id(self, outer, name);
+    }
+
+    /// Gets a module.
+    /// @param mrb The current mruby state.
+    /// @param name The name of the module.
+    /// @return [struct RClass *] A reference to the module.
+    pub fn module_get(self: *Self, name: [*:0]const u8) ?*RClass {
+        return mrb_module_get(self, name);
+    }
+    pub fn module_get_id(self: *Self, name: mrb_sym) ?*RClass {
+        return mrb_module_get_id(self, name);
+    }
+
+    /// Gets a module defined under another module.
+    /// @param mrb The current mruby state.
+    /// @param outer The name of the outer module.
+    /// @param name The name of the module.
+    /// @return [struct RClass *] A reference to the module.
+    pub fn module_get_under(self: *Self, outer: *RClass, name: [*:0]const u8) ?*RClass {
+        return mrb_module_get_under(self, outer, name);
+    }
+    pub fn module_get_under_id(self: *Self, outer: *RClass, name: mrb_sym) ?*RClass {
+        return mrb_module_get_under_id(self, outer, name);
+    }
+
+    /// a function to raise NotImplementedError with current method name
+    pub fn notimplement(self: *Self) void {
+        return mrb_notimplement(self);
+    }
+
+    /// a function to be replacement of unimplemented method
+    pub fn notimplement_m(self: *Self, value: mrb_value) mrb_value {
+        return mrb_notimplement_m(self, value);
+    }
+
+    /// Duplicate an object.
+    ///
+    /// Equivalent to:
+    ///   Object#dup
+    /// @param mrb The current mruby state.
+    /// @param obj Object to be duplicate.
+    /// @return [mrb_value] The newly duplicated object.
+    pub fn obj_dup(self: *Self, obj: mrb_value) mrb_value {
+        return mrb_obj_dup(self, obj);
+    }
+
+    /// Returns true if obj responds to the given method. If the method was defined for that
+    /// class it returns true, it returns false otherwise.
+    ///
+    ///      Example:
+    ///      # Ruby style
+    ///      class ExampleClass
+    ///        def example_method
+    ///        end
+    ///      end
+    ///
+    ///      ExampleClass.new.respond_to?(:example_method) # => true
+    ///
+    ///      // C style
+    ///      void
+    ///      mrb_example_gem_init(mrb_state* mrb) {
+    ///        struct RClass *example_class;
+    ///        mrb_sym mid;
+    ///        mrb_bool obj_resp;
+    ///
+    ///        example_class = mrb_define_class(mrb, "ExampleClass", mrb->object_class);
+    ///        mrb_define_method(mrb, example_class, "example_method", exampleMethod, MRB_ARGS_NONE());
+    ///        mid = mrb_intern_str(mrb, mrb_str_new_lit(mrb, "example_method" ));
+    ///        obj_resp = mrb_obj_respond_to(mrb, example_class, mid); // => 1(true in Ruby world)
+    ///
+    ///        // If mrb_obj_respond_to returns 1 then puts "True"
+    ///        // If mrb_obj_respond_to returns 0 then puts "False"
+    ///        if (obj_resp == 1) {
+    ///          puts("True");
+    ///        }
+    ///        else if (obj_resp == 0) {
+    ///          puts("False");
+    ///        }
+    ///      }
+    ///
+    /// @param mrb The current mruby state.
+    /// @param cla A reference to a class.
+    /// @param mid A symbol referencing a method id.
+    /// @return [mrb_bool] A boolean value.
+    pub fn obj_respond_to(self: *Self, cla: *RClass, mid: mrb_sym) mrb_bool {
+        return mrb_obj_respond_to(self, cla, mid);
+    }
+
+    /// Defines a new class under a given module
+    ///
+    /// @param mrb The current mruby state.
+    /// @param outer Reference to the module under which the new class will be defined
+    /// @param name The name of the defined class
+    /// @param super The new class parent
+    /// @return [struct RClass *] Reference to the newly defined class
+    /// @see mrb_define_class
+    pub fn define_class_under(self: *Self, outer: *RClass, name: [*:0]const u8, super: *RClass) ?*RClass {
+        return mrb_define_class_under(self, outer, name, super);
+    }
+    pub fn define_class_under_id(self: *Self, outer: *RClass, name: mrb_sym, super: *RClass) ?*RClass {
+        return mrb_define_class_under_id(self, outer, name, super);
+    }
+    pub fn define_module_under(self: *Self, outer: *RClass, name: [*:0]const u8) ?*RClass {
+        return mrb_define_module_under(self, outer, name);
+    }
+    pub fn define_module_under_id(self: *Self, outer: *RClass, name: mrb_sym) ?*RClass {
+        return mrb_define_module_under_id(self, outer, name);
+    }
+
+    /// Retrieve arguments from mrb_state.
+    ///
+    /// @param mrb The current MRuby state.
+    /// @param format is a list of format specifiers
+    /// @param ... The passing variadic arguments must be a pointer of retrieving type.
+    /// @return the number of arguments retrieved.
+    /// @see mrb_args_format
+    /// @see mrb_kwargs
+    pub extern fn mrb_get_args(mrb: *mrb_state, format: mrb_args_format, ...) mrb_int;
+
+    // TODO: after non-opaque mrb_state
+    // get method symbol
+    // pub fn mrb_get_mid(mrb: *mrb_state) mrb_sym {
+    //   return mrb.c.ci.mid;
+    // }
+
+    /// Retrieve number of arguments from mrb_state.
+    ///
+    /// Correctly handles *splat arguments.
+    pub extern fn mrb_get_argc(mrb: *mrb_state) mrb_int;
+
+    /// Retrieve an array of arguments from mrb_state.
+    ///
+    /// Correctly handles *splat arguments.
+    pub extern fn mrb_get_argv(mrb: *mrb_state) [*]const mrb_value;
+
+    /// Retrieve the first and only argument from mrb_state.
+    /// Raises ArgumentError unless the number of arguments is exactly one.
+    ///
+    /// Correctly handles *splat arguments.
+    pub extern fn mrb_get_arg1(mrb: *mrb_state) mrb_value;
+
+    /// Check if a block argument is given from mrb_state.
+    pub extern fn mrb_block_given_p(mrb: *mrb_state) mrb_bool;
+
+
 
 
     pub fn p(self: *Self, value: mrb_value) void {
@@ -276,11 +723,13 @@ pub const mrb_state = opaque {
     }
 };
 
+pub const mrb_context = opaque {};
+
+pub const mrb_callinfo = opaque {};
+
 pub const mrb_gc = opaque {};
 pub const mrb_irep = opaque {};
 pub const mrb_jmpbuf = opaque {};
-pub const mrb_context = opaque {};
-pub const mrb_callinfo = opaque {};
 pub const mrb_jumpbuf = opaque {};
 pub const mrb_pool = opaque {};
 pub const mrb_method_t = opaque {};
