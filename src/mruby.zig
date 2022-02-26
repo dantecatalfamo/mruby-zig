@@ -1666,24 +1666,6 @@ pub const RInteger = opaque {};
 pub const RFloat = opaque {};
 pub extern fn mrb_integer_func(o: mrb_value) mrb_int;
 pub extern fn mrb_type(o:mrb_value) mrb_vtype;
-pub fn mrb_ptr(o: mrb_value) *anyopaque {
-    return mrb_get_ptr(o);
-}
-pub fn mrb_cptr(v: mrb_value) *anyopaque {
-    return mrb_get_cptr(v);
-}
-pub fn mrb_float(v: mrb_value) mrb_float {
-    return mrb_get_float(v);
-}
-pub fn mrb_integer(v: mrb_value) mrb_int {
-    return mrb_get_integer(v);
-}
-pub fn mrb_sym(v: mrb_value) mrb_sym {
-    return mrb_get_sym(v);
-}
-pub fn mrb_bool(v: mrb_value) mrb_bool {
-    return mrb_get_bool(v);
-}
 // hacks
 extern fn mrb_get_ptr(v: mrb_value) *anyopaque;
 extern fn mrb_get_cptr(v: mrb_value) *anyopaque;
