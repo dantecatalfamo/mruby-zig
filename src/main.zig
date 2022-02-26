@@ -15,6 +15,7 @@ pub fn main() anyerror!void {
     std.log.debug("kernel module ponter: {p}", .{ kptr });
     mruby.mrb_define_module_function(mrb, kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
     _ = mruby.mrb_load_string(mrb, "zigfunc");
+    mruby.mrb_p(mrb, mruby.mrb_obj_value(kptr));
 }
 
 export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {

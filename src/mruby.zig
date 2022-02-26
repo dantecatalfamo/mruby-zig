@@ -1637,24 +1637,59 @@ pub const RCptr = opaque {};
 /// Returns a float in Ruby.
 ///
 /// Takes a float and boxes it into an mrb_value
-pub extern fn mrb_float_value(mrb: *mrb_state, f: mrb_float) mrb_value;
-pub extern fn mrb_cptr_value(mrb: *mrb_state, p: *anyopaque) mrb_value;
+pub fn mrb_float_value(mrb: *mrb_state, f: mrb_float) mrb_value {
+    return mrb_get_float_value(mrb, f);
+}
+pub fn mrb_cptr_value(mrb: *mrb_state, p: *anyopaque) mrb_value {
+    return mrb_get_cptr_value(mrb, p);
+}
 /// Returns an integer in Ruby.
-pub extern fn mrb_int_value(mrb: *mrb_state, i: mrb_int) mrb_value;
-pub extern fn mrb_fixnum_value(i: mrb_int) mrb_value;
-pub extern fn mrb_symbol_value(i: mrb_sym) mrb_value;
-pub extern fn mrb_obj_value(p: *anyopaque) mrb_value;
+pub fn mrb_int_value(mrb: *mrb_state, i: mrb_int) mrb_value {
+    return mrb_get_int_value(mrb, i);
+}
+pub fn mrb_fixnum_value(i: mrb_int) mrb_value {
+    return mrb_get_fixnum_value(i);
+}
+pub fn mrb_symbol_value(i: mrb_sym) mrb_value {
+    return mrb_get_symbol_value(i);
+}
+pub fn mrb_obj_value(p: *anyopaque) mrb_value {
+    return mrb_get_obj_value(p);
+}
 /// Get a nil mrb_value object.
 ///
 /// @return
 ///      nil mrb_value object reference.
-pub extern fn mrb_nil_value() mrb_value;
+pub fn mrb_nil_value() mrb_value {
+    return mrb_get_nil_value();
+}
 /// Returns false in Ruby.
-pub extern fn mrb_false_value() mrb_value;
+pub fn mrb_false_value() mrb_value {
+    return mrb_get_false_value();
+}
 /// Returns true in Ruby.
-pub extern fn mrb_true_value() mrb_value;
-pub extern fn mrb_bool_value(boolean: mrb_bool) mrb_value;
-pub extern fn mrb_undef_value() mrb_value;
+pub fn mrb_true_value() mrb_value {
+    return mrb_get_true_value();
+}
+pub fn mrb_bool_value(boolean: mrb_bool) mrb_value {
+    return mrb_get_bool_value(boolean);
+}
+pub fn mrb_undef_value() mrb_value {
+    return mrb_get_undef_value();
+}
+
+// hacks
+pub extern fn mrb_get_float_value(mrb: *mrb_state, f: mrb_float) mrb_value;
+pub extern fn mrb_get_cptr_value(mrb: *mrb_state, p: *anyopaque) mrb_value;
+pub extern fn mrb_get_int_value(mrb: *mrb_state, i: mrb_int) mrb_value;
+pub extern fn mrb_get_fixnum_value(i: mrb_int) mrb_value;
+pub extern fn mrb_get_symbol_value(i: mrb_sym) mrb_value;
+pub extern fn mrb_get_obj_value(p: *anyopaque) mrb_value;
+pub extern fn mrb_get_nil_value() mrb_value;
+pub extern fn mrb_get_false_value() mrb_value;
+pub extern fn mrb_get_true_value() mrb_value;
+pub extern fn mrb_get_bool_value(boolean: mrb_bool) mrb_value;
+pub extern fn mrb_get_undef_value() mrb_value;
 
 
 /////////////////////////////////////////////////

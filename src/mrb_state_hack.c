@@ -1,6 +1,7 @@
 #include <mruby.h>
 #include <mruby/array.h>
 #include <mruby/data.h>
+#include <mruby/value.h>
 
 /*
  *  mruby.h
@@ -104,4 +105,42 @@ void *mrb_rdata_data(struct RData *data) {
 }
 void *mrb_rdata_type(struct RData *data) {
     return data->type;
+}
+
+/*
+ *  mruby/value.h
+ */
+
+mrb_value mrb_get_float_value(struct mrb_state *mrb, mrb_float f) {
+    return mrb_float_value(mrb, f);
+}
+mrb_value mrb_get_cptr_value(struct mrb_state *mrb, void *p) {
+    return mrb_cptr_value(mrb, p);
+}
+mrb_value mrb_get_int_value(struct mrb_state *mrb, mrb_int i) {
+    return mrb_int_value(mrb, i);
+}
+mrb_value mrb_get_fixnum_value(mrb_int i) {
+    return mrb_fixnum_value(i);
+}
+mrb_value mrb_get_symbol_value(mrb_sym i) {
+    return mrb_symbol_value(i);
+}
+mrb_value mrb_get_obj_value(void *p) {
+    return mrb_obj_value(p);
+}
+mrb_value mrb_get_nil_value(void) {
+    return mrb_nil_value();
+}
+mrb_value mrb_get_false_value(void) {
+    return mrb_false_value();
+}
+mrb_value mrb_get_true_value(void) {
+    return mrb_true_value();
+}
+mrb_value mrb_get_bool_value(mrb_bool boolean) {
+    return mrb_bool_value(boolean);
+}
+mrb_value mrb_get_undef_value(void) {
+    return mrb_undef_value();
 }
