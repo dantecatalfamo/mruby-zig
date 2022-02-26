@@ -5,7 +5,16 @@ pub fn build(b: *std.build.Builder) void {
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
     // for restricting supported target set are available.
-    const target = b.standardTargetOptions(.{});
+    var target = b.standardTargetOptions(.{});
+    // For some reason building on Fedora while linking to libmruby.a
+    // causes a segfault on launch. For now we'll just use musl
+    // The output in GDB is the following:
+    //   Program received signal SIGSEGV, Segmentation fault.
+    //   0x00000000002ed513 in std.start.main (c_argc=1, c_argv=0x7fffffffdd38, c_envp=0x7fffffffe0a4) at /home/dante/zig/0.10.0-dev.974+bf6540ce5/files/lib/std/start.zig:450
+    //   450        while (c_envp[env_count] != null) : (env_count += 1) {}
+    if (target.isLinux()) {
+        target.abi = .musl;
+    }
 
     // Standard release options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
@@ -14,8 +23,8 @@ pub fn build(b: *std.build.Builder) void {
     const exe = b.addExecutable("mruby-zig", "src/main.zig");
     exe.setTarget(target);
     exe.setBuildMode(mode);
-    exe.addSystemIncludePath("../../mruby/mruby/include/");
-    exe.addLibraryPath("../../mruby/mruby/build/host/lib");
+    exe.addSystemIncludePath("./mruby/include/");
+    exe.addLibraryPath("./mruby/build/host/lib");
     exe.linkSystemLibrary("mruby");
     exe.linkLibC();
     exe.addCSourceFile("src/mrb_state_hack.c", &.{});
@@ -33,8 +42,8 @@ pub fn build(b: *std.build.Builder) void {
     const exe_tests = b.addTest("src/main.zig");
     exe_tests.setTarget(target);
     exe_tests.setBuildMode(mode);
-    exe_tests.addSystemIncludePath("../../mruby/mruby/include/");
-    exe_tests.addLibraryPath("../../mruby/mruby/build/host/lib");
+    exe_tests.addSystemIncludePath("./mruby/include/");
+    exe_tests.addLibraryPath("./mruby/build/host/lib");
     exe_tests.linkSystemLibrary("mruby");
     exe_tests.linkLibC();
 
