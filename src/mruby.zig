@@ -1491,9 +1491,16 @@ pub extern fn mrb_ary_join(mrb: *mrb_state, ary: mrb_value, sep: mrb_value) mrb_
 /// @param new_len The new capacity of the array
 pub extern fn mrb_ary_resize(mrb: *mrb_state, ary: mrb_value, new_len: mrb_int) mrb_value;
 
+pub fn mrb_ary_ptr(val: mrb_value) ?*RArray {
+    return mrb_ary_get_ptr(val);
+}
+pub fn mrb_ary_value(ptr: *RArray) mrb_value {
+    return mrb_ary_get_value(ptr);
+}
+
 // hacks
-pub extern fn mrb_ary_get_ptr(val: mrb_value) *RArray;
-pub extern fn mrb_ary_get_value(ptr: *RArray) mrb_value;
+extern fn mrb_ary_get_ptr(val: mrb_value) ?*RArray;
+extern fn mrb_ary_get_value(ptr: *RArray) mrb_value;
 pub extern fn mrb_ary_len(ptr: *RArray) mrb_int;
 
 ///////////////////////////////////////////
@@ -1658,13 +1665,32 @@ pub extern fn mrb_undef_value() mrb_value;
 pub const RInteger = opaque {};
 pub const RFloat = opaque {};
 pub extern fn mrb_integer_func(o: mrb_value) mrb_int;
-pub extern fn mrb_type(o: mrb_value) mrb_vtype;
-pub extern fn mrb_get_ptr(v: mrb_value) *anyopaque;
-pub extern fn mrb_get_cptr(v: mrb_value) *anyopaque;
-pub extern fn mrb_get_float(v: mrb_value) mrb_float;
-pub extern fn mrb_get_integer(v: mrb_value) mrb_int;
-pub extern fn mrb_get_sym(v: mrb_value) mrb_sym;
-pub extern fn mrb_get_bool(v: mrb_value) mrb_bool;
+pub extern fn mrb_type(o:mrb_value) mrb_vtype;
+pub fn mrb_ptr(o: mrb_value) *anyopaque {
+    return mrb_get_ptr(o);
+}
+pub fn mrb_cptr(v: mrb_value) *anyopaque {
+    return mrb_get_cptr(v);
+}
+pub fn mrb_float(v: mrb_value) mrb_float {
+    return mrb_get_float(v);
+}
+pub fn mrb_integer(v: mrb_value) mrb_int {
+    return mrb_get_integer(v);
+}
+pub fn mrb_sym(v: mrb_value) mrb_sym {
+    return mrb_get_sym(v);
+}
+pub fn mrb_bool(v: mrb_value) mrb_bool {
+    return mrb_get_bool(v);
+}
+// hacks
+extern fn mrb_get_ptr(v: mrb_value) *anyopaque;
+extern fn mrb_get_cptr(v: mrb_value) *anyopaque;
+extern fn mrb_get_float(v: mrb_value) mrb_float;
+extern fn mrb_get_integer(v: mrb_value) mrb_int;
+extern fn mrb_get_sym(v: mrb_value) mrb_sym;
+extern fn mrb_get_bool(v: mrb_value) mrb_bool;
 
 
 /////////////////////////////////////////

@@ -76,7 +76,7 @@ mrb_int mrb_ary_len(struct RArray *p) {
  *  mruby/<boxing>.h
  */
 
-void *mrb_get_prt(mrb_value v) {
+void *mrb_get_ptr(mrb_value v) {
     return mrb_ptr(v);
 }
 void *mrb_get_cptr(mrb_value v) {

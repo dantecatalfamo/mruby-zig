@@ -23,7 +23,7 @@ pub fn build(b: *std.build.Builder) void {
     const exe = b.addExecutable("mruby-zig", "src/main.zig");
     exe.setTarget(target);
     exe.setBuildMode(mode);
-    exe.addSystemIncludePath("./mruby/include/");
+    exe.addSystemIncludePath("./mruby/include");
     exe.addLibraryPath("./mruby/build/host/lib");
     exe.linkSystemLibrary("mruby");
     exe.linkLibC();
@@ -42,10 +42,11 @@ pub fn build(b: *std.build.Builder) void {
     const exe_tests = b.addTest("src/main.zig");
     exe_tests.setTarget(target);
     exe_tests.setBuildMode(mode);
-    exe_tests.addSystemIncludePath("./mruby/include/");
+    exe_tests.addSystemIncludePath("./mruby/include");
     exe_tests.addLibraryPath("./mruby/build/host/lib");
     exe_tests.linkSystemLibrary("mruby");
     exe_tests.linkLibC();
+    exe_tests.addCSourceFile("src/mrb_state_hack.c", &.{});
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&exe_tests.step);
