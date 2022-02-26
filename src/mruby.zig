@@ -88,10 +88,191 @@ pub const mrb_state = opaque {
         return mrb_state_get_kernel_module(self);
     }
 
-    //  Functions
+    //  mruby.h functions
+
+    /// Defines a new class.
+    ///
+    /// If you're creating a gem it may look something like this:
+    ///
+    ///      !!!c
+    ///      void mrb_example_gem_init(mrb_state* mrb) {
+    ///          struct RClass *example_class;
+    ///          example_class = mrb_define_class(mrb, "Example_Class", mrb->object_class);
+    ///      }
+    ///
+    ///      void mrb_example_gem_final(mrb_state* mrb) {
+    ///          //free(TheAnimals);
+    ///      }
+    ///
+    /// @param mrb The current mruby state.
+    /// @param name The name of the defined class.
+    /// @param super The new class parent.
+    /// @return [struct RClass *] Reference to the newly defined class.
+    /// @see mrb_define_class_under
+    pub fn define_class(self: *Self, name: [*:0]const u8, super: *RClass) ?*RClass {
+        return mrb_define_class(self, name, super);
+    }
+    pub fn define_class_id(self: *Self, name: mrb_sym, super: *RClass) ?*RClass {
+        return mrb_define_class_id(self, name, super);
+    }
+
+    /// Defines a new module.
+    ///
+    /// @param mrb The current mruby state.
+    /// @param name The name of the module.
+    /// @return [struct RClass *] Reference to the newly defined module.
+    pub fn define_module(self: *Self, name: [*:0]const u8) ?*RClass {
+        return mrb_define_module(self, name);
+    }
+    pub fn define_module_id(self: *Self, name: mrb_sym) ?*RClass {
+        return mrb_define_module_id(self, name);
+    }
+
+    pub fn singleton_class(self: *Self, val: mrb_value) mrb_value {
+        return mrb_singleton_class(self, val);
+    }
+    pub fn singleton_class_ptr(self: *Self, val: mrb_value) ?*RClass {
+        return mrb_singleton_class_ptr(self, val);
+    }
+
+    /// Include a module in another class or module.
+    /// Equivalent to:
+    ///
+    ///   module B
+    ///     include A
+    ///   end
+    /// @param mrb The current mruby state.
+    /// @param cla A reference to module or a class.
+    /// @param included A reference to the module to be included.
+    pub fn include_module(self: *Self, cla: *RClass, included: *RClass) void {
+        return mrb_include_module(self, cla, included);
+    }
+
+    /// Prepends a module in another class or module.
+    ///
+    /// Equivalent to:
+    ///  module B
+    ///    prepend A
+    ///  end
+    /// @param mrb The current mruby state.
+    /// @param cla A reference to module or a class.
+    /// @param prepended A reference to the module to be prepended.
+    pub fn prepend_module(self: *Self, cla: *RClass, prepended: *RClass) void {
+        return mrb_prepend_module(self, cla, prepended);
+    }
+
+    /// Defines a global function in ruby.
+    ///
+    /// If you're creating a gem it may look something like this
+    ///
+    /// Example:
+    ///
+    ///     mrb_value example_method(mrb_state* mrb, mrb_value self)
+    ///     {
+    ///          puts("Executing example command!");
+    ///          return self;
+    ///     }
+    ///
+    ///     void mrb_example_gem_init(mrb_state* mrb)
+    ///     {
+    ///           mrb_define_method(mrb, mrb->kernel_module, "example_method", example_method, MRB_ARGS_NONE());
+    ///     }
+    ///
+    /// @param mrb The MRuby state reference.
+    /// @param cla The class pointer where the method will be defined.
+    /// @param name The name of the method being defined.
+    /// @param func The function pointer to the method definition.
+    /// @param aspec The method parameters declaration.
+    pub fn define_method(self: *Self, cla: *RClass, name: [*:0]const u8, func: mrb_func_t, aspec: mrb_aspec) void {
+        return mrb_define_method(self, cla, name, func, aspec);
+    }
+    pub fn define_method_id(self: *Self, cla: *RClass, mid: mrb_sym, func: mrb_func_t, aspec: mrb_aspec) void {
+        return mrb_define_method_id(self, cla, mid, func, aspec);
+    }
+
+    /// Defines a class method.
+    ///
+    /// Example:
+    ///
+    ///     # Ruby style
+    ///     class Foo
+    ///       def Foo.bar
+    ///       end
+    ///     end
+    ///     // C style
+    ///     mrb_value bar_method(mrb_state* mrb, mrb_value self){
+    ///       return mrb_nil_value();
+    ///     }
+    ///     void mrb_example_gem_init(mrb_state* mrb){
+    ///       struct RClass *foo;
+    ///       foo = mrb_define_class(mrb, "Foo", mrb->object_class);
+    ///       mrb_define_class_method(mrb, foo, "bar", bar_method, MRB_ARGS_NONE());
+    ///     }
+    /// @param mrb The MRuby state reference.
+    /// @param cla The class where the class method will be defined.
+    /// @param name The name of the class method being defined.
+    /// @param fun The function pointer to the class method definition.
+    /// @param aspec The method parameters declaration.
+    pub fn define_class_method(self: *Self, cla: *RClass, name: [*:0]const u8, fun: mrb_func_t, aspec: mrb_aspec) void {
+        return mrb_define_class_method(self, cla, name, fun, aspec);
+    }
+    pub fn define_class_method_id(self: *Self, cla: *RClass, name: mrb_sym, fun: mrb_func_t, aspec: mrb_aspec) void {
+        return mrb_define_class_method_id(self, cla, name, fun, aspec);
+    }
+
+    /// Defines a singleton method
+    ///
+    /// @see mrb_define_class_method
+    pub fn define_singleton_method(self: *Self, cla: *RObject, name: [*:0]const u8, fun: mrb_func_t, aspec: mrb_aspec) void {
+        return mrb_define_singleton_method(self, cla, name, fun, aspec);
+    }
+    pub fn define_singleton_method_id(self: *Self, cla: *RObject, name: mrb_sym, fun: mrb_func_t, aspec: mrb_aspec) void {
+        return mrb_define_singleton_method_id(self, cla, name, fun, aspec);
+    }
+
+    ///  Defines a module function.
+    ///
+    /// Example:
+    ///
+    ///        # Ruby style
+    ///        module Foo
+    ///          def Foo.bar
+    ///          end
+    ///        end
+    ///        // C style
+    ///        mrb_value bar_method(mrb_state* mrb, mrb_value self){
+    ///          return mrb_nil_value();
+    ///        }
+    ///        void mrb_example_gem_init(mrb_state* mrb){
+    ///          struct RClass *foo;
+    ///          foo = mrb_define_module(mrb, "Foo");
+    ///          mrb_define_module_function(mrb, foo, "bar", bar_method, MRB_ARGS_NONE());
+    ///        }
+    ///  @param mrb The MRuby state reference.
+    ///  @param cla The module where the module function will be defined.
+    ///  @param name The name of the module function being defined.
+    ///  @param fun The function pointer to the module function definition.
+    ///  @param aspec The method parameters declaration.
+    pub fn define_module_function(self: *Self, cla: *RClass, name: [*:0]const u8, fun: mrb_func_t, aspec: mrb_aspec) void {
+        return mrb_define_module_function(self, cla, name, fun, aspec);
+    }
+    pub fn define_module_function_id(self: *Self, cla: *RClass, name: mrb_sym, fun: mrb_func_t, aspec: mrb_aspec) void {
+        return mrb_define_module_function_id(self, cla, name, fun, aspec);
+    }
+
+
 
     pub fn p(self: *Self, value: mrb_value) void {
         return mrb_p(self, value);
+    }
+    pub fn show_copyright(self: *Self) void {
+        return mrb_show_copyright(self);
+    }
+    pub fn show_version(self: *Self) void {
+        return mrb_show_version(self);
+    }
+    pub fn close(self: *Self) void {
+        return mrb_close(self);
     }
 };
 

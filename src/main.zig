@@ -3,24 +3,24 @@ const mruby = @import("mruby.zig");
 
 pub fn main() anyerror!void {
     var mrb = mruby.mrb_open() orelse return error.OpenError;
-    defer mruby.mrb_close(mrb);
+    defer mrb.close();
     std.log.debug("state pointer: {p}", .{ mrb });
-    mruby.mrb_show_version(mrb);
-    mruby.mrb_show_copyright(mrb);
+    mrb.show_version();
+    mrb.show_copyright();
     const program =
         \\ puts "hello from ruby!"
     ;
     _ = mruby.mrb_load_string(mrb, program);
     const kptr = mrb.kernel_module().?;
     std.log.debug("kernel module ponter: {p}", .{ kptr });
-    mruby.mrb_define_module_function(mrb, kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
+    mrb.define_module_function(kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
     _ = mruby.mrb_load_string(mrb, "zigfunc");
     _ = mruby.mrb_funcall(mrb, kptr.value(), "puts", 1, mruby.mrb_str_new_lit(mrb, "hello from puts called in zig!"));
     mrb.p(kptr.value());
 
     // Exception test
     mruby.mrb_sys_fail(mrb, "intentional system failure");
-    mruby.mrb_p(mrb, mrb.exc().?.value());
+    mrb.p(mrb.exc().?.value());
 }
 
 export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
