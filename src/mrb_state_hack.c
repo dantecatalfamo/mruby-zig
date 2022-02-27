@@ -118,6 +118,9 @@ mrb_value mrb_ary_get_value(struct RArray *p) {
 mrb_int mrb_ary_len(struct RArray *p) {
     return ARY_LEN(p);
 }
+mrb_int mrb_ary_capa(struct RArray *p) {
+    return ARY_CAPA(p);
+}
 
 /*
  *  mruby/<boxing>.h

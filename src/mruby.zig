@@ -1203,6 +1203,223 @@ pub const mrb_state = opaque {
     pub fn format(self: *Self, fmt: [*:0]const u8, args: anytype) mrb_value {
         return @call(.{}, mrb_format, .{ self, fmt } ++ args);
     }
+
+    // mruby/array.h
+
+    /// Initializes a new array.
+    ///
+    /// Equivalent to:
+    ///
+    ///      Array.new
+    ///
+    /// @param mrb The mruby state reference.
+    /// @return The initialized array.
+    pub fn ary_new(self: *Self) mrb_value {
+        return mrb_ary_new(self);
+    }
+
+    /// Initializes a new array with initial values
+    ///
+    /// Equivalent to:
+    ///
+    ///      Array[value1, value2, ...]
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param size The number of values.
+    /// @param vals The actual values.
+    /// @return The initialized array.
+    pub fn ary_new_from_values(self: *Self, vals: []const mrb_value) mrb_value {
+        return mrb_ary_new_from_values(self, vals.len, vals.ptr);
+    }
+
+    /// Initializes a new array with two initial values
+    ///
+    /// Equivalent to:
+    ///
+    ///      Array[car, cdr]
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param car The first value.
+    /// @param cdr The second value.
+    /// @return The initialized array.
+    pub fn assoc_new(self: *Self, car: mrb_value, cdr: mrb_value) mrb_value {
+        return mrb_assoc_new(self, car, cdr);
+    }
+
+    /// Concatenate two arrays. The target array will be modified
+    ///
+    /// Equivalent to:
+    ///      ary.concat(other)
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param self The target array.
+    /// @param other The array that will be concatenated to self.
+    pub fn ary_concat(self: *Self, array_self: mrb_value, other: mrb_value) void {
+        return mrb_ary_concat(self, array_self, other);
+    }
+
+    /// Create an array from the input. It tries calling to_a on the
+    /// value. If value does not respond to that, it creates a new
+    /// array with just this value.
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param value The value to change into an array.
+    /// @return An array representation of value.
+    pub fn ary_splat(self: *Self, value: mrb_value) mrb_value {
+        return mrb_ary_splat(self, value);
+    }
+
+    /// Pushes value into array.
+    ///
+    /// Equivalent to:
+    ///
+    ///      ary << value
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param ary The array in which the value will be pushed
+    /// @param value The value to be pushed into array
+    pub fn ary_push(self: *Self, array: mrb_value, value: mrb_value) void {
+        return mrb_ary_push(self, array, value);
+    }
+
+    /// Pops the last element from the array.
+    ///
+    /// Equivalent to:
+    ///
+    ///      ary.pop
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param ary The array from which the value will be popped.
+    /// @return The popped value.
+    pub fn ary_pop(self: *Self, ary: mrb_value) mrb_value {
+        return mrb_ary_pop(self, ary);
+    }
+
+    /// Sets a value on an array at the given index
+    ///
+    /// Equivalent to:
+    ///
+    ///      ary[n] = val
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param ary The target array.
+    /// @param n The array index being referenced.
+    /// @param val The value being set.
+    pub fn ary_set(self: *Self, ary: mrb_value, n: mrb_int, value: mrb_value) void {
+        return mrb_ary_set(self, ary, n, value);
+    }
+
+    /// Replace the array with another array
+    ///
+    /// Equivalent to:
+    ///
+    ///      ary.replace(other)
+    ///
+    /// @param mrb The mruby state reference
+    /// @param self The target array.
+    /// @param other The array to replace it with.
+    pub fn ary_replace(self: *Self, array_self: mrb_value, other: mrb_value) void {
+        return mrb_ary_replace(self, array_self, other);
+    }
+
+    /// Unshift an element into the array
+    ///
+    /// Equivalent to:
+    ///
+    ///     ary.unshift(item)
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param self The target array.
+    /// @param item The item to unshift.
+    pub fn ary_unshift(self: *Self, array_self: mrb_value, item: mrb_value) mrb_value {
+        return mrb_ary_unshift(self, array_self, item);
+    }
+
+    /// Get nth element in the array
+    ///
+    /// Equivalent to:
+    ///
+    ///     ary[offset]
+    ///
+    /// @param ary The target array.
+    /// @param offset The element position (negative counts from the tail).
+    pub fn ary_entry(ary: mrb_value, offset: mrb_int) mrb_value {
+        return mrb_ary_entry(ary, offset);
+    }
+
+    /// Replace subsequence of an array.
+    ///
+    /// Equivalent to:
+    ///
+    ///      ary[head, len] = rpl
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param self The array from which the value will be partiality replaced.
+    /// @param head Beginning position of a replacement subsequence.
+    /// @param len Length of a replacement subsequence.
+    /// @param rpl The array of replacement elements.
+    ///            It is possible to pass `mrb_undef_value()` instead of an empty array.
+    /// @return The receiver array.
+    pub fn ary_splice(self: *Self, array_self: mrb_value, head: mrb_int, len: mrb_int, rpl: mrb_value) mrb_value {
+        return mrb_ary_splice(self, array_self, head, len, rpl);
+    }
+
+    /// Shifts the first element from the array.
+    ///
+    /// Equivalent to:
+    ///
+    ///      ary.shift
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param self The array from which the value will be shifted.
+    /// @return The shifted value.
+    pub fn ary_shift(self: *Self, array_self: mrb_value) mrb_value {
+        return mrb_ary_shift(self, array_self);
+    }
+
+    /// Removes all elements from the array
+    ///
+    /// Equivalent to:
+    ///
+    ///      ary.clear
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param self The target array.
+    /// @return self
+    pub fn ary_clear(self: *Self, array_self: mrb_value) mrb_value {
+        return mrb_ary_clear(self, array_self);
+    }
+
+    /// Join the array elements together in a string
+    ///
+    /// Equivalent to:
+    ///
+    ///      ary.join(sep="")
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param ary The target array
+    /// @param sep The separator, can be NULL
+    pub fn ary_join(self: *Self, ary: mrb_value, sep: mrb_value) mrb_value {
+        return mrb_ary_join(self, ary, sep);
+    }
+
+    /// Update the capacity of the array
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param ary The target array.
+    /// @param new_len The new capacity of the array
+    pub fn ary_resize(self: *Self, ary: mrb_value, new_len: mrb_int) mrb_value {
+        return mrb_ary_resize(self, ary, new_len);
+    }
+
+    pub fn ary_len(ptr: *RArray) mrb_int {
+        return mrb_ary_len(ptr);
+    }
+
+    pub fn ary_capa(ptr: *RArray) mrb_int {
+        return mrb_ary_capa(ptr);
+    }
+
 };
 
 pub const mrb_context = opaque {
@@ -2760,6 +2977,7 @@ pub fn mrb_ary_value(ptr: *RArray) mrb_value {
 extern fn mrb_ary_get_ptr(val: mrb_value) ?*RArray;
 extern fn mrb_ary_get_value(ptr: *RArray) mrb_value;
 pub extern fn mrb_ary_len(ptr: *RArray) mrb_int;
+pub extern fn mrb_ary_capa(ptr: *RArray) mrb_int;
 
 ///////////////////////////////////////////
 //            mruby/compile.h            //
