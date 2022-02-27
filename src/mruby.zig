@@ -870,6 +870,68 @@ pub const mrb_state = opaque {
         return mrb_sym_str(self, sym);
     }
 
+    /// raise RuntimeError if no mem
+    pub fn malloc(self: *Self, size: usize) *anyopaque {
+        return mrb_malloc(self, size);
+    }
+    /// ditto
+    pub fn calloc(self: *Self, num: usize, size: usize) *anyopaque {
+        return mrb_calloc(self, num, size);
+    }
+    /// ditto
+    pub fn realloc(self: *Self, ptr: *anyopaque, size: usize) *anyopaque {
+        return mrb_realloc(self, ptr, size);
+    }
+    /// return NULL if no memory available
+    pub fn realloc_simple(self: *Self, ptr: *anyopaque, size: usize) ?*anyopaque {
+        return mrb_realloc_simple(self, ptr, size);
+    }
+    /// return NULL if no memory available
+    pub fn malloc_simple(self: *Self, size: usize) ?*anyopaque {
+        return mrb_malloc_simple(self, size);
+    }
+    pub fn obj_alloc(self: *Self, vtype: mrb_vtype, cla: *RClass) ?*RClass {
+        return mrb_obj_alloc(self, vtype, cla);
+    }
+    pub fn free(self: *Self, ptr: *anyopaque) void {
+        return mrb_free(self, ptr);
+    }
+
+    pub fn str_new(self: *Self, str: []const u8) mrb_value {
+        return mrb_str_new(self, str.ptr, str.len);
+    }
+
+    /// Turns a C string into a Ruby string value.
+    pub fn str_new_cstr(self: *Self, str: [*:0]const u8) mrb_value {
+        return mrb_str_new_cstr(self, str);
+    }
+    pub fn str_new_static(self: *Self, str: []const u8) mrb_value {
+        return mrb_str_new_static(self, str.ptr, str.len);
+    }
+    pub fn str_new_lit(self: *Self, lit: []const u8) mrb_value {
+        return mrb_str_new_static(self, lit.ptr, lit.len);
+    }
+
+    pub fn obj_freeze(self: *Self, value: mrb_value) mrb_value {
+        return mrb_obj_freeze(self, value);
+    }
+    pub fn str_new_frozen(self: *Self, str: []const u8) mrb_value {
+        const value = mrb_str_new(self, str.ptr, str.len);
+        return mrb_obj_freeze(self, value);
+    }
+    pub fn str_new_cstr_frozen(self: *Self, str: [*:0]const u8) mrb_value {
+        const value = mrb_str_new_cstr(self, str);
+        return mrb_obj_freeze(self, value);
+    }
+    pub fn str_new_static_frozen(self: *Self, str: []const u8) mrb_value {
+        const value = mrb_str_new_static(self, str.ptr, str.len);
+        return mrb_obj_freeze(self, value);
+    }
+    pub fn str_new_lit_frozen(self: *Self, lit: []const u8) mrb_value {
+        const value = mrb_str_new_lit(self, lit);
+        return mrb_obj_freeze(self, value);
+    }
+
 
 
     pub fn p(self: *Self, value: mrb_value) void {
@@ -2007,7 +2069,7 @@ pub extern fn mrb_str_new(mrb: *mrb_state, p: [*:0]const u8, len: usize) mrb_val
 
 /// Turns a C string into a Ruby string value.
 pub extern fn mrb_str_new_cstr(mrb: *mrb_state, str: [*:0]const u8) mrb_value;
-pub extern fn mrb_str_new_static(mrb: *mrb_state, p: [*:0]const u8, len: usize) mrb_value;
+pub extern fn mrb_str_new_static(mrb: *mrb_state, ptr: [*]const u8, len: usize) mrb_value;
 pub fn mrb_str_new_lit(mrb: *mrb_state, lit: [*:0]const u8) mrb_value {
     return mrb_str_new_static(mrb, lit, mrb_strlen_lit(lit));
 }
