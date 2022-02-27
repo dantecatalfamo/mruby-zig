@@ -1613,6 +1613,39 @@ pub const mrb_state = opaque {
         return mrb_get_undef_value();
     }
 
+    // mruby/class.h
+
+    pub fn class(self: *Self, v: mrb_value) ?*RClass {
+        return mrb_class(self, v);
+    }
+    pub fn alias_method(self: *Self, cla: *RClass, a: mrb_sym, b: mrb_sym) void {
+        return mrb_alias_method(self, cla, a, b);
+    }
+    pub fn remove_method(self: *Self, cla: *RClass, sym: mrb_sym) void {
+        return mrb_remove_method(self, cla, sym);
+    }
+
+    // mruby/data.h
+
+    /// Create RData object with klass, add data pointer and data type
+    pub fn data_object_alloc(self: *Self, klass: *RClass, data_ptr: *anyopaque, data_type: *const mrb_data_type) ?*RData {
+        return mrb_data_object_alloc(self, klass, data_ptr, data_type);
+    }
+    pub fn data_check_type(self: *Self, value: mrb_value, data_type: *const mrb_data_type) void {
+        return mrb_data_check_type(self, value, data_type);
+    }
+    /// Get data pointer from RData object pointed to by mrb_value
+    pub fn data_get_ptr(self: *Self, value: mrb_value, data_type: *const mrb_data_type) ?*anyopaque {
+        return mrb_data_get_ptr(self, value, data_type);
+    }
+    pub fn data_check_get_ptr(self: *Self, value: mrb_value, data_type: *const mrb_data_type) ?*anyopaque {
+        return mrb_data_check_get_ptr(self, value, data_type);
+    }
+    /// Define data pointer and data type of existing value pointing to RData object
+    pub fn data_init(value: mrb_value, data_ptr: *anyopaque, data_type: *mrb_data_type) void {
+        return mrb_data_init(value, data_ptr, data_type);
+    }
+
 };
 
 pub const mrb_context = opaque {
@@ -1886,6 +1919,10 @@ pub const RData = opaque {
     pub fn value(self: *Self) mrb_value {
         return mrb_obj_value(self);
     }
+
+    pub fn data(self: *Self) ?*anyopaque;
+    pub fn data_type(self: *Self) ?*mrb_data_type;
+
 };
 pub const RInteger = opaque {
     const Self = @This();
@@ -1914,6 +1951,11 @@ pub const RClass = opaque {
     pub fn value(self: *Self) mrb_value {
         return mrb_obj_value(self);
     }
+
+    pub fn class_real(self: *Self) ?*Self {
+        return mrb_class_real(self);
+    }
+
 };
 pub const RProc = opaque {
     const Self = @This();
