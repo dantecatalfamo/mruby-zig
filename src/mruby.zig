@@ -787,12 +787,87 @@ pub const mrb_state = opaque {
     /// @return [mrb_value] mrb_value mruby function value.
     /// @see mrb_funcall
     pub fn funcall_argv(self: *Self, value: mrb_value, name: mrb_sym, args: []const *mrb_value) mrb_value {
-        return mrb_funcall_argv(self, value, name, args.len, args);
+        return mrb_funcall_argv(self, value, name, args.len, args.ptr);
     }
 
     /// Call existing ruby functions with a block.
     pub fn funcall_with_block(self: *Self, value: mrb_value, name: mrb_sym, args: []const *mrb_value, block: mrb_value) mrb_value {
-        return mrb_funcall_with_block(self, value, name, args.len, args, block);
+        return mrb_funcall_with_block(self, value, name, args.len, args.ptr, block);
+    }
+
+    /// Create a symbol from C string. But usually it's better to use MRB_SYM,
+    /// MRB_OPSYM, MRB_CVSYM, MRB_IVSYM, MRB_SYM_B, MRB_SYM_Q, MRB_SYM_E macros.
+    ///
+    /// Example:
+    ///
+    ///     # Ruby style:
+    ///     :pizza # => :pizza
+    ///
+    ///     // C style:
+    ///     mrb_sym sym1 = mrb_intern_lit(mrb, "pizza"); //  => :pizza
+    ///     mrb_sym sym2 = MRB_SYM(pizza);               //  => :pizza
+    ///     mrb_sym sym3 = MRB_SYM_Q(pizza);             //  => :pizza?
+    ///
+    /// @param mrb The current mruby state.
+    /// @param str The string to be symbolized
+    /// @return [mrb_sym] mrb_sym A symbol.
+    pub fn intern_cstr(self: *Self, str: [*:0]const u8) mrb_sym {
+        return mrb_intern_cstr(self, str);
+    }
+    pub fn intern(self: *Self, char: []const u8) mrb_sym {
+        return mrb_intern(self, char.ptr, char.len);
+    }
+    pub fn intern_static(self: *Self, char: []const u8) mrb_sym {
+        return mrb_intern_static(self, char.ptr, char.len);
+    }
+    pub fn mrb_intern_lit(self: *Self, lit: []const u8) mrb_sym {
+        return self.intern_static(lit);
+    }
+    pub fn intern_str(self: *Self, value: mrb_value) mrb_sym {
+        return mrb_intern_str(self, value);
+    }
+    /// mrb_intern_check series functions returns 0 if the symbol is not defined
+    pub fn intern_check_cstr(self: *Self, str: [*:0]const u8) mrb_sym {
+        return mrb_intern_check_cstr(self, str);
+    }
+    pub fn intern_check(self: *Self, str: []const u8) mrb_sym {
+        return mrb_intern_check(self, str.ptr, str.len);
+    }
+    pub fn intern_check_str(self: *Self, value: mrb_value) mrb_sym {
+        return mrb_intern_check_str(self, value);
+    }
+    /// mrb_check_intern series functions returns nil if the symbol is not defined
+    /// otherwise returns mrb_value
+    pub fn check_intern_cstr(self: *Self, str: [*:0]const u8) mrb_value {
+        return mrb_check_intern_cstr(self, str);
+    }
+    pub fn check_intern(self: *Self, str: []const u8) mrb_value {
+        return mrb_check_intern(self, str.ptr, str.len);
+    }
+    pub fn check_intern_str(self: *Self, value: mrb_value) mrb_value {
+        return mrb_check_intern_str(self, value);
+    }
+
+    pub fn sym_name(self: *Self, sym: mrb_sym) [*:0]const u8 {
+        return mrb_sym_name(self, sym);
+    }
+    pub fn sym_name_len(self: *Self, sym: mrb_sym, len: *mrb_int) [*:0]const u8 {
+        return mrb_sym_name_len(self, sym, len);
+    }
+    pub fn sym_dump(self: *Self, sym: mrb_sym) [*:0]const u8 {
+        return mrb_sym_dump(self, sym);
+    }
+    pub fn sym_str(self: *Self, sym: mrb_sym) mrb_value {
+        return mrb_sym_str(self, sym);
+    }
+    pub fn sym2name(self: *Self, sym: mrb_sym) [*:0]const u8 {
+        return mrb_sym_name(self, sym);
+    }
+    pub fn sym2name_len(self: *Self, sym: mrb_sym, len: *mrb_int) [*:0]const u8 {
+        return mrb_sym_name_len(self, sym, len);
+    }
+    pub fn sym2str(self: *Self, sym: mrb_sym) mrb_value {
+        return mrb_sym_str(self, sym);
     }
 
 
@@ -1814,8 +1889,8 @@ pub extern fn mrb_block_given_p(mrb: *mrb_state) mrb_bool;
 /// @param argc The number of arguments the method has.
 /// @param ... Variadic values(not type safe!).
 /// @return [mrb_value] mruby function value.
-pub extern fn mrb_funcall(mrb: *mrb_state, val: mrb_value, name: [*:0]const u8, argc: mrb_int, ...) mrb_value;
-pub extern fn mrb_funcall_id(mrb: *mrb_state, val: mrb_value, mid: mrb_sym, argc: mrb_int, ...) mrb_value;
+pub extern fn mrb_funcall(mrb: *mrb_state, val: mrb_value, name: [*:0]const u8, argc: usize, ...) mrb_value;
+pub extern fn mrb_funcall_id(mrb: *mrb_state, val: mrb_value, mid: mrb_sym, argc: usize, ...) mrb_value;
 
 /// Call existing ruby functions. This is basically the type safe version of mrb_funcall.
 ///
@@ -1843,10 +1918,10 @@ pub extern fn mrb_funcall_id(mrb: *mrb_state, val: mrb_value, mid: mrb_sym, argc
 /// @param obj Pointer to the object.
 /// @return [mrb_value] mrb_value mruby function value.
 /// @see mrb_funcall
-pub extern fn mrb_funcall_argv(mrb: *mrb_state, val: mrb_value, name: mrb_sym, argc: mrb_int, argv: [*]const *mrb_value) mrb_value;
+pub extern fn mrb_funcall_argv(mrb: *mrb_state, val: mrb_value, name: mrb_sym, argc: usize, argv: [*]const *mrb_value) mrb_value;
 
 /// Call existing ruby functions with a block.
-pub extern fn mrb_funcall_with_block(mrb: *mrb_state, val: mrb_value, name: mrb_sym, argc: mrb_int, argv: [*]const *mrb_value, block: mrb_value) mrb_value;
+pub extern fn mrb_funcall_with_block(mrb: *mrb_state, val: mrb_value, name: mrb_sym, argc: usize, argv: [*]const *mrb_value, block: mrb_value) mrb_value;
 
 
 /// `strlen` for character string literals (use with caution or `strlen` instead)
@@ -1875,20 +1950,20 @@ pub fn mrb_strlen_lit(lit: [*:0]const u8) usize {
 /// @param str The string to be symbolized
 /// @return [mrb_sym] mrb_sym A symbol.
 pub extern fn mrb_intern_cstr(mrb: *mrb_state, str: [*:0]const u8) mrb_sym;
-pub extern fn mrb_intern(mrb_state: *mrb_state, char: [*:0]const u8, size: usize) mrb_sym;
-pub extern fn mrb_intern_static(mrb_state: *mrb_state, char: [*:0]const u8, size: usize) mrb_sym;
-pub fn mrb_intern_lit(mrb: *mrb_state, lit: [:0]const u8) mrb_sym {
+pub extern fn mrb_intern(mrb_state: *mrb_state, char: [*]const u8, size: usize) mrb_sym;
+pub extern fn mrb_intern_static(mrb_state: *mrb_state, char: [*]const u8, size: usize) mrb_sym;
+pub fn mrb_intern_lit(mrb: *mrb_state, lit: [*:0]const u8) mrb_sym {
     return mrb_intern_static(mrb, lit, mrb_strlen_lit(lit));
 }
 pub extern fn mrb_intern_str(mrb: *mrb_state, val: mrb_value) mrb_sym;
 /// mrb_intern_check series functions returns 0 if the symbol is not defined
 pub extern fn mrb_intern_check_cstr(mrb: *mrb_state, str: [*:0]const u8) mrb_sym;
-pub extern fn mrb_intern_check(mrb: *mrb_state, str: [*:0]const u8, size: usize) mrb_sym;
+pub extern fn mrb_intern_check(mrb: *mrb_state, str: [*]const u8, size: usize) mrb_sym;
 pub extern fn mrb_intern_check_str(mrb: *mrb_state, val: mrb_value) mrb_sym;
 /// mrb_check_intern series functions returns nil if the symbol is not defined
 /// otherwise returns mrb_value
 pub extern fn mrb_check_intern_cstr(mrb: *mrb_state, str: [*:0]const u8) mrb_value;
-pub extern fn mrb_check_intern(mrb: *mrb_state, str: [*:0]const u8, size: usize) mrb_value;
+pub extern fn mrb_check_intern(mrb: *mrb_state, str: [*]const u8, size: usize) mrb_value;
 pub extern fn mrb_check_intern_str(mrb: *mrb_state, val: mrb_value) mrb_value;
 pub extern fn mrb_sym_name(mrb: *mrb_state, sym: mrb_sym) [*:0]const u8;
 pub extern fn mrb_sym_name_len(mrb: *mrb_state, sym: mrb_sym, len: *mrb_int) [*:0]const u8;

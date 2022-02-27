@@ -31,4 +31,5 @@ export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_valu
 
 test "ref all decls" {
     std.testing.refAllDecls(mruby);
+    std.testing.refAllDecls(mruby.mrb_state);
 }
