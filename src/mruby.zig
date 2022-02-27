@@ -1991,8 +1991,8 @@ pub extern fn mrb_funcall_with_block(mrb: *mrb_state, val: mrb_value, name: mrb_
 ///  If `lit` is not one, the compiler will report a syntax error:
 ///   MSVC: "error C2143: syntax error : missing ')' before 'string'"
 ///   GCC:  "error: expected ')' before string constant"
-pub fn mrb_strlen_lit(lit: [*:0]const u8) usize {
-    return std.mem.len(lit);
+pub fn mrb_strlen_lit(lit: []const u8) usize {
+    return lit.len;
 }
 
 /// Create a symbol from C string. But usually it's better to use MRB_SYM,
@@ -2014,8 +2014,8 @@ pub fn mrb_strlen_lit(lit: [*:0]const u8) usize {
 pub extern fn mrb_intern_cstr(mrb: *mrb_state, str: [*:0]const u8) mrb_sym;
 pub extern fn mrb_intern(mrb_state: *mrb_state, char: [*]const u8, size: usize) mrb_sym;
 pub extern fn mrb_intern_static(mrb_state: *mrb_state, char: [*]const u8, size: usize) mrb_sym;
-pub fn mrb_intern_lit(mrb: *mrb_state, lit: [*:0]const u8) mrb_sym {
-    return mrb_intern_static(mrb, lit, mrb_strlen_lit(lit));
+pub fn mrb_intern_lit(mrb: *mrb_state, lit: []const u8) mrb_sym {
+    return mrb_intern_static(mrb, lit.ptr, mrb_strlen_lit(lit));
 }
 pub extern fn mrb_intern_str(mrb: *mrb_state, val: mrb_value) mrb_sym;
 /// mrb_intern_check series functions returns 0 if the symbol is not defined
@@ -2065,13 +2065,13 @@ pub extern fn mrb_free(mrb: *mrb_state, ptr: *anyopaque) void;
 //  */
 // #define MRB_OBJ_ALLOC(mrb, tt, klass) ((MRB_VTYPE_TYPEOF(tt)*)mrb_obj_alloc(mrb, tt, klass))
 
-pub extern fn mrb_str_new(mrb: *mrb_state, p: [*:0]const u8, len: usize) mrb_value;
+pub extern fn mrb_str_new(mrb: *mrb_state, p: [*]const u8, len: usize) mrb_value;
 
 /// Turns a C string into a Ruby string value.
 pub extern fn mrb_str_new_cstr(mrb: *mrb_state, str: [*:0]const u8) mrb_value;
 pub extern fn mrb_str_new_static(mrb: *mrb_state, ptr: [*]const u8, len: usize) mrb_value;
-pub fn mrb_str_new_lit(mrb: *mrb_state, lit: [*:0]const u8) mrb_value {
-    return mrb_str_new_static(mrb, lit, mrb_strlen_lit(lit));
+pub fn mrb_str_new_lit(mrb: *mrb_state, lit: []const u8) mrb_value {
+    return mrb_str_new_static(mrb, lit.ptr, lit.len);
 }
 
 pub extern fn mrb_obj_freeze(mrb: *mrb_state, val: mrb_value) mrb_value;
@@ -2087,7 +2087,7 @@ pub fn mrb_str_new_static_frozen(mrb: *mrb_state, p: [*:0]const u8, len: usize) 
     const value = mrb_str_new_static(mrb, p, len);
     return mrb_obj_freeze(mrb, value);
 }
-pub fn mrb_str_new_lit_frozen(mrb: *mrb_state, lit: [*:0]const u8) mrb_value {
+pub fn mrb_str_new_lit_frozen(mrb: *mrb_state, lit: []const u8) mrb_value {
     const value = mrb_str_new_lit(mrb, lit);
     return mrb_obj_freeze(mrb, value);
 }
@@ -2737,10 +2737,10 @@ pub extern fn mrb_rdata_type(data: *RData) ?*mrb_data_type;
 
 pub extern fn mrb_sys_fail(mrb: *mrb_state, mesg: [*:0]const u8) void;
 pub extern fn mrb_exc_new_str(mrb: *mrb_state, cla: *RClass, str: mrb_value) mrb_value;
-pub fn mrb_exc_new_lit(mrb: *mrb_state, cla: *RClass, lit: [*:0]const u8) mrb_value {
+pub fn mrb_exc_new_lit(mrb: *mrb_state, cla: *RClass, lit: []const u8) mrb_value {
     return mrb_exc_new_str(mrb, cla, mrb_str_new_lit(mrb, lit));
 }
-pub fn mrb_exc_new_str_lit(mrb: *mrb_state, cla: *RClass, lit: [*:0]const u8) mrb_value {
+pub fn mrb_exc_new_str_lit(mrb: *mrb_state, cla: *RClass, lit: []const u8) mrb_value {
     return mrb_exc_new_lit(mrb, cla, lit);
 }
 pub extern fn mrb_make_exception(mrb: *mrb_state, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
