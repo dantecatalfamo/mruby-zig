@@ -690,8 +690,8 @@ pub const mrb_state = opaque {
     /// @return the number of arguments retrieved.
     /// @see mrb_args_format
     /// @see mrb_kwargs
-    pub fn get_args(self: *Self, comptime format: mrb_args_format, args: anytype) mrb_int {
-        return @call(.{}, mrb_get_args, .{ self, format } ++ args);
+    pub fn get_args(self: *Self, fmt: mrb_args_format, args: anytype) mrb_int {
+        return @call(.{}, mrb_get_args, .{ self, fmt } ++ args);
     }
 
     /// get method symbol
@@ -1072,13 +1072,136 @@ pub const mrb_state = opaque {
         return mrb_print_error(self);
     }
 
+    pub fn yield(self: *Self, b: mrb_value, arg: mrb_value) mrb_value {
+        return mrb_yield(self, b, arg);
+    }
+    pub fn yield_argv(self: *Self, b: mrb_value, args: []const mrb_value) mrb_value {
+        return mrb_yield_argv(self, b, args.len, args.ptr);
+    }
+    pub fn yield_with_class(self: *Self, b: mrb_value, args: []const mrb_value, yielf_self: mrb_value, cla: *RClass) mrb_value {
+        return mrb_yield_with_class(self, b, args.len, args.ptr, yielf_self, cla);
+    }
+    /// continue execution to the proc
+    /// this function should always be called as the last function of a method
+    /// e.g. return mrb_yield_cont(mrb, proc, self, argc, argv);
+    pub fn yield_cont(self: *Self, b: mrb_value, yielf_self: mrb_value, args: []const mrb_value) mrb_value {
+        return mrb_yield_cont(self, b, yielf_self, args.len, args.ptr);
+    }
 
+    /// mrb_gc_protect() leaves the object in the arena
+    pub fn gc_protect(self: *Self, obj: mrb_value) void {
+        return mrb_gc_protect(self, obj);
+    }
+    /// mrb_gc_register() keeps the object from GC.
+    pub fn gc_register(self: *Self, obj: mrb_value) void {
+        return mrb_gc_register(self, obj);
+    }
+    /// mrb_gc_unregister() removes the object from GC root.
+    pub fn gc_unregister(self: *Self, obj: mrb_value) void {
+        return mrb_gc_unregister(self, obj);
+    }
 
+    /// type conversion/check functions
+    pub fn ensure_array_type(self: *Self, value: mrb_value) mrb_value {
+        return mrb_ensure_array_type(self, value);
+    }
+    pub fn check_array_type(self: *Self, value: mrb_value) mrb_value {
+        return mrb_check_array_type(self, value);
+    }
+    pub fn ensure_hash_type(self: *Self, hash: mrb_value) mrb_value {
+        return mrb_ensure_hash_type(self, hash);
+    }
+    pub fn check_hash_type(self: *Self, hash: mrb_value) mrb_value {
+        return mrb_check_hash_type(self, hash);
+    }
+    pub fn ensure_string_type(self: *Self, str: mrb_value) mrb_value {
+        return mrb_ensure_string_type(self, str);
+    }
+    pub fn check_string_type(self: *Self, str: mrb_value) mrb_value {
+        return mrb_check_string_type(self, str);
+    }
+    pub fn ensure_int_type(self: *Self, value: mrb_value) mrb_value {
+        return mrb_ensure_int_type(self, value);
+    }
+
+    /// string type checking (contrary to the name, it doesn't convert)
+    pub fn check_type(self: *Self, x: mrb_value, t: mrb_vtype) void {
+        return mrb_check_type(self, x, t);
+    }
+
+    pub fn define_alias(self: *Self, cla: *RClass, a: [*:0]const u8, b: [*:0]const u8) void {
+        return mrb_define_alias(self, cla, a, b);
+    }
+    pub fn define_alias_id(self: *Self, cla: *RClass, a: mrb_sym, b: mrb_sym) void {
+        return mrb_define_alias_id(self, cla, a, b);
+    }
+    pub fn class_name(self: *Self, klass: *RClass) ?[*:0]const u8 {
+        return mrb_class_name(self, klass);
+    }
+    pub fn define_global_const(self: *Self, name: [*:0]const u8, value: mrb_value) void {
+        return mrb_define_global_const(self, name, value);
+    }
+
+    pub fn attr_get(self: *Self, obj: mrb_value, id: mrb_sym) mrb_value {
+        return mrb_attr_get(self, obj, id);
+    }
+
+    pub fn respond_to(self: *Self, obj: mrb_value, mid: mrb_sym) mrb_bool {
+        return mrb_respond_to(self, obj, mid);
+    }
+    pub fn obj_is_instance_of(self: *Self, obj: mrb_value, cla: *RClass) mrb_bool {
+        return mrb_obj_is_instance_of(self, obj, cla);
+    }
+    pub fn func_basic_p(self: *Self, obj: mrb_value, mid: mrb_sym, func: mrb_func_t) mrb_bool {
+        return mrb_func_basic_p(self, obj, mid, func);
+    }
+
+    /// Resume a Fiber
+    ///
+    /// Implemented in mruby-fiber
+    pub fn fiber_resume(self: *Self, fib: mrb_value, args: []const mrb_value) mrb_value {
+        return mrb_fiber_resume(self, fib, args.len, args.ptr);
+    }
+
+    /// Yield a Fiber
+    ///
+    /// Implemented in mruby-fiber
+    pub fn fiber_yield(self: *Self, args: []const mrb_value) mrb_value {
+        return mrb_fiber_yield(self, args.len, args.ptr);
+    }
+
+    /// Check if a Fiber is alive
+    ///
+    /// Implemented in mruby-fiber
+    pub fn fiber_alive_p(self: *Self, fib: mrb_value) mrb_value {
+        return mrb_fiber_alive_p(self, fib);
+    }
+
+    pub fn stack_extend(self: *Self, int: mrb_int) void {
+        return mrb_stack_extend(self, int);
+    }
+
+    pub fn pool_open(self: *Self) ?*mrb_pool {
+        return mrb_pool_open(self);
+    }
+    /// temporary memory allocation, only effective while GC arena is kept
+    pub fn alloca(self: *Self, size: usize) ?*anyopaque {
+        return mrb_alloca(self, size);
+    }
+
+    pub fn state_atexit(self: *Self, func: mrb_atexit_func) void {
+        return mrb_state_atexit(self, func);
+    }
+
+    pub fn show_version(self: *Self) void {
+        return mrb_show_version(self);
+    }
     pub fn show_copyright(self: *Self) void {
         return mrb_show_copyright(self);
     }
-    pub fn show_version(self: *Self) void {
-        return mrb_show_version(self);
+
+    pub fn format(self: *Self, fmt: [*:0]const u8, args: anytype) mrb_value {
+        return @call(.{}, mrb_format, .{ self, fmt } ++ args);
     }
 };
 
@@ -1126,7 +1249,22 @@ pub const mrb_gc = opaque {};
 pub const mrb_irep = opaque {};
 pub const mrb_jmpbuf = opaque {};
 pub const mrb_jumpbuf = opaque {};
-pub const mrb_pool = opaque {};
+pub const mrb_pool = opaque {
+    const Self = @This();
+
+    pub fn pool_close(self: *Self) void {
+        return mrb_pool_close(self);
+    }
+    pub fn pool_alloc(self: *Self, size: usize) ?*anyopaque {
+        return mrb_pool_alloc(self, size);
+    }
+    pub fn pool_realloc(self: *Self, ptr: *anyopaque, oldlen: usize, newlen: usize) ?*anyopaque {
+        return mrb_pool_realloc(self, ptr, oldlen, newlen);
+    }
+    pub fn pool_can_realloc(self: *Self, ptr: *anyopaque, size: usize) mrb_bool {
+        return mrb_pool_can_realloc(self, ptr, size);
+    }
+};
 pub const mrb_method_t = opaque {};
 pub const mrb_cache_entry = opaque {};
 pub const mrb_code = u8;
@@ -2408,7 +2546,7 @@ pub extern fn mrb_stack_extend(mrb_state: *mrb_state, mrb_int: mrb_int) void;
 // TODO: fiber errors
 // #define E_FIBER_ERROR mrb_exc_get_id(mrb, MRB_ERROR_SYM(FiberError))
 
-pub extern fn mrb_pool_open(mrb_state: *mrb_state) ?*mrb_pool;
+pub extern fn mrb_pool_open(mrb: *mrb_state) ?*mrb_pool;
 pub extern fn mrb_pool_close(pool: *mrb_pool) void;
 pub extern fn mrb_pool_alloc(pool: *mrb_pool, size: usize) ?*anyopaque;
 pub extern fn mrb_pool_realloc(pool: *mrb_pool, ptr: *anyopaque, oldlen: usize, newlen: usize) ?*anyopaque;

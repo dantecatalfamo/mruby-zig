@@ -25,7 +25,6 @@ pub fn main() anyerror!void {
 }
 
 export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
-    mrb.
     std.log.debug("Zig function called from ruby! mrb: {p}, self: {}", .{ mrb, self });
     mrb.p(mruby.mrb_get_backtrace(mrb));
     return self;
