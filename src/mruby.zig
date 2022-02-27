@@ -1698,26 +1698,79 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
     pub fn cptr(self: Self) *anyopaque {
         return mrb_get_cptr(self);
     }
-
     pub fn ptr(self: Self) *anyopaque {
         return mrb_get_ptr(self);
     }
-
     pub fn integer(self: Self) mrb_int {
         return mrb_get_integer(self);
     }
-
     pub fn float(self: Self) mrb_float {
         return mrb_get_float(self);
     }
-
     pub fn sym(self: Self) mrb_sym {
         return mrb_get_sym(self);
     }
-
     pub fn boolean(self: Self) mrb_bool {
         return mrb_get_bool(self);
     }
+    pub fn rbasic(self: Self) ?*RBasic {
+        return @ptrCast(*RBasic, self.ptr());
+    }
+    pub fn rfloat(self: Self) ?*RFloat {
+        return @ptrCast(*RFloat, self.ptr());
+    }
+    pub fn rdata(self: Self) ?*RData {
+        return @ptrCast(*RData, self.ptr());
+    }
+    pub fn rinteger(self: Self) ?*RInteger {
+        return @ptrCast(*RInteger, self.ptr());
+    }
+    pub fn rcptr(self: Self) ?*RCptr {
+        return @ptrCast(*RCptr, self.ptr());
+    }
+    pub fn robject(self: Self) ?*RObject {
+        return @ptrCast(*RObject, self.ptr());
+    }
+    pub fn rclass(self: Self) ?*RClass {
+        return @ptrCast(*RClass, self.ptr());
+    }
+    pub fn rproc(self: Self) ?*RProc {
+        return @ptrCast(*RProc, self.ptr());
+    }
+    pub fn rarray(self: Self) ?*RArray {
+        return @ptrCast(*RArray, self.ptr());
+    }
+    pub fn rhash(self: Self) ?*RHash {
+        return @ptrCast(*RHash, self.ptr());
+    }
+    pub fn rstring(self: Self) ?*RString {
+        return @ptrCast(*RString, self.ptr());
+    }
+    pub fn rrange(self: Self) ?*RRange {
+        return @ptrCast(*RRange, self.ptr());
+    }
+    pub fn rexception(self: Self) ?*RException {
+        return @ptrCast(*RException, self.ptr());
+    }
+    pub fn renv(self: Self) ?*REnv {
+        return @ptrCast(*REnv, self.ptr());
+    }
+    pub fn rfiber(self: Self) ?*RFiber {
+        return @ptrCast(*RFiber, self.ptr());
+    }
+    pub fn ristruct(self: Self) ?*RIStruct {
+        return @ptrCast(*RIStruct, self.ptr());
+    }
+    pub fn rbreak(self: Self) ?*RBreak {
+        return @ptrCast(*RBreak, self.ptr());
+    }
+    pub fn rcomplex(self: Self) ?*RComplex {
+        return @ptrCast(*RComplex, self.ptr());
+    }
+    pub fn rrational(self: Self) ?*RRational {
+        return @ptrCast(*RRational, self.ptr());
+    }
+
 
     pub fn fixnum_p(self: Self) mrb_bool {
         return mrb_get_fixnum_p(o);
@@ -1796,12 +1849,6 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
     }
     pub fn break_p(o: mrb_value) mrb_bool {
         return mrb_get_break_p(o);
-    }
-
-
-    pub fn rObject(self: Self) ?*RObject {
-        assert(self.vType() == mrb_vtype.MRB_TT_OBJECT);
-        return @ptrCast(*RObject, self.ptr());
     }
 };
 
