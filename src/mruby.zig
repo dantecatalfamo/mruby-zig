@@ -1926,6 +1926,28 @@ pub const mrb_state = opaque {
         return mrb_load_irep_buf_cxt(self, irep_code, size, mrbc);
     }
 
+    // mruby/numberic.h
+
+    pub fn num_plus(self: *Self, x: mrb_value, y: mrb_value) mrb_value {
+        return mrb_num_plus(self, x, y);
+    }
+    pub fn num_minus(self: *Self, x: mrb_value, y: mrb_value) mrb_value {
+        return mrb_num_minus(self, x, y);
+    }
+    pub fn num_mul(self: *Self, x: mrb_value, y: mrb_value) mrb_value {
+        return mrb_num_mul(self, x, y);
+    }
+
+    pub fn integer_to_str(self: *Self, x: mrb_value, base: mrb_int) mrb_value {
+        return mrb_integer_to_str(self, x, base);
+    }
+    pub fn int_to_cstr(buf: []u8, n: mrb_int, base: mrb_int) [*:0]const u8 {
+        return mrb_int_to_cstr(buf.ptr, buf.len, n, base);
+    }
+    pub fn float_to_integer(self: *Self, value: mrb_value) mrb_value {
+        return mrb_float_to_integer(self, value);
+    }
+
 };
 
 pub const mrb_context = opaque {
@@ -4242,3 +4264,16 @@ pub extern fn mrb_load_irep_cxt(mrb: *mrb_state, irep_code: [*]const u8, context
 /// @param [const void*] irep code
 /// @param [size_t] size of irep buffer.
 pub extern fn mrb_load_irep_buf_cxt(mrb: *mrb_state, irep_code: *const anyopaque, size: usize, context: *mrbc_context) mrb_value;
+
+
+///////////////////////////////////////////
+//            mruby/numeric.h            //
+///////////////////////////////////////////
+
+pub extern fn mrb_num_plus(mrb: *mrb_state, x: mrb_value, y: mrb_value) mrb_value;
+pub extern fn mrb_num_minus(mrb: *mrb_state, x: mrb_value, y: mrb_value) mrb_value;
+pub extern fn mrb_num_mul(mrb: *mrb_state, x: mrb_value, y: mrb_value) mrb_value;
+
+pub extern fn mrb_integer_to_str(mrb: *mrb_state, x: mrb_value, base: mrb_int) mrb_value;
+pub extern fn mrb_int_to_cstr(buf: [*]u8, len: usize, n: mrb_int, base: mrb_int) [*:0]const u8;
+pub extern fn mrb_float_to_integer(mrb: *mrb_state, val: mrb_value) mrb_value;
