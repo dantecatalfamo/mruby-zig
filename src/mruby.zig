@@ -1491,7 +1491,7 @@ pub const mrb_state = opaque {
         return mrb_iv_remove(self, obj, sym);
     }
     pub fn iv_copy(self: *Self, dst: mrb_value, src: mrb_value) void {
-        return mrb_iv_copy(self, sdt, src);
+        return mrb_iv_copy(self, dst, src);
     }
     pub fn const_defined_at(self: *Self, mod: mrb_value, id: mrb_sym) mrb_bool {
         return mrb_const_defined_at(self, mod, id);
@@ -1575,8 +1575,8 @@ pub const mrb_state = opaque {
     pub fn float_value(self: *Self, f: mrb_float) mrb_value {
         return mrb_get_float_value(self, f);
     }
-    pub fn cptr_value(self: *Self, p: *anyopaque) mrb_value {
-        return mrb_get_cptr_value(self, p);
+    pub fn cptr_value(self: *Self, pt: *anyopaque) mrb_value {
+        return mrb_get_cptr_value(self, pt);
     }
     /// Returns an integer in Ruby.
     pub fn int_value(self: *Self, i: mrb_int) mrb_value {
@@ -1588,8 +1588,8 @@ pub const mrb_state = opaque {
     pub fn symbol_value(i: mrb_sym) mrb_value {
         return mrb_get_symbol_value(i);
     }
-    pub fn obj_value(p: *anyopaque) mrb_value {
-        return mrb_get_obj_value(p);
+    pub fn obj_value(pt: *anyopaque) mrb_value {
+        return mrb_get_obj_value(pt);
     }
     /// Get a nil mrb_value object.
     ///
@@ -1654,23 +1654,23 @@ pub const mrb_state = opaque {
     pub fn exc_new_str(self: *Self, cla: *RClass, str: mrb_value) mrb_value {
         return mrb_exc_new_str(self, cla, str);
     }
-    pub fn mrb_exc_new_lit(self: *Self, cla: *RClass, lit: []const u8) mrb_value {
+    pub fn exc_new_lit(self: *Self, cla: *RClass, lit: []const u8) mrb_value {
         return mrb_exc_new_str(self, cla, mrb_str_new_lit(self, lit));
     }
-    pub fn mrb_exc_new_str_lit(self: *Self, cla: *RClass, lit: []const u8) mrb_value {
+    pub fn exc_new_str_lit(self: *Self, cla: *RClass, lit: []const u8) mrb_value {
         return mrb_exc_new_lit(self, cla, lit);
     }
     pub fn make_exception(self: *Self, args: []const mrb_value) mrb_value {
         return mrb_make_exception(self, args.len, args.ptr);
     }
-    pub fn exc_backtrace(self: *Self, exc: mrb_value) mrb_value {
-        return mrb_exc_backtrace(self, exc);
+    pub fn exc_backtrace(self: *Self, exception: mrb_value) mrb_value {
+        return mrb_exc_backtrace(self, exception);
     }
     pub fn get_backtrace(self: *Self) mrb_value {
         return mrb_get_backtrace(self);
     }
     pub fn no_method_error(self: *Self, id: mrb_sym, args: mrb_value, fmt: [*:0]const u8, vars: anytype) mrb_noreturn {
-        return @call(.{}, .{ self, id, args, fmt } ++ vars);
+        return @call(.{}, mrb_no_method_error, .{ self, id, args, fmt } ++ vars);
     }
 
 };
@@ -1833,82 +1833,82 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
 
 
     pub fn fixnum_p(self: Self) mrb_bool {
-        return mrb_get_fixnum_p(o);
+        return mrb_get_fixnum_p(self);
     }
-    pub fn integer_p(o: mrb_value) mrb_bool {
-        return mrb_get_integer_p(o);
+    pub fn integer_p(self: Self) mrb_bool {
+        return mrb_get_integer_p(self);
     }
-    pub fn symbol_p(o: mrb_value) mrb_bool {
-        return mrb_get_symbol_p(o);
+    pub fn symbol_p(self: Self) mrb_bool {
+        return mrb_get_symbol_p(self);
     }
-    pub fn undef_p(o: mrb_value) mrb_bool {
-        return mrb_get_undef_p(o);
+    pub fn undef_p(self: Self) mrb_bool {
+        return mrb_get_undef_p(self);
     }
-    pub fn nil_p(o: mrb_value) mrb_bool {
-        return mrb_get_nil_p(o);
+    pub fn nil_p(self: Self) mrb_bool {
+        return mrb_get_nil_p(self);
     }
-    pub fn false_p(o: mrb_value) mrb_bool {
-        return mrb_get_false_p(o);
+    pub fn false_p(self: Self) mrb_bool {
+        return mrb_get_false_p(self);
     }
-    pub fn true_p(o: mrb_value) mrb_bool {
-        return mrb_get_true_p(o);
+    pub fn true_p(self: Self) mrb_bool {
+        return mrb_get_true_p(self);
     }
-    pub fn float_p(o: mrb_value) mrb_bool {
-        return mrb_get_float_p(o);
+    pub fn float_p(self: Self) mrb_bool {
+        return mrb_get_float_p(self);
     }
-    pub fn array_p(o: mrb_value) mrb_bool {
-        return mrb_get_array_p(o);
+    pub fn array_p(self: Self) mrb_bool {
+        return mrb_get_array_p(self);
     }
-    pub fn string_p(o: mrb_value) mrb_bool {
-        return mrb_get_string_p(o);
+    pub fn string_p(self: Self) mrb_bool {
+        return mrb_get_string_p(self);
     }
-    pub fn hash_p(o: mrb_value) mrb_bool {
-        return mrb_get_hash_p(o);
+    pub fn hash_p(self: Self) mrb_bool {
+        return mrb_get_hash_p(self);
     }
-    pub fn cptr_p(o: mrb_value) mrb_bool {
-        return mrb_get_cptr_p(o);
+    pub fn cptr_p(self: Self) mrb_bool {
+        return mrb_get_cptr_p(self);
     }
-    pub fn exception_p(o: mrb_value) mrb_bool {
-        return mrb_get_exception_p(o);
+    pub fn exception_p(self: Self) mrb_bool {
+        return mrb_get_exception_p(self);
     }
-    pub fn free_p(o: mrb_value) mrb_bool {
-        return mrb_get_free_p(o);
+    pub fn free_p(self: Self) mrb_bool {
+        return mrb_get_free_p(self);
     }
-    pub fn object_p(o: mrb_value) mrb_bool {
-        return mrb_get_object_p(o);
+    pub fn object_p(self: Self) mrb_bool {
+        return mrb_get_object_p(self);
     }
-    pub fn class_p(o: mrb_value) mrb_bool {
-        return mrb_get_class_p(o);
+    pub fn class_p(self: Self) mrb_bool {
+        return mrb_get_class_p(self);
     }
-    pub fn module_p(o: mrb_value) mrb_bool {
-        return mrb_get_module_p(o);
+    pub fn module_p(self: Self) mrb_bool {
+        return mrb_get_module_p(self);
     }
-    pub fn iclass_p(o: mrb_value) mrb_bool {
-        return mrb_get_iclass_p(o);
+    pub fn iclass_p(self: Self) mrb_bool {
+        return mrb_get_iclass_p(self);
     }
-    pub fn sclass_p(o: mrb_value) mrb_bool {
-        return mrb_get_sclass_p(o);
+    pub fn sclass_p(self: Self) mrb_bool {
+        return mrb_get_sclass_p(self);
     }
-    pub fn proc_p(o: mrb_value) mrb_bool {
-        return mrb_get_proc_p(o);
+    pub fn proc_p(self: Self) mrb_bool {
+        return mrb_get_proc_p(self);
     }
-    pub fn range_p(o: mrb_value) mrb_bool {
-        return mrb_get_range_p(o);
+    pub fn range_p(self: Self) mrb_bool {
+        return mrb_get_range_p(self);
     }
-    pub fn env_p(o: mrb_value) mrb_bool {
-        return mrb_get_env_p(o);
+    pub fn env_p(self: Self) mrb_bool {
+        return mrb_get_env_p(self);
     }
-    pub fn data_p(o: mrb_value) mrb_bool {
-        return mrb_get_data_p(o);
+    pub fn data_p(self: Self) mrb_bool {
+        return mrb_get_data_p(self);
     }
-    pub fn fiber_p(o: mrb_value) mrb_bool {
-        return mrb_get_fiber_p(o);
+    pub fn fiber_p(self: Self) mrb_bool {
+        return mrb_get_fiber_p(self);
     }
-    pub fn istruct_p(o: mrb_value) mrb_bool {
-        return mrb_get_istruct_p(o);
+    pub fn istruct_p(self: Self) mrb_bool {
+        return mrb_get_istruct_p(self);
     }
-    pub fn break_p(o: mrb_value) mrb_bool {
-        return mrb_get_break_p(o);
+    pub fn break_p(self: Self) mrb_bool {
+        return mrb_get_break_p(self);
     }
 };
 
@@ -1947,8 +1947,12 @@ pub const RData = opaque {
         return mrb_obj_value(self);
     }
 
-    pub fn data(self: *Self) ?*anyopaque;
-    pub fn data_type(self: *Self) ?*mrb_data_type;
+    pub fn data(self: *Self) ?*anyopaque {
+        return mrb_rdata_data(self);
+    }
+    pub fn data_type(self: *Self) ?*mrb_data_type {
+        return mrb_rdata_type(self);
+    }
 
 };
 pub const RInteger = opaque {
@@ -1999,11 +2003,10 @@ pub const RArray = opaque {
     }
 
     pub fn len(self: *Self) mrb_int {
-        return mrb_ary_len(ptr);
+        return mrb_ary_len(self);
     }
-
     pub fn capa(self: *Self) mrb_int {
-        return mrb_ary_capa(ptr);
+        return mrb_ary_capa(self);
     }
 
 };

@@ -19,14 +19,14 @@ pub fn main() anyerror!void {
     mrb.p(kptr.value());
 
     // Exception test
-    mruby.mrb_sys_fail(mrb, "intentional system failure");
+    mrb.sys_fail("intentional system failure");
     mrb.print_error();
     mrb.p(mrb.exc().?.value());
 }
 
 export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
     std.log.debug("Zig function called from ruby! mrb: {p}, self: {}", .{ mrb, self });
-    mrb.p(mruby.mrb_get_backtrace(mrb));
+    mrb.p(mrb.get_backtrace());
     return self;
 }
 
