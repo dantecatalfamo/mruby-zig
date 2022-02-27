@@ -1646,6 +1646,33 @@ pub const mrb_state = opaque {
         return mrb_data_init(value, data_ptr, data_type);
     }
 
+    // mruby/error.h
+
+    pub fn sys_fail(self: *Self, mesg: [*:0]const u8) void {
+        return mrb_sys_fail(self, mesg);
+    }
+    pub fn exc_new_str(self: *Self, cla: *RClass, str: mrb_value) mrb_value {
+        return mrb_exc_new_str(self, cla, str);
+    }
+    pub fn mrb_exc_new_lit(self: *Self, cla: *RClass, lit: []const u8) mrb_value {
+        return mrb_exc_new_str(self, cla, mrb_str_new_lit(self, lit));
+    }
+    pub fn mrb_exc_new_str_lit(self: *Self, cla: *RClass, lit: []const u8) mrb_value {
+        return mrb_exc_new_lit(self, cla, lit);
+    }
+    pub fn make_exception(self: *Self, args: []const mrb_value) mrb_value {
+        return mrb_make_exception(self, args.len, args.ptr);
+    }
+    pub fn exc_backtrace(self: *Self, exc: mrb_value) mrb_value {
+        return mrb_exc_backtrace(self, exc);
+    }
+    pub fn get_backtrace(self: *Self) mrb_value {
+        return mrb_get_backtrace(self);
+    }
+    pub fn no_method_error(self: *Self, id: mrb_sym, args: mrb_value, fmt: [*:0]const u8, vars: anytype) mrb_noreturn {
+        return @call(.{}, .{ self, id, args, fmt } ++ vars);
+    }
+
 };
 
 pub const mrb_context = opaque {
