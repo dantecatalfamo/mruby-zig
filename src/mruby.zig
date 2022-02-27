@@ -1420,6 +1420,41 @@ pub const mrb_state = opaque {
         return mrb_ary_capa(ptr);
     }
 
+    // mruby/compile.h
+
+    // TODO: mrbc/lex/parse structs and functions
+
+    /// program load functions
+    /// Please note! Currently due to interactions with the GC calling these functions will
+    /// leak one RProc object per function call.
+    /// To prevent this save the current memory arena before calling and restore the arena
+    /// right after, like so
+    /// int ai = mrb_gc_arena_save(mrb);
+    /// mrb_value status = mrb_load_string(mrb, buffer);
+    /// mrb_gc_arena_restore(mrb, ai);
+    // #ifndef MRB_NO_STDIO
+    pub fn load_file(self: *Self, fp: *FILE) mrb_value {
+        return mrb_load_file(self, fp);
+    }
+    pub fn load_file_cxt(self: *Self, fp: *FILE, cxt: *mrbc_context) mrb_value {
+        return mrb_load_file_cxt(self, fp, cxt);
+    }
+    pub fn load_detect_file_cxt(self: *Self, fp: *FILE, cxt: *mrbc_context) mrb_value {
+        return mrb_load_detect_file_cxt(self, fp, cxt);
+    }
+    // #endif
+    pub fn load_string(self: *Self, s: [*:0]const u8) mrb_value {
+        return mrb_load_string(self, s);
+    }
+    pub fn load_nstring(self: *Self, s: []const u8) mrb_value {
+        return mrb_load_nstring(self, s.ptr, s.len);
+    }
+    pub fn load_string_cxt(self: *Self, s: [*:0]const u8, cxt: *mrbc_context) mrb_value {
+        return mrb_load_string_cxt(self, s, cxt);
+    }
+    pub fn load_nstring_cxt(self: *Self, s: []const u8, cxt: *mrbc_context) mrb_value {
+        return mrb_load_nstring_cxt(self, s.ptr, s.len, cxt);
+    }
 };
 
 pub const mrb_context = opaque {
