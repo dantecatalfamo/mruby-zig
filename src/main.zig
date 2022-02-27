@@ -14,7 +14,10 @@ pub fn main() anyerror!void {
     const kptr = mrb.kernel_module().?;
     std.log.debug("kernel module ponter: {p}", .{ kptr });
     mrb.define_module_function(kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
+    std.log.debug("Calling zigfunc", .{});
     _ = mrb.load_string("zigfunc");
+    std.log.debug("Calling zigfunc again", .{});
+    _ = mrb.funcall(kptr.value(), "zigfunc", .{});
     _ = mrb.funcall(kptr.value(), "puts", .{ mrb.str_new_lit("hello from puts called in zig!") });
     mrb.p(kptr.value());
 
