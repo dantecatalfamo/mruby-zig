@@ -1708,6 +1708,224 @@ pub const mrb_state = opaque {
     pub fn rescue_exceptions(self: *Self, body: mrb_func_t, b_data: mrb_value, rescue_func: mrb_func_t, r_data: mrb_value, classes: []*RClass) mrb_value {
         return mrb_rescue_exceptions(self, body, b_data, rescue_func, r_data, classes.len, classes.ptr);
     }
+
+    // mruby/hash.h
+
+    pub fn hash_new_capa(self: *Self, capa: mrb_int) mrb_value {
+        return mrb_hash_new_capa(self, capa);
+    }
+
+    /// Initializes a new hash.
+    ///
+    /// Equivalent to:
+    ///
+    ///      Hash.new
+    ///
+    /// @param mrb The mruby state reference.
+    /// @return The initialized hash.
+    pub fn hash_new(self: *Self) mrb_value {
+        return mrb_hash_new(self);
+    }
+
+    /// Sets a keys and values to hashes.
+    ///
+    /// Equivalent to:
+    ///
+    ///      hash[key] = val
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param hash The target hash.
+    /// @param key The key to set.
+    /// @param val The value to set.
+    /// @return The value.
+    pub fn hash_set(self: *Self, hash: mrb_value, key: mrb_value, val: mrb_value) void {
+        return mrb_hash_set(self, hash, key, val);
+    }
+
+    /// Gets a value from a key. If the key is not found, the default of the
+    /// hash is used.
+    ///
+    /// Equivalent to:
+    ///
+    ///     hash[key]
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param hash The target hash.
+    /// @param key The key to get.
+    /// @return The found value.
+    pub fn hash_get(self: *Self, hash: mrb_value, key: mrb_value) mrb_value {
+        return mrb_hash_get(self, hash, key);
+    }
+
+    /// Gets a value from a key. If the key is not found, the default parameter is
+    /// used.
+    ///
+    /// Equivalent to:
+    ///
+    ///     hash.key?(key) ? hash[key] : def
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param hash The target hash.
+    /// @param key The key to get.
+    /// @param def The default value.
+    /// @return The found value.
+    pub fn hash_fetch(self: *Self, hash: mrb_value, key: mrb_value, def: mrb_value) mrb_value {
+        return mrb_hash_fetch(self, hash, key, def);
+    }
+
+    /// Deletes hash key and value pair.
+    ///
+    /// Equivalent to:
+    ///
+    ///     hash.delete(key)
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param hash The target hash.
+    /// @param key The key to delete.
+    /// @return The deleted value. This value is not protected from GC. Use `mrb_gc_protect()` if necessary.
+    pub fn hash_delete_key(self: *Self, hash: mrb_value, key: mrb_value) mrb_value {
+        return mrb_hash_delete_key(self, hash, key);
+    }
+
+    /// Gets an array of keys.
+    ///
+    /// Equivalent to:
+    ///
+    ///     hash.keys
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param hash The target hash.
+    /// @return An array with the keys of the hash.
+    pub fn hash_keys(self: *Self, hash: mrb_value) mrb_value {
+        return mrb_hash_keys(self, hash);
+    }
+
+    /// Check if the hash has the key.
+    ///
+    /// Equivalent to:
+    ///
+    ///     hash.key?(key)
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param hash The target hash.
+    /// @param key The key to check existence.
+    /// @return True if the hash has the key
+    pub fn hash_key_p(self: *Self, hash: mrb_value, key: mrb_value) mrb_bool {
+        return mrb_hash_key_p(self, hash, key);
+    }
+
+    /// Check if the hash is empty
+    ///
+    /// Equivalent to:
+    ///
+    ///     hash.empty?
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param self The target hash.
+    /// @return True if the hash is empty, false otherwise.
+    pub fn hash_empty_p(self: *Self, hash: mrb_value) mrb_bool {
+        return mrb_hash_empty_p(self, hash);
+    }
+
+    /// Gets an array of values.
+    ///
+    /// Equivalent to:
+    ///
+    ///     hash.values
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param hash The target hash.
+    /// @return An array with the values of the hash.
+    pub fn hash_values(self: *Self, hash: mrb_value) mrb_value {
+        return mrb_hash_values(self, hash);
+    }
+
+    /// Clears the hash.
+    ///
+    /// Equivalent to:
+    ///
+    ///     hash.clear
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param hash The target hash.
+    /// @return The hash
+    pub fn hash_clear(self: *Self, hash: mrb_value) mrb_value {
+        return mrb_hash_clear(self, hash);
+    }
+
+    /// Get hash size.
+    ///
+    /// Equivalent to:
+    ///
+    ///      hash.size
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param hash The target hash.
+    /// @return The hash size.
+    pub fn hash_size(self: *Self, hash: mrb_value) mrb_int {
+        return mrb_hash_size(self, hash);
+    }
+
+    /// Copies the hash. This function does NOT copy the instance variables
+    /// (except for the default value). Use mrb_obj_dup() to copy the instance
+    /// variables as well.
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param hash The target hash.
+    /// @return The copy of the hash
+    pub fn hash_dup(self: *Self, hash: mrb_value) mrb_value {
+        return mrb_hash_dup(self, hash);
+    }
+
+    /// Merges two hashes. The first hash will be modified by the
+    /// second hash.
+    ///
+    /// @param mrb The mruby state reference.
+    /// @param hash1 The target hash.
+    /// @param hash2 Updating hash
+    ///
+    pub fn hash_merge(self: *Self, hash1: mrb_value, hash2: mrb_value) void {
+        return mrb_hash_merge(self, hash1, hash2);
+    }
+
+    /// return non zero to break the loop
+    pub fn hash_foreach(self: *Self, hash: *RHash, func: mrb_hash_foreach_func, data: *anyopaque) void {
+        return mrb_hash_foreach(self, hash, func, data);
+    }
+
+    // mruby/irep.h
+
+    ///  load mruby bytecode functions
+    /// Please note! Currently due to interactions with the GC calling these functions will
+    /// leak one RProc object per function call.
+    /// To prevent this save the current memory arena before calling and restore the arena
+    /// right after, like so
+    /// int ai = mrb_gc_arena_save(mrb);
+    /// mrb_value status = mrb_load_irep(mrb, buffer);
+    /// mrb_gc_arena_restore(mrb, ai);
+    ///
+    /// @param [const uint8_t*] irep code, expected as a literal
+    pub fn load_irep(self: *Self, irep_code: [*]const u8) mrb_value {
+        return mrb_load_irep(self, irep_code);
+    }
+
+    /// @param [const void*] irep code
+    /// @param [size_t] size of irep buffer.
+    pub fn load_irep_buf(self: *Self, irep_code: *const anyopaque, size: usize) mrb_value {
+        return mrb_load_irep_buf(self, irep_code, size);
+    }
+
+    /// @param [const uint8_t*] irep code, expected as a literal
+    pub fn load_irep_cxt(self: *Self, irep_code: [*]const u8, mrbc: *mrbc_context) mrb_value {
+        return mrb_load_irep_cxt(self, irep_code, mrbc);
+    }
+
+    /// @param [const void*] irep code
+    /// @param [size_t] size of irep buffer.
+    pub fn load_irep_buf_cxt(self: *Self, irep_code: *const anyopaque, size: usize, mrbc: *mrbc_context) mrb_value {
+        return mrb_load_irep_buf_cxt(self, irep_code, size, mrbc);
+    }
+
 };
 
 pub const mrb_context = opaque {
@@ -1751,7 +1969,6 @@ pub const mrb_callinfo = opaque {
 };
 
 pub const mrb_gc = opaque {};
-pub const mrb_irep = opaque {};
 pub const mrb_jmpbuf = opaque {};
 pub const mrb_jumpbuf = opaque {};
 pub const mrb_pool = opaque {
@@ -3787,3 +4004,241 @@ pub extern fn mrb_break_tag_get1(brk: *RBreak) rbreak_tag;
 pub extern fn mrb_break_tag_set1(brk: *RBreak, tag: rbreak_tag) void;
 
 // TODO: gc.h functions
+
+////////////////////////////////////////
+//            mruby/hash.h            //
+////////////////////////////////////////
+
+pub extern fn mrb_hash_new_capa(mrb: *mrb_state, capa: mrb_int) mrb_value;
+
+/// Initializes a new hash.
+///
+/// Equivalent to:
+///
+///      Hash.new
+///
+/// @param mrb The mruby state reference.
+/// @return The initialized hash.
+pub extern fn mrb_hash_new(mrb: *mrb_state) mrb_value;
+
+/// Sets a keys and values to hashes.
+///
+/// Equivalent to:
+///
+///      hash[key] = val
+///
+/// @param mrb The mruby state reference.
+/// @param hash The target hash.
+/// @param key The key to set.
+/// @param val The value to set.
+/// @return The value.
+pub extern fn mrb_hash_set(mrb: *mrb_state, hash: mrb_value, key: mrb_value, val: mrb_value) void;
+
+/// Gets a value from a key. If the key is not found, the default of the
+/// hash is used.
+///
+/// Equivalent to:
+///
+///     hash[key]
+///
+/// @param mrb The mruby state reference.
+/// @param hash The target hash.
+/// @param key The key to get.
+/// @return The found value.
+pub extern fn mrb_hash_get(mrb: *mrb_state, hash: mrb_value, key: mrb_value) mrb_value;
+
+/// Gets a value from a key. If the key is not found, the default parameter is
+/// used.
+///
+/// Equivalent to:
+///
+///     hash.key?(key) ? hash[key] : def
+///
+/// @param mrb The mruby state reference.
+/// @param hash The target hash.
+/// @param key The key to get.
+/// @param def The default value.
+/// @return The found value.
+pub extern fn mrb_hash_fetch(mrb: *mrb_state, hash: mrb_value, key: mrb_value, def: mrb_value) mrb_value;
+
+/// Deletes hash key and value pair.
+///
+/// Equivalent to:
+///
+///     hash.delete(key)
+///
+/// @param mrb The mruby state reference.
+/// @param hash The target hash.
+/// @param key The key to delete.
+/// @return The deleted value. This value is not protected from GC. Use `mrb_gc_protect()` if necessary.
+pub extern fn mrb_hash_delete_key(mrb: *mrb_state, hash: mrb_value, key: mrb_value) mrb_value;
+
+/// Gets an array of keys.
+///
+/// Equivalent to:
+///
+///     hash.keys
+///
+/// @param mrb The mruby state reference.
+/// @param hash The target hash.
+/// @return An array with the keys of the hash.
+pub extern fn mrb_hash_keys(mrb: *mrb_state, hash: mrb_value) mrb_value;
+
+/// Check if the hash has the key.
+///
+/// Equivalent to:
+///
+///     hash.key?(key)
+///
+/// @param mrb The mruby state reference.
+/// @param hash The target hash.
+/// @param key The key to check existence.
+/// @return True if the hash has the key
+pub extern fn mrb_hash_key_p(mrb: *mrb_state, hash: mrb_value, key: mrb_value) mrb_bool;
+
+/// Check if the hash is empty
+///
+/// Equivalent to:
+///
+///     hash.empty?
+///
+/// @param mrb The mruby state reference.
+/// @param self The target hash.
+/// @return True if the hash is empty, false otherwise.
+pub extern fn mrb_hash_empty_p(mrb: *mrb_state, self: mrb_value) mrb_bool;
+
+/// Gets an array of values.
+///
+/// Equivalent to:
+///
+///     hash.values
+///
+/// @param mrb The mruby state reference.
+/// @param hash The target hash.
+/// @return An array with the values of the hash.
+pub extern fn mrb_hash_values(mrb: *mrb_state, hash: mrb_value) mrb_value;
+
+/// Clears the hash.
+///
+/// Equivalent to:
+///
+///     hash.clear
+///
+/// @param mrb The mruby state reference.
+/// @param hash The target hash.
+/// @return The hash
+pub extern fn mrb_hash_clear(mrb: *mrb_state, hash: mrb_value) mrb_value;
+
+/// Get hash size.
+///
+/// Equivalent to:
+///
+///      hash.size
+///
+/// @param mrb The mruby state reference.
+/// @param hash The target hash.
+/// @return The hash size.
+///
+pub extern fn mrb_hash_size(mrb: *mrb_state, hash: mrb_value) mrb_int;
+
+/// Copies the hash. This function does NOT copy the instance variables
+/// (except for the default value). Use mrb_obj_dup() to copy the instance
+/// variables as well.
+///
+/// @param mrb The mruby state reference.
+/// @param hash The target hash.
+/// @return The copy of the hash
+pub extern fn mrb_hash_dup(mrb: *mrb_state, hash: mrb_value) mrb_value;
+
+/// Merges two hashes. The first hash will be modified by the
+/// second hash.
+///
+/// @param mrb The mruby state reference.
+/// @param hash1 The target hash.
+/// @param hash2 Updating hash
+///
+pub extern fn mrb_hash_merge(mrb: *mrb_state, hash1: mrb_value, hash2: mrb_value) void;
+
+/// return non zero to break the loop
+pub const mrb_hash_foreach_func = fn (mrb: *mrb_state, key: mrb_value, val: mrb_value, data: *anyopaque) c_int;
+pub extern fn mrb_hash_foreach(mrb: *mrb_state, hash: *RHash, func: mrb_hash_foreach_func, ptr: *anyopaque) void;
+
+
+////////////////////////////////////////
+//            mruby/irep.h            //
+////////////////////////////////////////
+
+pub const irep_pool_type = enum(c_int) {
+    IREP_TT_STR   = 0,          // string (need free)
+    IREP_TT_SSTR  = 2,          // string (static)
+    IREP_TT_INT32 = 1,          // 32bit integer
+    IREP_TT_INT64 = 3,          // 64bit integer
+    IREP_TT_BIGINT = 7,         // big integer (not yet supported)
+    IREP_TT_FLOAT = 5,          // float (double/float)
+};
+
+pub const mrb_pool_value = opaque {};
+
+pub const mrb_catch_type = enum(u8) {
+    MRB_CATCH_RESCUE = 0,
+    MRB_CATCH_ENSURE = 1,
+};
+
+pub const mrb_irep_catch_handler = extern struct {
+    catch_type: mrb_catch_type,
+    begin: [4]u8,  // The starting address to match the handler. Includes this.
+    end: [4]u8,    // The endpoint address that matches the handler. Not Includes this.
+    target: [4]u8, // The address to jump to if a match is made.
+};
+
+pub const mrb_irep_debug_info = opaque {};
+
+/// Program data array struct
+pub const mrb_irep = extern struct {
+    nlocals: u16,        // Number of local variables
+    nregs: u16,          // Number of register variables
+    clen: u16,           // Number of catch handlers
+    flags: u16,
+
+    iseq: [*]const mrb_code,
+
+    // A catch handler table is placed after the iseq entity.
+    // The reason it doesn't add fields to the structure is to keep the mrb_irep structure from bloating.
+    // The catch handler table can be obtained with `mrb_irep_catch_handler_table(irep)`.
+    pool: ?*const mrb_pool_value,
+    syms: [*]const mrb_sym,
+    reps: [*]const *mrb_irep,
+
+    lv: *const mrb_sym,
+    // debug info
+    debug_info: *mrb_irep_debug_info,
+
+    ilen: u32,
+    plen: u16,
+    slen: u16,
+    rlen: u16,
+    refcnt: u16,
+};
+
+///  load mruby bytecode functions
+/// Please note! Currently due to interactions with the GC calling these functions will
+/// leak one RProc object per function call.
+/// To prevent this save the current memory arena before calling and restore the arena
+/// right after, like so
+/// int ai = mrb_gc_arena_save(mrb);
+/// mrb_value status = mrb_load_irep(mrb, buffer);
+/// mrb_gc_arena_restore(mrb, ai);
+///
+/// @param [const uint8_t*] irep code, expected as a literal
+pub extern fn mrb_load_irep(mrb: *mrb_state, irep_code: [*]const u8) mrb_value;
+
+/// @param [const void*] irep code
+/// @param [size_t] size of irep buffer.
+pub extern fn mrb_load_irep_buf(mrb: *mrb_state, irep_code: *const anyopaque, size: usize) mrb_value;
+
+/// @param [const uint8_t*] irep code, expected as a literal
+pub extern fn mrb_load_irep_cxt(mrb: *mrb_state, irep_code: [*]const u8, context: *mrbc_context) mrb_value;
+
+/// @param [const void*] irep code
+/// @param [size_t] size of irep buffer.
+pub extern fn mrb_load_irep_buf_cxt(mrb: *mrb_state, irep_code: *const anyopaque, size: usize, context: *mrbc_context) mrb_value;
