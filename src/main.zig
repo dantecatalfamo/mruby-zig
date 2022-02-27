@@ -10,11 +10,11 @@ pub fn main() anyerror!void {
     const program =
         \\ puts "hello from ruby!"
     ;
-    _ = mruby.mrb_load_string(mrb, program);
+    _ = mrb.load_string(program);
     const kptr = mrb.kernel_module().?;
     std.log.debug("kernel module ponter: {p}", .{ kptr });
     mrb.define_module_function(kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
-    _ = mruby.mrb_load_string(mrb, "zigfunc");
+    _ = mrb.load_string("zigfunc");
     _ = mrb.funcall(kptr.value(), "puts", .{ mrb.str_new_lit("hello from puts called in zig!") });
     mrb.p(kptr.value());
 
