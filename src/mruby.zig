@@ -1412,14 +1412,6 @@ pub const mrb_state = opaque {
         return mrb_ary_resize(self, ary, new_len);
     }
 
-    pub fn ary_len(ptr: *RArray) mrb_int {
-        return mrb_ary_len(ptr);
-    }
-
-    pub fn ary_capa(ptr: *RArray) mrb_int {
-        return mrb_ary_capa(ptr);
-    }
-
     // mruby/compile.h
 
     // TODO: mrbc/lex/parse structs and functions
@@ -1455,6 +1447,172 @@ pub const mrb_state = opaque {
     pub fn load_nstring_cxt(self: *Self, s: []const u8, cxt: *mrbc_context) mrb_value {
         return mrb_load_nstring_cxt(self, s.ptr, s.len, cxt);
     }
+
+    // mruby/variable.h
+
+    pub fn const_get(self: *Self, obj: mrb_value, sym: mrb_sym) mrb_value {
+        return mrb_const_get(self, obj, sym);
+    }
+    pub fn const_set(self: *Self, obj: mrb_value, sym: mrb_sym, value: mrb_value) void {
+        return mrb_const_set(self, obj, sym, value);
+    }
+    pub fn const_defined(self: *Self, obj: mrb_value, sym: mrb_sym) mrb_bool {
+        return mrb_const_defined(self, obj, sym);
+    }
+    pub fn const_remove(self: *Self, obj: mrb_value, sym: mrb_sym) void {
+        return mrb_const_remove(self, obj, sym);
+    }
+
+    pub fn iv_name_sym_p(self: *Self, sym: mrb_sym) mrb_bool {
+        return mrb_iv_name_sym_p(self, sym);
+    }
+    pub fn iv_name_sym_check(self: *Self, sym: mrb_sym) void {
+        return mrb_iv_name_sym_check(self, sym);
+    }
+    pub fn obj_iv_get(self: *Self, obj: *RObject, sym: mrb_sym) mrb_value {
+        return mrb_obj_iv_get(self, obj, sym);
+    }
+    pub fn obj_iv_set(self: *Self, obj: *RObject, sym: mrb_sym, v: mrb_value) void {
+        return mrb_obj_iv_set(self, obj, sym, v);
+    }
+    pub fn obj_iv_defined(self: *Self, obj: *RObject, sym: mrb_sym) mrb_bool {
+        return mrb_obj_iv_defined(self, obj, sym);
+    }
+    pub fn iv_get(self: *Self, obj: mrb_value, sym: mrb_sym) mrb_value {
+        return mrb_iv_get(self, obj, sym);
+    }
+    pub fn iv_set(self: *Self, obj: mrb_value, sym: mrb_sym, v: mrb_value) void {
+        return mrb_iv_set(self, obj, sym, v);
+    }
+    pub fn iv_defined(self: *Self, obj: mrb_value, sym: mrb_sym) mrb_bool {
+        return mrb_iv_defined(self, obj, sym);
+    }
+    pub fn iv_remove(self: *Self, obj: mrb_value, sym: mrb_sym) mrb_value {
+        return mrb_iv_remove(self, obj, sym);
+    }
+    pub fn iv_copy(self: *Self, dst: mrb_value, src: mrb_value) void {
+        return mrb_iv_copy(self, sdt, src);
+    }
+    pub fn const_defined_at(self: *Self, mod: mrb_value, id: mrb_sym) mrb_bool {
+        return mrb_const_defined_at(self, mod, id);
+    }
+
+    /// Get a global variable. Will return nil if the var does not exist
+    ///
+    /// Example:
+    ///
+    ///     !!!ruby
+    ///     # Ruby style
+    ///     var = $value
+    ///
+    ///     !!!c
+    ///     // C style
+    ///     mrb_sym sym = mrb_intern_lit(mrb, "$value");
+    ///     mrb_value var = mrb_gv_get(mrb, sym);
+    ///
+    /// @param mrb The mruby state reference
+    /// @param sym The name of the global variable
+    /// @return The value of that global variable. May be nil
+    pub fn gv_get(self: *Self, sym: mrb_sym) mrb_value {
+        return mrb_gv_get(self, sym);
+    }
+
+    /// Set a global variable
+    ///
+    /// Example:
+    ///
+    ///     !!!ruby
+    ///     # Ruby style
+    ///     $value = "foo"
+    ///
+    ///     !!!c
+    ///     // C style
+    ///     mrb_sym sym = mrb_intern_lit(mrb, "$value");
+    ///     mrb_gv_set(mrb, sym, mrb_str_new_lit("foo"));
+    ///
+    /// @param mrb The mruby state reference
+    /// @param sym The name of the global variable
+    /// @param val The value of the global variable
+    pub fn gv_set(self: *Self, sym: mrb_sym, val: mrb_value) void {
+        return mrb_gv_set(self, sym, val);
+    }
+
+    /// Remove a global variable.
+    ///
+    /// Example:
+    ///
+    ///     # Ruby style
+    ///     $value = nil
+    ///
+    ///     // C style
+    ///     mrb_sym sym = mrb_intern_lit(mrb, "$value");
+    ///     mrb_gv_remove(mrb, sym);
+    ///
+    /// @param mrb The mruby state reference
+    /// @param sym The name of the global variable
+    pub fn gv_remove(self: *Self, sym: mrb_sym) void {
+        return mrb_gv_remove(self, sym);
+    }
+
+    pub fn cv_get(self: *Self, mod: mrb_value, sym: mrb_sym) mrb_value {
+        return mrb_cv_get(self, mod, sym);
+    }
+    pub fn mod_cv_set(self: *Self, cla: *RClass, sym: mrb_sym, v: mrb_value) void {
+        return mrb_mod_cv_set(self, cla, sym, v);
+    }
+    pub fn cv_set(self: *Self, mod: mrb_value, sym: mrb_sym, v: mrb_value) void {
+        return mrb_cv_set(self, mod, sym, v);
+    }
+    pub fn cv_defined(self: *Self, mod: mrb_value, sym: mrb_sym) mrb_bool {
+        return mrb_cv_defined(self, mod, sym);
+    }
+
+    // mruby/value.h
+
+    /// Returns a float in Ruby.
+    ///
+    /// Takes a float and boxes it into an mrb_value
+    pub fn float_value(self: *Self, f: mrb_float) mrb_value {
+        return mrb_get_float_value(self, f);
+    }
+    pub fn cptr_value(self: *Self, p: *anyopaque) mrb_value {
+        return mrb_get_cptr_value(self, p);
+    }
+    /// Returns an integer in Ruby.
+    pub fn int_value(self: *Self, i: mrb_int) mrb_value {
+        return mrb_get_int_value(self, i);
+    }
+    pub fn fixnum_value(i: mrb_int) mrb_value {
+        return mrb_get_fixnum_value(i);
+    }
+    pub fn symbol_value(i: mrb_sym) mrb_value {
+        return mrb_get_symbol_value(i);
+    }
+    pub fn obj_value(p: *anyopaque) mrb_value {
+        return mrb_get_obj_value(p);
+    }
+    /// Get a nil mrb_value object.
+    ///
+    /// @return
+    ///      nil mrb_value object reference.
+    pub fn nil_value() mrb_value {
+        return mrb_get_nil_value();
+    }
+    /// Returns false in Ruby.
+    pub fn false_value() mrb_value {
+        return mrb_get_false_value();
+    }
+    /// Returns true in Ruby.
+    pub fn true_value() mrb_value {
+        return mrb_get_true_value();
+    }
+    pub fn bool_value(boolean: mrb_bool) mrb_value {
+        return mrb_get_bool_value(boolean);
+    }
+    pub fn undef_value() mrb_value {
+        return mrb_get_undef_value();
+    }
+
 };
 
 pub const mrb_context = opaque {
@@ -1537,11 +1695,111 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
         return mrb_type(self);
     }
 
+    pub fn cptr(self: Self) *anyopaque {
+        return mrb_get_cptr(self);
+    }
+
     pub fn ptr(self: Self) *anyopaque {
         return mrb_get_ptr(self);
     }
 
-    pub fn rObject(self: Self) *RObject {
+    pub fn integer(self: Self) mrb_int {
+        return mrb_get_integer(self);
+    }
+
+    pub fn float(self: Self) mrb_float {
+        return mrb_get_float(self);
+    }
+
+    pub fn sym(self: Self) mrb_sym {
+        return mrb_get_sym(self);
+    }
+
+    pub fn boolean(self: Self) mrb_bool {
+        return mrb_get_bool(self);
+    }
+
+    pub fn fixnum_p(self: Self) mrb_bool {
+        return mrb_get_fixnum_p(o);
+    }
+    pub fn integer_p(o: mrb_value) mrb_bool {
+        return mrb_get_integer_p(o);
+    }
+    pub fn symbol_p(o: mrb_value) mrb_bool {
+        return mrb_get_symbol_p(o);
+    }
+    pub fn undef_p(o: mrb_value) mrb_bool {
+        return mrb_get_undef_p(o);
+    }
+    pub fn nil_p(o: mrb_value) mrb_bool {
+        return mrb_get_nil_p(o);
+    }
+    pub fn false_p(o: mrb_value) mrb_bool {
+        return mrb_get_false_p(o);
+    }
+    pub fn true_p(o: mrb_value) mrb_bool {
+        return mrb_get_true_p(o);
+    }
+    pub fn float_p(o: mrb_value) mrb_bool {
+        return mrb_get_float_p(o);
+    }
+    pub fn array_p(o: mrb_value) mrb_bool {
+        return mrb_get_array_p(o);
+    }
+    pub fn string_p(o: mrb_value) mrb_bool {
+        return mrb_get_string_p(o);
+    }
+    pub fn hash_p(o: mrb_value) mrb_bool {
+        return mrb_get_hash_p(o);
+    }
+    pub fn cptr_p(o: mrb_value) mrb_bool {
+        return mrb_get_cptr_p(o);
+    }
+    pub fn exception_p(o: mrb_value) mrb_bool {
+        return mrb_get_exception_p(o);
+    }
+    pub fn free_p(o: mrb_value) mrb_bool {
+        return mrb_get_free_p(o);
+    }
+    pub fn object_p(o: mrb_value) mrb_bool {
+        return mrb_get_object_p(o);
+    }
+    pub fn class_p(o: mrb_value) mrb_bool {
+        return mrb_get_class_p(o);
+    }
+    pub fn module_p(o: mrb_value) mrb_bool {
+        return mrb_get_module_p(o);
+    }
+    pub fn iclass_p(o: mrb_value) mrb_bool {
+        return mrb_get_iclass_p(o);
+    }
+    pub fn sclass_p(o: mrb_value) mrb_bool {
+        return mrb_get_sclass_p(o);
+    }
+    pub fn proc_p(o: mrb_value) mrb_bool {
+        return mrb_get_proc_p(o);
+    }
+    pub fn range_p(o: mrb_value) mrb_bool {
+        return mrb_get_range_p(o);
+    }
+    pub fn env_p(o: mrb_value) mrb_bool {
+        return mrb_get_env_p(o);
+    }
+    pub fn data_p(o: mrb_value) mrb_bool {
+        return mrb_get_data_p(o);
+    }
+    pub fn fiber_p(o: mrb_value) mrb_bool {
+        return mrb_get_fiber_p(o);
+    }
+    pub fn istruct_p(o: mrb_value) mrb_bool {
+        return mrb_get_istruct_p(o);
+    }
+    pub fn break_p(o: mrb_value) mrb_bool {
+        return mrb_get_break_p(o);
+    }
+
+
+    pub fn rObject(self: Self) ?*RObject {
         assert(self.vType() == mrb_vtype.MRB_TT_OBJECT);
         return @ptrCast(*RObject, self.ptr());
     }
@@ -1623,6 +1881,15 @@ pub const RArray = opaque {
     pub fn value(self: *Self) mrb_value {
         return mrb_obj_value(self);
     }
+
+    pub fn len(self: *Self) mrb_int {
+        return mrb_ary_len(ptr);
+    }
+
+    pub fn capa(self: *Self) mrb_int {
+        return mrb_ary_capa(ptr);
+    }
+
 };
 pub const RHash = opaque {
     const Self = @This();
@@ -3131,7 +3398,7 @@ pub extern fn mrb_gv_set(mrb: *mrb_state, sym: mrb_sym, val: mrb_value) void;
 pub extern fn mrb_gv_remove(mrb: *mrb_state, sym: mrb_sym) void;
 
 pub extern fn mrb_cv_get(mrb: *mrb_state, mod: mrb_value, sym: mrb_sym) mrb_value;
-pub extern fn mrb_mod_cv_set(mrb: *mrb_state, c: *RClass, sym: mrb_sym, v: mrb_value) void;
+pub extern fn mrb_mod_cv_set(mrb: *mrb_state, cla: *RClass, sym: mrb_sym, v: mrb_value) void;
 pub extern fn mrb_cv_set(mrb: *mrb_state, mod: mrb_value, sym: mrb_sym, v: mrb_value) void;
 pub extern fn mrb_cv_defined(mrb: *mrb_state, mod: mrb_value, sym: mrb_sym) mrb_bool;
 
@@ -3209,12 +3476,41 @@ pub extern fn mrb_get_undef_value() mrb_value;
 pub extern fn mrb_integer_func(o: mrb_value) mrb_int;
 pub extern fn mrb_type(o:mrb_value) mrb_vtype;
 // hacks
-extern fn mrb_get_ptr(v: mrb_value) *anyopaque;
-extern fn mrb_get_cptr(v: mrb_value) *anyopaque;
-extern fn mrb_get_float(v: mrb_value) mrb_float;
-extern fn mrb_get_integer(v: mrb_value) mrb_int;
-extern fn mrb_get_sym(v: mrb_value) mrb_sym;
-extern fn mrb_get_bool(v: mrb_value) mrb_bool;
+pub extern fn mrb_get_ptr(v: mrb_value) *anyopaque;
+pub extern fn mrb_get_cptr(v: mrb_value) *anyopaque;
+pub extern fn mrb_get_float(v: mrb_value) mrb_float;
+pub extern fn mrb_get_integer(v: mrb_value) mrb_int;
+pub extern fn mrb_get_sym(v: mrb_value) mrb_sym;
+pub extern fn mrb_get_bool(v: mrb_value) mrb_bool;
+
+pub extern fn mrb_get_fixnum_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_integer_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_symbol_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_undef_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_nil_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_false_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_true_p(o: mrb_value) mrb_bool;
+
+pub extern fn mrb_get_float_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_array_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_string_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_hash_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_cptr_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_exception_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_free_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_object_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_class_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_module_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_iclass_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_sclass_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_proc_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_range_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_env_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_data_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_fiber_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_istruct_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_break_p(o: mrb_value) mrb_bool;
+
 
 
 /////////////////////////////////////////

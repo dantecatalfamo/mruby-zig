@@ -145,6 +145,85 @@ mrb_bool mrb_get_bool(mrb_value v) {
     return mrb_bool(v);
 }
 
+mrb_bool mrb_get_fixnum_p(mrb_value o) {
+    return mrb_fixnum_p(o);
+}
+mrb_bool mrb_get_integer_p(mrb_value o) {
+    return mrb_integer_p(o);
+}
+mrb_bool mrb_get_symbol_p(mrb_value o) {
+    return mrb_symbol_p(o);
+}
+mrb_bool mrb_get_undef_p(mrb_value o) {
+    return mrb_undef_p(o);
+}
+mrb_bool mrb_get_nil_p(mrb_value o) {
+    return mrb_nil_p(o);
+}
+mrb_bool mrb_get_false_p(mrb_value o) {
+    return mrb_false_p(o);
+}
+mrb_bool mrb_get_true_p(mrb_value o) {
+    return mrb_true_p(o);
+}
+mrb_bool mrb_get_float_p(mrb_value o) {
+    return mrb_float_p(o);
+}
+mrb_bool mrb_get_array_p(mrb_value o) {
+    return mrb_array_p(o);
+}
+mrb_bool mrb_get_string_p(mrb_value o) {
+    return mrb_string_p(o);
+}
+mrb_bool mrb_get_hash_p(mrb_value o) {
+    return mrb_hash_p(o);
+}
+mrb_bool mrb_get_cptr_p(mrb_value o) {
+    return mrb_cptr_p(o);
+}
+mrb_bool mrb_get_exception_p(mrb_value o) {
+    return mrb_exception_p(o);
+}
+mrb_bool mrb_get_free_p(mrb_value o) {
+    return mrb_free_p(o);
+}
+mrb_bool mrb_get_object_p(mrb_value o) {
+    return mrb_object_p(o);
+}
+mrb_bool mrb_get_class_p(mrb_value o) {
+    return mrb_class_p(o);
+}
+mrb_bool mrb_get_module_p(mrb_value o) {
+    return mrb_module_p(o);
+}
+mrb_bool mrb_get_iclass_p(mrb_value o) {
+    return mrb_iclass_p(o);
+}
+mrb_bool mrb_get_sclass_p(mrb_value o) {
+    return mrb_sclass_p(o);
+}
+mrb_bool mrb_get_proc_p(mrb_value o) {
+    return mrb_proc_p(o);
+}
+mrb_bool mrb_get_range_p(mrb_value o) {
+    return mrb_range_p(o);
+}
+mrb_bool mrb_get_env_p(mrb_value o) {
+    return mrb_env_p(o);
+}
+mrb_bool mrb_get_data_p(mrb_value o) {
+    return mrb_data_p(o);
+}
+mrb_bool mrb_get_fiber_p(mrb_value o) {
+    return mrb_fiber_p(o);
+}
+mrb_bool mrb_get_istruct_p(mrb_value o) {
+    return mrb_istruct_p(o);
+}
+mrb_bool mrb_get_break_p(mrb_value o) {
+    return mrb_break_p(o);
+}
+
 /*
  *  mruby/data.h
  */
