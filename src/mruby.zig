@@ -1672,7 +1672,42 @@ pub const mrb_state = opaque {
     pub fn no_method_error(self: *Self, id: mrb_sym, args: mrb_value, fmt: [*:0]const u8, vars: anytype) mrb_noreturn {
         return @call(.{}, mrb_no_method_error, .{ self, id, args, fmt } ++ vars);
     }
+    pub fn f_raise(self: *Self, value: mrb_value) mrb_value {
+        return mrb_f_raise(self, value);
+    }
 
+    /// Protect
+    pub fn protect_error(self: *Self, body: mrb_protect_error_func, userdata: *anyopaque, err: *mrb_bool) mrb_value {
+        return mrb_protect_error(self, body, userdata, err);
+    }
+
+    /// Protect (takes mrb_value for body argument)
+    ///
+    /// Implemented in the mruby-error mrbgem
+    pub fn protect(self: *Self, body: mrb_func_t, data: mrb_value, state: *mrb_bool) mrb_value {
+        return mrb_protect(self, body, data, state);
+    }
+
+    /// Ensure
+    ///
+    /// Implemented in the mruby-error mrbgem
+    pub fn ensure(self: *Self, body: mrb_func_t, b_data: mrb_value, ensure_func: mrb_func_t, e_data: mrb_value) mrb_value {
+        return mrb_ensure(self, body, b_data, ensure_func, e_data);
+    }
+
+    /// Rescue
+    ///
+    /// Implemented in the mruby-error mrbgem
+    pub fn rescue(self: *Self, body: mrb_func_t, b_data: mrb_value, rescue_func: mrb_func_t, r_data: mrb_value) mrb_value {
+        return mrb_rescue(self, body, b_data, rescue_func, r_data);
+    }
+
+    /// Rescue exception
+    ///
+    /// Implemented in the mruby-error mrbgem
+    pub fn rescue_exceptions(self: *Self, body: mrb_func_t, b_data: mrb_value, rescue_func: mrb_func_t, r_data: mrb_value, classes: []*RClass) mrb_value {
+        return mrb_rescue_exceptions(self, body, b_data, rescue_func, r_data, classes.len, classes.ptr);
+    }
 };
 
 pub const mrb_context = opaque {
@@ -2064,6 +2099,24 @@ pub const RBreak = opaque {
 
     pub fn value(self: *Self) mrb_value {
         return mrb_obj_value(self);
+    }
+    pub fn value_get(self: *Self) mrb_value {
+        return mrb_break_value_get1(self);
+    }
+    pub fn value_set(self: *Self, val: mrb_value) void {
+        return mrb_break_value_set1(self, val);
+    }
+    pub fn proc_get(self: *Self) ?*const RProc {
+        return mrb_break_proc_get1(self);
+    }
+    pub fn proc_set(self: *Self, proc: *RProc) void {
+        return mrb_break_proc_set1(self, proc);
+    }
+    pub fn tag_get(self: *Self) rbreak_tag {
+        return mrb_break_tag_get1(self);
+    }
+    pub fn tag_set(self: *Self, tag: rbreak_tag) void {
+        return mrb_break_tag_set1(self, tag);
     }
 };
 pub const RComplex = opaque {
@@ -3668,7 +3721,7 @@ pub fn mrb_rdata(obj: mrb_value) ?*RData {
     return @ptrCast(*RData, mrb_get_ptr(obj));
 }
 pub extern fn mrb_rdata_data(data: *RData) ?*anyopaque;
-pub extern fn mrb_rdata_type(data: *RData) ?*mrb_data_type;
+pub extern fn mrb_rdata_type(data: *RData) ?*const mrb_data_type;
 
 
 /////////////////////////////////////////
@@ -3687,3 +3740,50 @@ pub extern fn mrb_make_exception(mrb: *mrb_state, argc: mrb_int, argv: [*]const 
 pub extern fn mrb_exc_backtrace(mrb: *mrb_state, exc: mrb_value) mrb_value;
 pub extern fn mrb_get_backtrace(mrb: *mrb_state) mrb_value;
 pub extern fn mrb_no_method_error(mrb: *mrb_state, id: mrb_sym, args: mrb_value, fmt: [*:0]const u8, ...) mrb_noreturn;
+pub extern fn mrb_f_raise(mrb: *mrb_state, value: mrb_value) mrb_value;
+
+pub const mrb_protect_error_func = fn (mrb: *mrb_state, userdata: *anyopaque) callconv(.C) mrb_value;
+
+/// Protect
+pub extern fn mrb_protect_error(mrb: *mrb_state, body: mrb_protect_error_func, userdata: *anyopaque, err: *mrb_bool) mrb_value;
+
+/// Protect (takes mrb_value for body argument)
+///
+/// Implemented in the mruby-error mrbgem
+pub extern fn mrb_protect(mrb: *mrb_state, body: mrb_func_t, data: mrb_value, state: *mrb_bool) mrb_value;
+
+/// Ensure
+///
+/// Implemented in the mruby-error mrbgem
+pub extern fn mrb_ensure(mrb: *mrb_state, body: mrb_func_t, b_data: mrb_value, ensure: mrb_func_t, e_data: mrb_value) mrb_value;
+
+/// Rescue
+///
+/// Implemented in the mruby-error mrbgem
+pub extern fn mrb_rescue(mrb: *mrb_state, body: mrb_func_t, b_data: mrb_value, rescue: mrb_func_t, r_data: mrb_value) mrb_value;
+
+/// Rescue exception
+///
+/// Implemented in the mruby-error mrbgem
+pub extern fn mrb_rescue_exceptions(mrb: *mrb_state, body: mrb_func_t, b_data: mrb_value, rescue: mrb_func_t, r_data: mrb_value, len: mrb_int, classes: [*]*RClass) mrb_value;
+
+pub const rbreak_tag = enum(u32) {
+    RBREAK_TAG_BREAK,
+    RBREAK_TAG_BREAK_UPPER,
+    RBREAK_TAG_BREAK_INTARGET,
+    RBREAK_TAG_RETURN_BLOCK,
+    RBREAK_TAG_RETURN,
+    RBREAK_TAG_RETURN_TOPLEVEL,
+    RBREAK_TAG_JUMP,
+    RBREAK_TAG_STOP,
+};
+
+// hacks
+pub extern fn mrb_break_value_get1(brk: *RBreak) mrb_value;
+pub extern fn mrb_break_value_set1(brk: *RBreak, val: mrb_value) void;
+pub extern fn mrb_break_proc_get1(brk: *RBreak) ?*const RProc;
+pub extern fn mrb_break_proc_set1(brk: *RBreak, proc: *RProc) void;
+pub extern fn mrb_break_tag_get1(brk: *RBreak) rbreak_tag;
+pub extern fn mrb_break_tag_set1(brk: *RBreak, tag: rbreak_tag) void;
+
+// TODO: gc.h functions

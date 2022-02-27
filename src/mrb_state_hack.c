@@ -2,6 +2,7 @@
 #include <mruby/array.h>
 #include <mruby/data.h>
 #include <mruby/value.h>
+#include <mruby/error.h>
 
 /*
  *  mruby.h
@@ -231,7 +232,7 @@ mrb_bool mrb_get_break_p(mrb_value o) {
 void *mrb_rdata_data(struct RData *data) {
     return data->data;
 }
-void *mrb_rdata_type(struct RData *data) {
+const struct mrb_data_type *mrb_rdata_type(struct RData *data) {
     return data->type;
 }
 
@@ -271,4 +272,27 @@ mrb_value mrb_get_bool_value(mrb_bool boolean) {
 }
 mrb_value mrb_get_undef_value(void) {
     return mrb_undef_value();
+}
+
+/*
+ * mruby/error.h
+ */
+
+mrb_value mrb_break_value_get1(struct RBreak *brk) {
+    return mrb_break_value_get(brk);
+}
+void mrb_break_value_set1(struct RBreak *brk, mrb_value val) {
+    mrb_break_value_set(brk, val);
+}
+const struct RProc *mrb_break_proc_get1(struct RBreak *brk) {
+    return mrb_break_proc_get(brk);
+}
+void mrb_break_proc_set1(struct RBreak *brk, struct RProc *proc) {
+    mrb_break_proc_set(brk, proc);
+}
+uint32_t mrb_break_tag_get1(struct RBreak *brk) {
+    return mrb_break_tag_get(brk);
+}
+void mrb_break_tag_set1(struct RBreak *brk, uint32_t tag) {
+    return mrb_break_tag_set(brk, tag);
 }
