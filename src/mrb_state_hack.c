@@ -97,6 +97,13 @@ const struct RProc *mrb_callinfo_proc(mrb_callinfo *ci) {
     return ci->proc;
 }
 
+int mrb_gc_arena_save1(mrb_state *mrb) {
+    return mrb_gc_arena_save(mrb);
+}
+void mrb_gc_arena_restore1(mrb_state *mrb, int idx) {
+    mrb->gc.arena_idx = idx;
+}
+
 
 /*
  *   mruby/array.h

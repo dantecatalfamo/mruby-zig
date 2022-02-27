@@ -37,6 +37,8 @@ pub extern fn mrb_callinfo_cci(ci: *mrb_callinfo) u8;
 pub extern fn mrb_callinfo_mid(ci: *mrb_callinfo) mrb_sym;
 pub extern fn mrb_callinfo_stack(ci: *mrb_callinfo) [*]*?mrb_value;
 pub extern fn mrb_callinfo_proc(ci: *mrb_callinfo) ?*RProc;
+pub extern fn mrb_gc_arena_save1(mrb: *mrb_state) c_int;
+pub extern fn mrb_gc_arena_restore1(mrb: *mrb_state) void;
 
 ///////////////////////////////////
 //            mruby.h            //
@@ -932,19 +934,151 @@ pub const mrb_state = opaque {
         return mrb_obj_freeze(self, value);
     }
 
+    /// Closes and frees a mrb_state.
+    ///
+    /// @param mrb
+    ///      Pointer to the mrb_state to be closed.
+    pub fn close(self: *Self) void {
+        return mrb_close(self);
+    }
 
+    pub fn top_self_value(self: *Self) mrb_value {
+        return mrb_top_self(self);
+    }
+    pub fn top_run(self: *Self, proc: *const RProc, proc_self: mrb_value, stack_keep: mrb_int) mrb_value {
+        return mrb_top_run(self, proc, proc_self, stack_keep);
+    }
+    pub fn vm_run(self: *Self, proc: *const RProc, proc_self: mrb_value, stack_keep: mrb_int) mrb_value {
+        return mrb_vm_run(self, proc, proc_self, stack_keep);
+    }
+    pub fn vm_exec(self: *Self, proc: *const RProc, iseq: [*]const mrb_code) mrb_value {
+        return mrb_vm_exec(self, proc, iseq);
+    }
 
     pub fn p(self: *Self, value: mrb_value) void {
         return mrb_p(self, value);
     }
+    pub fn obj_id(obj: mrb_value) mrb_int {
+        return mrb_obj_id(obj);
+    }
+    pub fn obj_to_sym(self: *Self, name: mrb_value) mrb_sym {
+        return mrb_obj_to_sym(self, name);
+    }
+
+    pub fn obj_eq(self: *Self, a: mrb_value, b: mrb_value) mrb_bool {
+        return mrb_obj_eq(self, a, b);
+    }
+    pub fn obj_equal(self: *Self, a: mrb_value, b: mrb_value) mrb_bool {
+        return mrb_obj_equal(self, a, b);
+    }
+    pub fn equal(self: *Self, obj1: mrb_value, obj2: mrb_value) mrb_bool {
+        return mrb_equal(self, obj1, obj2);
+    }
+    pub fn ensure_float_type(self: *Self, value: mrb_value) mrb_value {
+        return mrb_ensure_float_type(self, value);
+    }
+    pub fn inspect(self: *Self, obj: mrb_value) mrb_value {
+        return mrb_inspect(self, obj);
+    }
+    pub fn eql(self: *Self, obj1: mrb_value, obj2: mrb_value) mrb_bool {
+        return mrb_eql(self, obj1, obj2);
+    }
+    /// mrb_cmp(mrb, obj1, obj2): 1:0:-1; -2 for error
+    pub fn cmp(self: *Self, obj1: mrb_value, obj2: mrb_value) !mrb_int {
+        const ret = mrb_cmp(self, obj1, obj2);
+        if (ret == -2) return error.CmpError;
+        return ret;
+    }
+
+    pub fn gc_arena_save(self: *Self) c_int {
+        return mrb_gc_arena_save1(self);
+    }
+    pub fn gc_arena_restore(self: *Self, idx: c_int) void {
+        return mrb_gc_arena_restore1(self, idx);
+    }
+    pub fn garbage_collect(self: *Self) void {
+        return mrb_garbage_collect(self);
+    }
+    pub fn full_gc(self: *Self) void {
+        return mrb_full_gc(self);
+    }
+    pub fn incremental_gc(self: *Self) void {
+        return mrb_incremental_gc(self);
+    }
+    pub fn gc_mark(self: *Self, obj: *RBasic) void {
+        return mrb_gc_mark(self, obj);
+    }
+
+    pub fn type_convert(self: *Self, value: mrb_value, typ: mrb_vtype, method: mrb_sym) mrb_value {
+        return mrb_type_convert(self, value, typ, method);
+    }
+    pub fn type_convert_check(self: *Self, value: mrb_value, typ: mrb_vtype, method: mrb_sym) mrb_value {
+        return mrb_type_convert_check(self, value, typ, method);
+    }
+
+    pub fn any_to_s(self: *Self, obj: mrb_value) mrb_value {
+        return mrb_any_to_s(self, obj);
+    }
+    pub fn obj_classname(self: *Self, obj: mrb_value) ?[*:0]const u8 {
+        return mrb_obj_classname(self, obj);
+    }
+    pub fn obj_class(self: *Self, obj: mrb_value) ?*RClass {
+        return mrb_obj_class(self, obj);
+    }
+    pub fn class_path(self: *Self, cla: *RClass) mrb_value {
+        return mrb_class_path(self, cla);
+    }
+    pub fn obj_is_kind_of(self: *Self, obj: mrb_value, cla: *RClass) mrb_bool {
+        return mrb_obj_is_kind_of(self, obj, cla);
+    }
+    pub fn obj_inspect(self: *Self, obj_self: mrb_value) mrb_value {
+        return mrb_obj_inspect(self, obj_self);
+    }
+    pub fn obj_clone(self: *Self, obj_self: mrb_value) mrb_value {
+        return mrb_obj_clone(self, obj_self);
+    }
+
+    pub fn exc_new(self: *Self, cla: *RClass, str: []const u8) mrb_value {
+        return mrb_exc_new(self, cla, str.ptr, str.len);
+    }
+    pub fn exc_raise(self: *Self, exception: mrb_value) mrb_noreturn {
+        return mrb_exc_raise(self, exception);
+    }
+    pub fn raise(self: *Self, cla: *RClass, msg: [*:0]const u8) mrb_noreturn {
+        return mrb_raise(self, cla, msg);
+    }
+    pub fn raisef(self: *Self, cla: *RClass, fmt: [*:0]const u8, args: anytype) mrb_noreturn {
+        return @call(.{}, mrb_raisef, .{ self, cla, fmt } ++ args);
+    }
+    pub fn name_error(self: *Self, id: mrb_sym, fmt: [*:0]const u8, args: anytype) mrb_noreturn {
+        return @call(.{}, mrb_name_error, .{ self, id, fmt } ++ args);
+    }
+    pub fn frozen_error(self: *Self, frozen_obj: *anyopaque) mrb_noreturn {
+        return mrb_frozen_error(self, frozen_obj);
+    }
+    pub fn argnum_error(self: *Self, argc: mrb_int, min: c_int, max: c_int) mrb_noreturn {
+        return mrb_argnum_error(self, argc, min, max);
+    }
+    pub fn warn(self: *Self, fmt: [*:0]const u8, args: anytype) void {
+        return @call(.{}, mrb_warn, .{ self, fmt } ++ args );
+    }
+    pub fn bug(self: *Self, fmt: [*:0]const u8, args: anytype) mrb_noreturn {
+        return @call(.{}, mrb_bug, .{ self, fmt } ++ args);
+    }
+    pub fn print_backtrace(self: *Self) void {
+        return mrb_print_backtrace(self);
+    }
+    pub fn print_error(self: *Self) void {
+        return mrb_print_error(self);
+    }
+
+
+
     pub fn show_copyright(self: *Self) void {
         return mrb_show_copyright(self);
     }
     pub fn show_version(self: *Self) void {
         return mrb_show_version(self);
-    }
-    pub fn close(self: *Self) void {
-        return mrb_close(self);
     }
 };
 
@@ -2167,8 +2301,8 @@ pub extern fn mrb_eql(mrb: *mrb_state, obj1: mrb_value, obj2: mrb_value) mrb_boo
 /// mrb_cmp(mrb, obj1, obj2): 1:0:-1; -2 for error
 pub extern fn mrb_cmp(mrb: *mrb_state, obj1: mrb_value, obj2: mrb_value) mrb_int;
 
-pub extern fn mrb_gc_arena_save(mrb: *mrb_state) c_int;
-pub extern fn mrb_gc_arena_restore(mrb: *mrb_state) void;
+// pub extern fn mrb_gc_arena_save(mrb: *mrb_state) c_int;
+// pub extern fn mrb_gc_arena_restore(mrb: *mrb_state) void;
 
 pub extern fn mrb_garbage_collect(mrb: *mrb_state) void;
 pub extern fn mrb_full_gc(mrb: *mrb_state) void;
