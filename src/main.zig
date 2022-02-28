@@ -17,6 +17,11 @@ pub fn main() anyerror!void {
     _ = mrb.funcall(kval, "zigfunc", .{});
     _ = mrb.funcall(kval, "puts", .{ mrb.str_new_lit("hello from puts called in zig!") });
     _ = mrb.funcall(kval, "puts", .{ mrb.int_value(1337) });
+    const strf = mrb.str_new("this is a string");
+    std.log.debug("string frozen? {}", .{ strf.frozen_p() });
+    try strf.freeze();
+    std.log.debug("freezing string", .{});
+    std.log.debug("string frozen? {}", .{ strf.frozen_p() });
 
     // Exception test
     mrb.sys_fail("intentional system failure");

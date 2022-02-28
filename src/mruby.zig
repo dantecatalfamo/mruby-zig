@@ -2256,22 +2256,13 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
         return mrb_get_immediate_p(self);
     }
     pub fn frozen_p(self: Self) mrb_bool {
-        if (!self.object_p()) {
-            return false;
-        }
-        return mrb_get_frozen_p(self.rbasic());
+        return mrb_get_frozen_p(self.rbasic().?);
     }
     pub fn freeze(self: Self) !void {
-        if (!self.object_p()) {
-            return error.NotAnObject;
-        }
-        return mrb_set_frozen(self.rbasic());
+        return mrb_set_frozen(self.rbasic().?);
     }
     pub fn unfreeze(self: Self) !void {
-        if (!self.object_p()) {
-            return error.NotAnObject;
-        }
-        return mrb_unset_frozen(self.rbasic());
+        return mrb_unset_frozen(self.rbasic().?);
     }
 };
 
