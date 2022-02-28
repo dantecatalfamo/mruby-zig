@@ -12,19 +12,15 @@ pub fn main() anyerror!void {
     ;
     _ = mrb.load_string(program);
     const kptr = mrb.kernel_module().?;
-    std.log.debug("kernel module ponter: {p}", .{ kptr });
+    const kval = kptr.value();
     mrb.define_module_function(kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
-    std.log.debug("Calling zigfunc", .{});
-    _ = mrb.load_string("zigfunc");
-    std.log.debug("Calling zigfunc again", .{});
-    _ = mrb.funcall(kptr.value(), "zigfunc", .{});
-    _ = mrb.funcall(kptr.value(), "puts", .{ mrb.str_new_lit("hello from puts called in zig!") });
-    mrb.p(kptr.value());
+    _ = mrb.funcall(kval, "zigfunc", .{});
+    _ = mrb.funcall(kval, "puts", .{ mrb.str_new_lit("hello from puts called in zig!") });
+    _ = mrb.funcall(kval, "puts", .{ mrb.int_value(1337) });
 
     // Exception test
     mrb.sys_fail("intentional system failure");
     mrb.print_error();
-    mrb.p(mrb.exc().?.value());
 }
 
 export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
