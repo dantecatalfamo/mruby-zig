@@ -4,6 +4,7 @@
 #include <mruby/value.h>
 #include <mruby/error.h>
 #include <mruby/range.h>
+#include <mruby/class.h>
 
 /*
  *  mruby.h
@@ -230,9 +231,20 @@ mrb_bool mrb_get_break_p(mrb_value o) {
 }
 
 /*
+ * mruby/class.h
+ */
+
+struct RClass* mrb_get_class(mrb_state *mrb, mrb_value v) {
+    return mrb_class(mrb, v);
+}
+
+/*
  *  mruby/data.h
  */
 
+void mrb_data_init1(mrb_value v, void *ptr, const mrb_data_type *type) {
+    mrb_data_init(v, ptr, type);
+}
 void *mrb_rdata_data(struct RData *data) {
     return data->data;
 }
