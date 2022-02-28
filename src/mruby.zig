@@ -46,6 +46,42 @@ pub extern fn mrb_gc_arena_restore1(mrb: *mrb_state, idx: c_int) void;
 
 // TODO: Make a type to make mrb_aspec less combresome
 
+/// Creates new mrb_state.
+///
+/// @return
+///      Pointer to the newly created mrb_state.
+pub fn open() !*mrb_state {
+    return mrb_open() orelse error.OpenError;
+}
+
+/// Create new mrb_state with custom allocators.
+///
+/// @param f
+///      Reference to the allocation function.
+/// @param ud
+///      User data will be passed to custom allocator f.
+///      If user data isn't required just pass NULL.
+/// @return
+///      Pointer to the newly created mrb_state.
+pub fn open_allocf(f: mrb_allocf, ud: *anyopaque) !*mrb_state {
+    return mrb_open_allocf(f, ud) orelse error.OpenError;
+}
+
+/// Create new mrb_state with just the MRuby core
+///
+/// @param f
+///      Reference to the allocation function.
+///      Use mrb_default_allocf for the default
+/// @param ud
+///      User data will be passed to custom allocator f.
+///      If user data isn't required just pass NULL.
+/// @return
+///      Pointer to the newly created mrb_state.
+pub fn open_core(f: mrb_allocf, ud: *anyopaque) !*mrb_state {
+    return mrb_open_core(f, ud) orelse error.OpenError;
+}
+
+
 pub const mrb_state = opaque {
     const Self = @This();
 

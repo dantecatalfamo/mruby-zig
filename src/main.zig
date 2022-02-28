@@ -2,7 +2,7 @@ const std = @import("std");
 const mruby = @import("mruby.zig");
 
 pub fn main() anyerror!void {
-    var mrb = mruby.mrb_open() orelse return error.OpenError;
+    var mrb = try mruby.open();
     defer mrb.close();
     std.log.debug("state pointer: {p}", .{ mrb });
     mrb.show_version();
