@@ -1948,6 +1948,24 @@ pub const mrb_state = opaque {
         return mrb_float_to_integer(self, value);
     }
 
+    // mruby/proc.h
+
+    pub fn proc_new_cfunc(self: *Self, func: mrb_func_t) ?*RProc {
+        return mrb_proc_new_cfunc(self, func);
+    }
+    pub fn closure_new_cfunc(self: *Self, func: mrb_func_t, nlocals: c_int) ?*RProc {
+        return mrb_closure_new_cfunc(self, func, nlocals);
+    }
+    /// following functions are defined in mruby-proc-ext so please include it when using
+    pub fn proc_new_cfunc_with_env(self: *Self, func: mrb_func_t, args: []const mrb_value) ?*RProc {
+        return mrb_proc_new_cfunc_with_env(self, func, args.len, args.ptr);
+    }
+    pub fn proc_cfunc_env_get(self: *Self, idx: mrb_int) mrb_value {
+        return mrb_proc_cfunc_env_get(self, idx);
+    }
+    pub fn load_proc(self: *Self, proc: *const RProc) mrb_value {
+        return mrb_load_proc(self, proc);
+    }
 };
 
 pub const mrb_context = opaque {
@@ -4304,6 +4322,17 @@ pub extern fn mrb_float_to_integer(mrb: *mrb_state, val: mrb_value) mrb_value;
 //////////////////////////////////////////
 
 /// Takes an RBasic/RData/RClass/etc.
-pub extern fn mrb_get_frozen_p(o: *anyopaque) mrb_bool;
-pub extern fn mrb_set_frozen(o: *anyopaque) void;
-pub extern fn mrb_unset_frozen(o: *anyopaque) void;
+pub extern fn mrb_get_frozen_p(o: *RBasic) mrb_bool;
+pub extern fn mrb_set_frozen(o: *RBasic) void;
+pub extern fn mrb_unset_frozen(o: *RBasic) void;
+
+////////////////////////////////////////
+//            mruby/proc.h            //
+////////////////////////////////////////
+
+pub extern fn mrb_proc_new_cfunc(mrb: *mrb_state, func: mrb_func_t) ?*RProc;
+pub extern fn mrb_closure_new_cfunc(mrb: *mrb_state, func: mrb_func_t, nlocals: c_int) ?*RProc;
+/// following functions are defined in mruby-proc-ext so please include it when using
+pub extern fn mrb_proc_new_cfunc_with_env(mrb: *mrb_state, func: mrb_func_t, argc: mrb_int, argv: [*]const mrb_value) ?*RProc;
+pub extern fn mrb_proc_cfunc_env_get(mrb: *mrb_state, idx: mrb_int) mrb_value;
+pub extern fn mrb_load_proc(mrb: *mrb_state, proc: *const RProc) mrb_value;
