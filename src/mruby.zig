@@ -1624,7 +1624,7 @@ pub const mrb_state = opaque {
     pub fn symbol_value(i: mrb_sym) mrb_value {
         return mrb_get_symbol_value(i);
     }
-    pub fn obj_value(pt: *anyopaque) mrb_value {
+    pub fn obj_value(_: *Self, pt: *anyopaque) mrb_value {
         return mrb_get_obj_value(pt);
     }
     /// Get a nil mrb_value object.
@@ -1642,7 +1642,7 @@ pub const mrb_state = opaque {
     pub fn true_value() mrb_value {
         return mrb_get_true_value();
     }
-    pub fn bool_value(boolean: mrb_bool) mrb_value {
+    pub fn bool_value(_: *Self, boolean: mrb_bool) mrb_value {
         return mrb_get_bool_value(boolean);
     }
     pub fn undef_value() mrb_value {
@@ -3907,7 +3907,7 @@ pub extern fn mrb_iv_foreach(mrb: *mrb_state, obj: mrb_value, func: mrb_iv_forea
 pub fn mrb_float_value(mrb: *mrb_state, f: mrb_float) mrb_value {
     return mrb_get_float_value(mrb, f);
 }
-pub fn mrb_cptr_value(mrb: *mrb_state, p: *anyopaque) mrb_value {
+pub fn mrb_cptr_value(mrb: *mrb_state, p: *const anyopaque) mrb_value {
     return mrb_get_cptr_value(mrb, p);
 }
 /// Returns an integer in Ruby.

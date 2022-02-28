@@ -23,6 +23,24 @@ pub fn main() anyerror!void {
     std.log.debug("freezing string", .{});
     std.log.debug("string frozen? {}", .{ strf.frozen_p() });
 
+    const int = mrb.int_value(5);
+    const float = mrb.float_value(5.0);
+    const str = mrb.str_new("hello");
+    var pointer: u8 = 5;
+    const cptr = mrb.cptr_value(&pointer);
+    const obj = mrb.obj_value(strf.rstring().?);
+    const bol = mrb.bool_value(true);
+
+    std.log.debug("int immediate: {}", .{ int.immediate_p() });
+    std.log.debug("float immediate: {}", .{ float.immediate_p() });
+    std.log.debug("str immediate: {}", .{ str.immediate_p() });
+    std.log.debug("cptr immediate: {}", .{ cptr.immediate_p() });
+    std.log.debug("obj immediate: {}", .{ obj.immediate_p() });
+    std.log.debug("bool immediate: {}", .{ bol.immediate_p() });
+
+    std.log.debug("cptr value:", .{});
+    mrb.p(cptr);
+
     // Exception test
     mrb.sys_fail("intentional system failure");
     mrb.print_error();
