@@ -4377,3 +4377,209 @@ pub extern fn mrb_range_beg_len(mrb: *mrb_state, range: mrb_value, begp: *mrb_in
 pub extern fn mrb_range_beg1(mrb: *mrb_state, range: mrb_value) mrb_value;
 pub extern fn mrb_range_end1(mrb: *mrb_state, range: mrb_value) mrb_value;
 pub extern fn mrb_range_excl_p1(mrb: *mrb_state, range: mrb_state) mrb_bool;
+
+
+// mruby/string.h
+
+
+pub extern fn mrb_str_modify(mrb: *mrb_state, s: *RString) void;
+/// mrb_str_modify() with keeping ASCII flag if set
+pub extern fn mrb_str_modify_keep_ascii(mrb: *mrb_state, s: *RString) void;
+///
+/// Finds the index of a substring in a string
+pub extern fn mrb_str_index(mrb: *mrb_state, str: mrb_value, ptr: [*:0]const u8, len: mrb_int, offset: mrb_int) mrb_int;
+pub fn mrb_str_index_lit(mrb: *mrb_state, str: mrb_value, lit: [*:0]const u8, offset: mrb_int) mrb_int {
+    return mrb_str_index(mrb, str, lit, mrb_strlen_lit(lit), offset);
+}
+
+/// Appends self to other. Returns self as a concatenated string.
+///
+///
+/// Example:
+///
+///     int
+///     main(int argc,
+///          char **argv)
+///     {
+///       // Variable declarations.
+///       mrb_value str1;
+///       mrb_value str2;
+///
+///       mrb_state *mrb = mrb_open();
+///       if (!mrb)
+///       {
+///          // handle error
+///       }
+///
+///       // Creates new Ruby strings.
+///       str1 = mrb_str_new_lit(mrb, "abc");
+///       str2 = mrb_str_new_lit(mrb, "def");
+///
+///       // Concatenates str2 to str1.
+///       mrb_str_concat(mrb, str1, str2);
+///
+///       // Prints new Concatenated Ruby string.
+///       mrb_p(mrb, str1);
+///
+///       mrb_close(mrb);
+///       return 0;
+///     }
+///
+/// Result:
+///
+///     => "abcdef"
+///
+/// @param mrb The current mruby state.
+/// @param self String to concatenate.
+/// @param other String to append to self.
+/// @return [mrb_value] Returns a new String appending other to self.
+pub extern fn mrb_str_concat(mrb: *mrb_state, self: mrb_value, other: mrb_value) void;
+
+/// Adds two strings together.
+///
+///
+/// Example:
+///
+///     int
+///     main(int argc,
+///          char **argv)
+///     {
+///       // Variable declarations.
+///       mrb_value a;
+///       mrb_value b;
+///       mrb_value c;
+///
+///       mrb_state *mrb = mrb_open();
+///       if (!mrb)
+///       {
+///          // handle error
+///       }
+///
+///       // Creates two Ruby strings from the passed in C strings.
+///       a = mrb_str_new_lit(mrb, "abc");
+///       b = mrb_str_new_lit(mrb, "def");
+///
+///       // Prints both C strings.
+///       mrb_p(mrb, a);
+///       mrb_p(mrb, b);
+///
+///       // Concatenates both Ruby strings.
+///       c = mrb_str_plus(mrb, a, b);
+///
+///       // Prints new Concatenated Ruby string.
+///       mrb_p(mrb, c);
+///
+///       mrb_close(mrb);
+///       return 0;
+///     }
+///
+///
+/// Result:
+///
+///     => "abc"  # First string
+///     => "def"  # Second string
+///     => "abcdef" # First & Second concatenated.
+///
+/// @param mrb The current mruby state.
+/// @param a First string to concatenate.
+/// @param b Second string to concatenate.
+/// @return [mrb_value] Returns a new String containing a concatenated to b.
+pub extern fn mrb_str_plus(mrb: *mrb_state, a: mrb_value, b: mrb_value) mrb_value;
+
+/// Converts pointer into a Ruby string.
+///
+/// @param mrb The current mruby state.
+/// @param p The pointer to convert to Ruby string.
+/// @return [mrb_value] Returns a new Ruby String.
+pub extern fn mrb_ptr_to_str(mrb: *mrb_state, p: *anyopaque) mrb_value;
+
+/// Returns an object as a Ruby string.
+///
+/// @param mrb The current mruby state.
+/// @param obj An object to return as a Ruby string.
+/// @return [mrb_value] An object as a Ruby string.
+pub extern fn mrb_obj_as_string(mrb: *mrb_state, obj: mrb_value) mrb_value;
+
+/// Resizes the string's length. Returns the amount of characters
+/// in the specified by len.
+///
+/// Example:
+///
+///     int
+///     main(int argc,
+///          char **argv)
+///     {
+///         // Variable declaration.
+///         mrb_value str;
+///
+///         mrb_state *mrb = mrb_open();
+///         if (!mrb)
+///         {
+///            // handle error
+///         }
+///         // Creates a new string.
+///         str = mrb_str_new_lit(mrb, "Hello, world!");
+///         // Returns 5 characters of
+///         mrb_str_resize(mrb, str, 5);
+///         mrb_p(mrb, str);
+///
+///         mrb_close(mrb);
+///         return 0;
+///      }
+///
+/// Result:
+///
+///      => "Hello"
+///
+/// @param mrb The current mruby state.
+/// @param str The Ruby string to resize.
+/// @param len The length.
+/// @return [mrb_value] An object as a Ruby string.
+pub extern fn mrb_str_resize(mrb: *mrb_state, str: mrb_value, len: mrb_int) mrb_value;
+
+/// Returns a sub string.
+///
+/// Example:
+///
+///     int
+///     main(int argc,
+///     char const **argv)
+///     {
+///       // Variable declarations.
+///       mrb_value str1;
+///       mrb_value str2;
+///
+///       mrb_state *mrb = mrb_open();
+///       if (!mrb)
+///       {
+///         // handle error
+///       }
+///       // Creates new string.
+///       str1 = mrb_str_new_lit(mrb, "Hello, world!");
+///       // Returns a sub-string within the range of 0..2
+///       str2 = mrb_str_substr(mrb, str1, 0, 2);
+///
+///       // Prints sub-string.
+///       mrb_p(mrb, str2);
+///
+///       mrb_close(mrb);
+///       return 0;
+///     }
+///
+/// Result:
+///
+///     => "He"
+///
+/// @param mrb The current mruby state.
+/// @param str Ruby string.
+/// @param beg The beginning point of the sub-string.
+/// @param len The end point of the sub-string.
+/// @return [mrb_value] An object as a Ruby sub-string.
+pub extern fn mrb_str_substr(mrb: *mrb_state, str: mrb_value, beg: mrb_int, len: mrb_int) mrb_value;
+
+pub extern fn mrb_str_new_capa(mrb: *mrb_state, capa: usize) mrb_value;
+
+/// NULL terminated C string from mrb_value
+pub extern fn mrb_string_cstr(meb: *mrb_state, str: mrb_value) [*:0]const u8;
+/// NULL terminated C string from mrb_value; `str` will be updated
+pub extern fn mrb_string_value_cstr(mrb: *mrb_state, str: *mrb_value) [*:0]const u8;
