@@ -38,7 +38,7 @@ pub extern fn mrb_callinfo_mid(ci: *mrb_callinfo) mrb_sym;
 pub extern fn mrb_callinfo_stack(ci: *mrb_callinfo) [*]*?mrb_value;
 pub extern fn mrb_callinfo_proc(ci: *mrb_callinfo) ?*RProc;
 pub extern fn mrb_gc_arena_save1(mrb: *mrb_state) c_int;
-pub extern fn mrb_gc_arena_restore1(mrb: *mrb_state) void;
+pub extern fn mrb_gc_arena_restore1(mrb: *mrb_state, idx: c_int) void;
 
 ///////////////////////////////////
 //            mruby.h            //
@@ -433,12 +433,12 @@ pub const mrb_state = opaque {
     /// @param argc Number of arguments in argv
     /// @param argv Array of mrb_value to initialize the object
     /// @return [mrb_value] The newly initialized object
-    pub fn obj_new(self: *Self, cla: *RClass, argc: mrb_int, argv: [*]const mrb_value) mrb_value {
+    pub fn obj_new(self: *Self, cla: *RClass, argc: usize, argv: [*]const mrb_value) mrb_value {
         return mrb_obj_new(self, cla, argc, argv);
     }
 
     /// @see mrb_obj_new
-    pub fn class_new_instance(self: *Self, argc: mrb_int, argv: [*]const mrb_value, cla: *RClass) mrb_value {
+    pub fn class_new_instance(self: *Self, argc: usize, argv: [*]const mrb_value, cla: *RClass) mrb_value {
       return mrb_class_new_instance(self, argc, argv, cla);
     }
 
@@ -2785,10 +2785,10 @@ pub extern fn mrb_undef_class_method_id(mrb: *mrb_state, cls: *RClass, name: mrb
 /// @param argc Number of arguments in argv
 /// @param argv Array of mrb_value to initialize the object
 /// @return [mrb_value] The newly initialized object
-pub extern fn mrb_obj_new(mrb: *mrb_state, cla: *RClass, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
+pub extern fn mrb_obj_new(mrb: *mrb_state, cla: *RClass, argc: usize, argv: [*]const mrb_value) mrb_value;
 
 /// @see mrb_obj_new
-pub fn mrb_class_new_instance(mrb: *mrb_state, argc: mrb_int, argv: [*]const mrb_value, cla: *RClass) mrb_value {
+pub fn mrb_class_new_instance(mrb: *mrb_state, argc: usize, argv: [*]const mrb_value, cla: *RClass) mrb_value {
   return mrb_obj_new(mrb,cla,argc,argv);
 }
 
@@ -3451,7 +3451,7 @@ pub extern fn mrb_obj_is_kind_of(mrb: *mrb_state, obj: mrb_value, cla: *RClass) 
 pub extern fn mrb_obj_inspect(mrb: *mrb_state, self: mrb_value) mrb_value;
 pub extern fn mrb_obj_clone(mrb: *mrb_state, self: mrb_value) mrb_value;
 
-pub extern fn mrb_exc_new(mrb: *mrb_state, cla: *RClass, ptr: [*:0]const u8, len: usize) mrb_value;
+pub extern fn mrb_exc_new(mrb: *mrb_state, cla: *RClass, ptr: [*]const u8, len: usize) mrb_value;
 pub extern fn mrb_exc_raise(mrb: *mrb_state, exc: mrb_value) mrb_noreturn;
 pub extern fn mrb_raise(mrb: *mrb_state, cla: *RClass, msg: [*:0]const u8) mrb_noreturn;
 pub extern fn mrb_raisef(mrb: *mrb_state, cla: *RClass, fmt: [*:0]const u8, ...) mrb_noreturn;
@@ -3466,12 +3466,12 @@ pub extern fn mrb_print_error(mrb: *mrb_state) void;
 // pub extern fn mrb_vformat(mrb: *mrb_state, format: [*:0]const u8, ap: va_list) mrb_value;
 
 pub extern fn mrb_yield(mrb: *mrb_state, b: mrb_value, arg: mrb_value) mrb_value;
-pub extern fn mrb_yield_argv(mrb: *mrb_state, b: mrb_value, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
-pub extern fn mrb_yield_with_class(mrb: *mrb_state, b: mrb_value, argc: mrb_int, argv: [*]const mrb_value, self: mrb_value, cla: *RClass) mrb_value;
+pub extern fn mrb_yield_argv(mrb: *mrb_state, b: mrb_value, argc: usize, argv: [*]const mrb_value) mrb_value;
+pub extern fn mrb_yield_with_class(mrb: *mrb_state, b: mrb_value, argc: usize, argv: [*]const mrb_value, self: mrb_value, cla: *RClass) mrb_value;
 /// continue execution to the proc
 /// this function should always be called as the last function of a method
 /// e.g. return mrb_yield_cont(mrb, proc, self, argc, argv);
-pub extern fn mrb_yield_cont(mrb: *mrb_state, b: mrb_value, self: mrb_value, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
+pub extern fn mrb_yield_cont(mrb: *mrb_state, b: mrb_value, self: mrb_value, argc: usize, argv: [*]const mrb_value) mrb_value;
 
 /// mrb_gc_protect() leaves the object in the arena
 pub extern fn mrb_gc_protect(mrb: *mrb_state, obj: mrb_value) void;
@@ -3512,12 +3512,12 @@ pub extern fn mrb_func_basic_p(mrb: *mrb_state, obj: mrb_value, mid: mrb_sym, fu
 /// Resume a Fiber
 ///
 /// Implemented in mruby-fiber
-pub extern fn mrb_fiber_resume(mrb: *mrb_state, fib: mrb_value, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
+pub extern fn mrb_fiber_resume(mrb: *mrb_state, fib: mrb_value, argc: usize, argv: [*]const mrb_value) mrb_value;
 
 /// Yield a Fiber
 ///
 /// Implemented in mruby-fiber
-pub extern fn mrb_fiber_yield(mrb: *mrb_state, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
+pub extern fn mrb_fiber_yield(mrb: *mrb_state, argc: usize, argv: [*]const mrb_value) mrb_value;
 
 /// Check if a Fiber is alive
 ///
@@ -3578,7 +3578,7 @@ pub extern fn mrb_ary_new(mrb: *mrb_state) mrb_value;
 /// @param size The number of values.
 /// @param vals The actual values.
 /// @return The initialized array.
-pub extern fn mrb_ary_new_from_values(mrb: *mrb_state, size: mrb_int, vals: [*]const mrb_value) mrb_value;
+pub extern fn mrb_ary_new_from_values(mrb: *mrb_state, size: usize, vals: [*]const mrb_value) mrb_value;
 
 /// Initializes a new array with two initial values
 ///
@@ -3784,9 +3784,9 @@ pub extern fn mrb_load_file_cxt(mrb: *mrb_state, fp: *FILE, cxt: *mrbc_context) 
 pub extern fn mrb_load_detect_file_cxt(mrb: *mrb_state, fp: *FILE, cxt: *mrbc_context) mrb_value;
 // #endif
 pub extern fn mrb_load_string(mrb: *mrb_state, s: [*:0]const u8) mrb_value;
-pub extern fn mrb_load_nstring(mrb: *mrb_state, s: [*:0]const u8, len: usize) mrb_value;
+pub extern fn mrb_load_nstring(mrb: *mrb_state, s: [*]const u8, len: usize) mrb_value;
 pub extern fn mrb_load_string_cxt(mrb: *mrb_state, s: [*:0]const u8, cxt: *mrbc_context) mrb_value;
-pub extern fn mrb_load_nstring_cxt(mrb: *mrb_state, s: [*:0]const u8, len: usize, cxt: *mrbc_context) mrb_value;
+pub extern fn mrb_load_nstring_cxt(mrb: *mrb_state, s: [*]const u8, len: usize, cxt: *mrbc_context) mrb_value;
 
 
 ////////////////////////////////////////////
@@ -4029,7 +4029,7 @@ pub fn mrb_exc_new_lit(mrb: *mrb_state, cla: *RClass, lit: []const u8) mrb_value
 pub fn mrb_exc_new_str_lit(mrb: *mrb_state, cla: *RClass, lit: []const u8) mrb_value {
     return mrb_exc_new_lit(mrb, cla, lit);
 }
-pub extern fn mrb_make_exception(mrb: *mrb_state, argc: mrb_int, argv: [*]const mrb_value) mrb_value;
+pub extern fn mrb_make_exception(mrb: *mrb_state, argc: usize, argv: [*]const mrb_value) mrb_value;
 pub extern fn mrb_exc_backtrace(mrb: *mrb_state, exc: mrb_value) mrb_value;
 pub extern fn mrb_get_backtrace(mrb: *mrb_state) mrb_value;
 pub extern fn mrb_no_method_error(mrb: *mrb_state, id: mrb_sym, args: mrb_value, fmt: [*:0]const u8, ...) mrb_noreturn;
@@ -4058,7 +4058,7 @@ pub extern fn mrb_rescue(mrb: *mrb_state, body: mrb_func_t, b_data: mrb_value, r
 /// Rescue exception
 ///
 /// Implemented in the mruby-error mrbgem
-pub extern fn mrb_rescue_exceptions(mrb: *mrb_state, body: mrb_func_t, b_data: mrb_value, rescue: mrb_func_t, r_data: mrb_value, len: mrb_int, classes: [*]*RClass) mrb_value;
+pub extern fn mrb_rescue_exceptions(mrb: *mrb_state, body: mrb_func_t, b_data: mrb_value, rescue: mrb_func_t, r_data: mrb_value, len: usize, classes: [*]*RClass) mrb_value;
 
 pub const rbreak_tag = enum(u32) {
     RBREAK_TAG_BREAK,
@@ -4236,7 +4236,7 @@ pub extern fn mrb_hash_dup(mrb: *mrb_state, hash: mrb_value) mrb_value;
 pub extern fn mrb_hash_merge(mrb: *mrb_state, hash1: mrb_value, hash2: mrb_value) void;
 
 /// return non zero to break the loop
-pub const mrb_hash_foreach_func = fn (mrb: *mrb_state, key: mrb_value, val: mrb_value, data: *anyopaque) c_int;
+pub const mrb_hash_foreach_func = fn (mrb: *mrb_state, key: mrb_value, val: mrb_value, data: *anyopaque) callconv(.C) c_int;
 pub extern fn mrb_hash_foreach(mrb: *mrb_state, hash: *RHash, func: mrb_hash_foreach_func, ptr: *anyopaque) void;
 
 
@@ -4348,7 +4348,7 @@ pub extern fn mrb_unset_frozen(o: *RBasic) void;
 pub extern fn mrb_proc_new_cfunc(mrb: *mrb_state, func: mrb_func_t) ?*RProc;
 pub extern fn mrb_closure_new_cfunc(mrb: *mrb_state, func: mrb_func_t, nlocals: c_int) ?*RProc;
 /// following functions are defined in mruby-proc-ext so please include it when using
-pub extern fn mrb_proc_new_cfunc_with_env(mrb: *mrb_state, func: mrb_func_t, argc: mrb_int, argv: [*]const mrb_value) ?*RProc;
+pub extern fn mrb_proc_new_cfunc_with_env(mrb: *mrb_state, func: mrb_func_t, argc: usize, argv: [*]const mrb_value) ?*RProc;
 pub extern fn mrb_proc_cfunc_env_get(mrb: *mrb_state, idx: mrb_int) mrb_value;
 pub extern fn mrb_load_proc(mrb: *mrb_state, proc: *const RProc) mrb_value;
 
@@ -4376,7 +4376,7 @@ pub const mrb_range_beg_len_t = enum (c_int) {
 pub extern fn mrb_range_beg_len(mrb: *mrb_state, range: mrb_value, begp: *mrb_int, lenp: *mrb_int, len: mrb_int, trunc: mrb_bool) mrb_range_beg_len_t;
 pub extern fn mrb_range_beg1(mrb: *mrb_state, range: mrb_value) mrb_value;
 pub extern fn mrb_range_end1(mrb: *mrb_state, range: mrb_value) mrb_value;
-pub extern fn mrb_range_excl_p1(mrb: *mrb_state, range: mrb_state) mrb_bool;
+pub extern fn mrb_range_excl_p1(mrb: *mrb_state, range: mrb_value) mrb_bool;
 
 
 // mruby/string.h
@@ -4387,9 +4387,9 @@ pub extern fn mrb_str_modify(mrb: *mrb_state, s: *RString) void;
 pub extern fn mrb_str_modify_keep_ascii(mrb: *mrb_state, s: *RString) void;
 ///
 /// Finds the index of a substring in a string
-pub extern fn mrb_str_index(mrb: *mrb_state, str: mrb_value, ptr: [*:0]const u8, len: mrb_int, offset: mrb_int) mrb_int;
-pub fn mrb_str_index_lit(mrb: *mrb_state, str: mrb_value, lit: [*:0]const u8, offset: mrb_int) mrb_int {
-    return mrb_str_index(mrb, str, lit, mrb_strlen_lit(lit), offset);
+pub extern fn mrb_str_index(mrb: *mrb_state, str: mrb_value, ptr: [*:0]const u8, len: usize, offset: mrb_int) mrb_int;
+pub fn mrb_str_index_lit(mrb: *mrb_state, str: mrb_value, lit: [:0]const u8, offset: mrb_int) mrb_int {
+    return mrb_str_index(mrb, str, lit.ptr, mrb_strlen_lit(lit), offset);
 }
 
 /// Appends self to other. Returns self as a concatenated string.
