@@ -2105,7 +2105,6 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
         return @ptrCast(*RRational, self.ptr());
     }
 
-
     pub fn fixnum_p(self: Self) mrb_bool {
         return mrb_get_fixnum_p(self);
     }
@@ -2183,6 +2182,27 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
     }
     pub fn break_p(self: Self) mrb_bool {
         return mrb_get_break_p(self);
+    }
+    pub fn immediate_p(self: Self) mrb_bool {
+        return mrb_get_immediate_p(self);
+    }
+    pub fn frozen_p(self: Self) mrb_bool {
+        if (!self.object_p()) {
+            return false;
+        }
+        return mrb_get_frozen_p(self.rbasic());
+    }
+    pub fn freeze(self: Self) !void {
+        if (!self.object_p()) {
+            return error.NotAnObject;
+        }
+        return mrb_set_frozen(self.rbasic());
+    }
+    pub fn unfreeze(self: Self) !void {
+        if (!self.object_p()) {
+            return error.NotAnObject;
+        }
+        return mrb_unset_frozen(self.rbasic());
     }
 };
 
@@ -3921,6 +3941,7 @@ pub extern fn mrb_get_data_p(o: mrb_value) mrb_bool;
 pub extern fn mrb_get_fiber_p(o: mrb_value) mrb_bool;
 pub extern fn mrb_get_istruct_p(o: mrb_value) mrb_bool;
 pub extern fn mrb_get_break_p(o: mrb_value) mrb_bool;
+pub extern fn mrb_get_immediate_p(o: mrb_value) mrb_bool;
 
 
 
@@ -4277,3 +4298,12 @@ pub extern fn mrb_num_mul(mrb: *mrb_state, x: mrb_value, y: mrb_value) mrb_value
 pub extern fn mrb_integer_to_str(mrb: *mrb_state, x: mrb_value, base: mrb_int) mrb_value;
 pub extern fn mrb_int_to_cstr(buf: [*]u8, len: usize, n: mrb_int, base: mrb_int) [*:0]const u8;
 pub extern fn mrb_float_to_integer(mrb: *mrb_state, val: mrb_value) mrb_value;
+
+//////////////////////////////////////////
+//            mruby/object.h            //
+//////////////////////////////////////////
+
+/// Takes an RBasic/RData/RClass/etc.
+pub extern fn mrb_get_frozen_p(o: *anyopaque) mrb_bool;
+pub extern fn mrb_set_frozen(o: *anyopaque) void;
+pub extern fn mrb_unset_frozen(o: *anyopaque) void;

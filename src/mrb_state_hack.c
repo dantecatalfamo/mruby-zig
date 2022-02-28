@@ -146,6 +146,9 @@ mrb_bool mrb_get_bool(mrb_value v) {
     return mrb_bool(v);
 }
 
+mrb_bool mrb_get_immediate_p(mrb_value v) {
+    return mrb_immediate_p(v);
+}
 mrb_bool mrb_get_fixnum_p(mrb_value o) {
     return mrb_fixnum_p(o);
 }
@@ -295,4 +298,18 @@ uint32_t mrb_break_tag_get1(struct RBreak *brk) {
 }
 void mrb_break_tag_set1(struct RBreak *brk, uint32_t tag) {
     return mrb_break_tag_set(brk, tag);
+}
+
+/*
+ * mruby/object.h
+ */
+
+mrb_bool mrb_get_frozen_p(void *o) {
+    return mrb_frozen_p((struct RBasic*)o);
+}
+void mrb_set_frozen(void *o) {
+    MRB_SET_FROZEN_FLAG((struct RBasic*)o);
+}
+void mrb_unset_frozen(void *o) {
+    MRB_UNSET_FROZEN_FLAG((struct RBasic*)o);
 }
