@@ -3,6 +3,7 @@
 #include <mruby/data.h>
 #include <mruby/value.h>
 #include <mruby/error.h>
+#include <mruby/range.h>
 
 /*
  *  mruby.h
@@ -312,4 +313,18 @@ void mrb_set_frozen(void *o) {
 }
 void mrb_unset_frozen(void *o) {
     MRB_UNSET_FROZEN_FLAG((struct RBasic*)o);
+}
+
+/*
+ * mruby/range.h
+ */
+
+mrb_value mrb_range_beg1(mrb_state *mrb, mrb_value range) {
+    return mrb_range_beg(mrb, range);
+}
+mrb_value mrb_range_end1(mrb_state *mrb, mrb_value range) {
+    return mrb_range_end(mrb, range);
+}
+mrb_bool mrb_range_excl_p1(mrb_state *mrb, mrb_value range) {
+    return mrb_range_excl_p(mrb, range);
 }

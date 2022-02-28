@@ -1966,6 +1966,21 @@ pub const mrb_state = opaque {
     pub fn load_proc(self: *Self, proc: *const RProc) mrb_value {
         return mrb_load_proc(self, proc);
     }
+
+    // mruby/range.h
+
+    pub fn range_beg_len(self: *Self, range: mrb_value, begp: *mrb_int, lenp: *mrb_int, len: mrb_int, trunc: mrb_bool) mrb_range_beg_len_t {
+        return mrb_range_beg_len(self, range, begp, lenp, len, trunc);
+    }
+    pub fn range_beg(self: *Self, range: mrb_value) mrb_value {
+        return mrb_range_beg1(self, range);
+    }
+    pub fn range_end(self: *Self, range: mrb_value) mrb_value {
+        return mrb_range_end1(self, range);
+    }
+    pub fn range_excl_p(self: *Self, range: mrb_value) mrb_bool {
+        return mrb_range_excl_p1(self, range);
+    }
 };
 
 pub const mrb_context = opaque {
@@ -4336,3 +4351,29 @@ pub extern fn mrb_closure_new_cfunc(mrb: *mrb_state, func: mrb_func_t, nlocals: 
 pub extern fn mrb_proc_new_cfunc_with_env(mrb: *mrb_state, func: mrb_func_t, argc: mrb_int, argv: [*]const mrb_value) ?*RProc;
 pub extern fn mrb_proc_cfunc_env_get(mrb: *mrb_state, idx: mrb_int) mrb_value;
 pub extern fn mrb_load_proc(mrb: *mrb_state, proc: *const RProc) mrb_value;
+
+// mruby/range.h
+
+pub extern fn mrb_range_ptr(mrb: *mrb_state, range: mrb_value) ?*RRange;
+///
+/// Initializes a Range.
+///
+/// If the third parameter is FALSE then it includes the last value in the range.
+/// If the third parameter is TRUE then it excludes the last value in the range.
+///
+/// @param start the beginning value.
+/// @param end the ending value.
+/// @param exclude represents the inclusion or exclusion of the last value.
+///
+pub extern fn mrb_range_new(mrb: *mrb_state, start: mrb_value, end: mrb_value, exclude: mrb_bool) mrb_value;
+
+pub const mrb_range_beg_len_t = enum (c_int) {
+  MRB_RANGE_TYPE_MISMATCH = 0,  // (failure) not range
+  MRB_RANGE_OK = 1,             // (success) range
+  MRB_RANGE_OUT = 2             // (failure) out of range
+};
+
+pub extern fn mrb_range_beg_len(mrb: *mrb_state, range: mrb_value, begp: *mrb_int, lenp: *mrb_int, len: mrb_int, trunc: mrb_bool) mrb_range_beg_len_t;
+pub extern fn mrb_range_beg1(mrb: *mrb_state, range: mrb_value) mrb_value;
+pub extern fn mrb_range_end1(mrb: *mrb_state, range: mrb_value) mrb_value;
+pub extern fn mrb_range_excl_p1(mrb: *mrb_state, range: mrb_state) mrb_bool;
