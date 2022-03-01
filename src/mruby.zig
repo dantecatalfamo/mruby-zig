@@ -2103,6 +2103,7 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
             return error.ConversionErorr;
         return mrb_get_cptr(self);
     }
+    /// Retrieve a ruby object pointer
     pub fn ptr(self: Self) !*anyopaque {
         if (self.immediate_p())
             return error.CovnersionError;
@@ -2118,7 +2119,7 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
             return error.ConversionErorr;
         return mrb_get_float(self);
     }
-    pub fn sym(self: Self) !mrb_sym {
+    pub fn symbol(self: Self) !mrb_sym {
         if (!self.symbol_p())
             return error.ConversionErorr;
         return mrb_get_sym(self);
