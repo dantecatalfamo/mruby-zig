@@ -2219,9 +2219,9 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
         // return @ptrCast(*RComplex, try self.ptr());
     }
     // TODO: RRational is part of a gem and not properly supported for now
-    pub fn rrational(self: Self) !*RRational {
+    pub fn rrational(_: Self) !*RRational {
         @compileError("RRational is a gem and not properly supported for now");
-        return @ptrCast(*RRational, try self.ptr());
+        // return @ptrCast(*RRational, try self.ptr());
     }
 
     pub fn fixnum_p(self: Self) mrb_bool {
