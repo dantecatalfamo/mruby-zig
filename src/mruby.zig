@@ -3907,7 +3907,7 @@ pub extern fn mrb_iv_foreach(mrb: *mrb_state, obj: mrb_value, func: mrb_iv_forea
 pub fn mrb_float_value(mrb: *mrb_state, f: mrb_float) mrb_value {
     return mrb_get_float_value(mrb, f);
 }
-pub fn mrb_cptr_value(mrb: *mrb_state, p: *const anyopaque) mrb_value {
+pub fn mrb_cptr_value(mrb: *mrb_state, p: *anyopaque) mrb_value {
     return mrb_get_cptr_value(mrb, p);
 }
 /// Returns an integer in Ruby.
