@@ -166,11 +166,11 @@ pub const mrb_state = opaque {
     /// @param super The new class parent.
     /// @return [struct RClass *] Reference to the newly defined class.
     /// @see mrb_define_class_under
-    pub fn define_class(self: *Self, name: [*:0]const u8, super: *RClass) ?*RClass {
-        return mrb_define_class(self, name, super);
+    pub fn define_class(self: *Self, name: [*:0]const u8, super: *RClass) !*RClass {
+        return mrb_define_class(self, name, super) orelse error.DefineClassError;
     }
-    pub fn define_class_id(self: *Self, name: mrb_sym, super: *RClass) ?*RClass {
-        return mrb_define_class_id(self, name, super);
+    pub fn define_class_id(self: *Self, name: mrb_sym, super: *RClass) !*RClass {
+        return mrb_define_class_id(self, name, super) orelse error.DefineClassError;
     }
 
     /// Defines a new module.
@@ -178,18 +178,18 @@ pub const mrb_state = opaque {
     /// @param mrb The current mruby state.
     /// @param name The name of the module.
     /// @return [struct RClass *] Reference to the newly defined module.
-    pub fn define_module(self: *Self, name: [*:0]const u8) ?*RClass {
-        return mrb_define_module(self, name);
+    pub fn define_module(self: *Self, name: [*:0]const u8) !*RClass {
+        return mrb_define_module(self, name) orelse error.ModuleDefinitionError;
     }
-    pub fn define_module_id(self: *Self, name: mrb_sym) ?*RClass {
-        return mrb_define_module_id(self, name);
+    pub fn define_module_id(self: *Self, name: mrb_sym) !*RClass {
+        return mrb_define_module_id(self, name) orelse error.ModuleDefinitionError;
     }
 
     pub fn singleton_class(self: *Self, val: mrb_value) mrb_value {
         return mrb_singleton_class(self, val);
     }
-    pub fn singleton_class_ptr(self: *Self, val: mrb_value) ?*RClass {
-        return mrb_singleton_class_ptr(self, val);
+    pub fn singleton_class_ptr(self: *Self, val: mrb_value) !*RClass {
+        return mrb_singleton_class_ptr(self, val) orelse error.SingletonPtrError;
     }
 
     /// Include a module in another class or module.
@@ -495,8 +495,8 @@ pub const mrb_state = opaque {
     /// @param mrb The current mruby state.
     /// @param super The super class or parent.
     /// @return [struct RClass *] Reference to the new class.
-    pub fn class_new(self: *Self, super: *RClass) ?*RClass {
-        return mrb_class_new(self, super);
+    pub fn class_new(self: *Self, super: *RClass) !*RClass {
+        return mrb_class_new(self, super) orelse error.NewClassError;
     }
 
     /// Creates a new module, Module.
@@ -511,8 +511,8 @@ pub const mrb_state = opaque {
     ///
     /// @param mrb The current mruby state.
     /// @return [struct RClass *] Reference to the new module.
-    pub fn module_new(self: *Self) ?*RClass {
-        return mrb_module_new(self);
+    pub fn module_new(self: *Self) !*RClass {
+        return mrb_module_new(self) orelse error.NewModuleError;
     }
 
     /// Returns an mrb_bool. True if class was defined, and false if the class was not defined.
@@ -550,19 +550,19 @@ pub const mrb_state = opaque {
     /// @param mrb The current mruby state.
     /// @param name The name of the class.
     /// @return [struct RClass *] A reference to the class.
-    pub fn class_get(self: *Self, name: [*:0]const u8) ?*RClass {
-        return mrb_class_get(self, name);
+    pub fn class_get(self: *Self, name: [*:0]const u8) !*RClass {
+        return mrb_class_get(self, name) orelse error.GetClassError;
     }
-    pub fn class_get_id(self: *Self, name: mrb_sym) ?*RClass {
-        return mrb_class_get_id(self, name);
+    pub fn class_get_id(self: *Self, name: mrb_sym) !*RClass {
+        return mrb_class_get_id(self, name) orelse error.GetClassError;
     }
 
     /// Gets a exception class.
     /// @param mrb The current mruby state.
     /// @param name The name of the class.
     /// @return [struct RClass *] A reference to the class.
-    pub fn exc_get_id(self: *Self, name: mrb_sym) ?*RClass {
-        return mrb_exc_get_id(self, name);
+    pub fn exc_get_id(self: *Self, name: mrb_sym) !*RClass {
+        return mrb_exc_get_id(self, name) orelse error.GetExceptionClassError;
     }
 
     /// Returns an mrb_bool. True if inner class was defined, and false if the inner class was not defined.
@@ -604,22 +604,22 @@ pub const mrb_state = opaque {
     /// @param outer The name of the parent class.
     /// @param name The name of the class.
     /// @return [struct RClass *] A reference to the class.
-    pub fn class_get_under(self: *Self, outer: *RClass, name: [*:0]const u8) ?*RClass {
-        return mrb_class_get_under(self, outer, name);
+    pub fn class_get_under(self: *Self, outer: *RClass, name: [*:0]const u8) !*RClass {
+        return mrb_class_get_under(self, outer, name) orelse error.GetClassUnderError;
     }
-    pub fn class_get_under_id(self: *Self, outer: *RClass, name: mrb_sym) ?*RClass {
-        return mrb_class_get_under_id(self, outer, name);
+    pub fn class_get_under_id(self: *Self, outer: *RClass, name: mrb_sym) !*RClass {
+        return mrb_class_get_under_id(self, outer, name) orelse error.GetClassUnderError;
     }
 
     /// Gets a module.
     /// @param mrb The current mruby state.
     /// @param name The name of the module.
     /// @return [struct RClass *] A reference to the module.
-    pub fn module_get(self: *Self, name: [*:0]const u8) ?*RClass {
-        return mrb_module_get(self, name);
+    pub fn module_get(self: *Self, name: [*:0]const u8) !*RClass {
+        return mrb_module_get(self, name) orelse error.GetModuleError;
     }
-    pub fn module_get_id(self: *Self, name: mrb_sym) ?*RClass {
-        return mrb_module_get_id(self, name);
+    pub fn module_get_id(self: *Self, name: mrb_sym) !*RClass {
+        return mrb_module_get_id(self, name) orelse error.GetModuleError;
     }
 
     /// Gets a module defined under another module.
@@ -627,11 +627,11 @@ pub const mrb_state = opaque {
     /// @param outer The name of the outer module.
     /// @param name The name of the module.
     /// @return [struct RClass *] A reference to the module.
-    pub fn module_get_under(self: *Self, outer: *RClass, name: [*:0]const u8) ?*RClass {
-        return mrb_module_get_under(self, outer, name);
+    pub fn module_get_under(self: *Self, outer: *RClass, name: [*:0]const u8) !*RClass {
+        return mrb_module_get_under(self, outer, name) orelse error.GetModuleUnderError;
     }
-    pub fn module_get_under_id(self: *Self, outer: *RClass, name: mrb_sym) ?*RClass {
-        return mrb_module_get_under_id(self, outer, name);
+    pub fn module_get_under_id(self: *Self, outer: *RClass, name: mrb_sym) !*RClass {
+        return mrb_module_get_under_id(self, outer, name) orelse error.GetModuleUnderError;
     }
 
     /// a function to raise NotImplementedError with current method name
@@ -705,17 +705,17 @@ pub const mrb_state = opaque {
     /// @param super The new class parent
     /// @return [struct RClass *] Reference to the newly defined class
     /// @see mrb_define_class
-    pub fn define_class_under(self: *Self, outer: *RClass, name: [*:0]const u8, super: *RClass) ?*RClass {
-        return mrb_define_class_under(self, outer, name, super);
+    pub fn define_class_under(self: *Self, outer: *RClass, name: [*:0]const u8, super: *RClass) !*RClass {
+        return mrb_define_class_under(self, outer, name, super) orelse error.DefineClassUnderError;
     }
-    pub fn define_class_under_id(self: *Self, outer: *RClass, name: mrb_sym, super: *RClass) ?*RClass {
-        return mrb_define_class_under_id(self, outer, name, super);
+    pub fn define_class_under_id(self: *Self, outer: *RClass, name: mrb_sym, super: *RClass) !*RClass {
+        return mrb_define_class_under_id(self, outer, name, super) orelse error.DefineClassUnderError;
     }
-    pub fn define_module_under(self: *Self, outer: *RClass, name: [*:0]const u8) ?*RClass {
-        return mrb_define_module_under(self, outer, name);
+    pub fn define_module_under(self: *Self, outer: *RClass, name: [*:0]const u8) !*RClass {
+        return mrb_define_module_under(self, outer, name) orelse error.DefineClassUnderError;
     }
-    pub fn define_module_under_id(self: *Self, outer: *RClass, name: mrb_sym) ?*RClass {
-        return mrb_define_module_under_id(self, outer, name);
+    pub fn define_module_under_id(self: *Self, outer: *RClass, name: mrb_sym) !*RClass {
+        return mrb_define_module_under_id(self, outer, name) orelse error.DefineClassUnderError;
     }
 
     /// Retrieve arguments from mrb_state.
@@ -921,15 +921,15 @@ pub const mrb_state = opaque {
         return mrb_realloc(self, ptr, size);
     }
     /// return NULL if no memory available
-    pub fn realloc_simple(self: *Self, ptr: *anyopaque, size: usize) ?*anyopaque {
-        return mrb_realloc_simple(self, ptr, size);
+    pub fn realloc_simple(self: *Self, ptr: *anyopaque, size: usize) !*anyopaque {
+        return mrb_realloc_simple(self, ptr, size) orelse error.OutOfMemory;
     }
     /// return NULL if no memory available
-    pub fn malloc_simple(self: *Self, size: usize) ?*anyopaque {
-        return mrb_malloc_simple(self, size);
+    pub fn malloc_simple(self: *Self, size: usize) !*anyopaque {
+        return mrb_malloc_simple(self, size) orelse error.OutOfMemory;
     }
-    pub fn obj_alloc(self: *Self, vtype: mrb_vtype, cla: *RClass) ?*RClass {
-        return mrb_obj_alloc(self, vtype, cla);
+    pub fn obj_alloc(self: *Self, vtype: mrb_vtype, cla: *RClass) !*RClass {
+        return mrb_obj_alloc(self, vtype, cla) orelse error.ObjAllocError;
     }
     pub fn free(self: *Self, ptr: *anyopaque) void {
         return mrb_free(self, ptr);
@@ -3389,9 +3389,9 @@ pub extern fn mrb_calloc(mrb: *mrb_state, num: usize, size: usize) *anyopaque;
 /// ditto
 pub extern fn mrb_realloc(mrb: *mrb_state, ptr: *anyopaque, size: usize) *anyopaque;
 /// return NULL if no memory available
-pub extern fn mrb_realloc_simple(mrb: *mrb_state, ptr: *anyopaque, size: usize) *anyopaque;
+pub extern fn mrb_realloc_simple(mrb: *mrb_state, ptr: *anyopaque, size: usize) ?*anyopaque;
 /// return NULL if no memory available
-pub extern fn mrb_malloc_simple(mrb: *mrb_state, size: usize) *anyopaque;
+pub extern fn mrb_malloc_simple(mrb: *mrb_state, size: usize) ?*anyopaque;
 pub extern fn mrb_obj_alloc(mrb: *mrb_state, vtype: mrb_vtype, cla: *RClass) ?*RClass;
 pub extern fn mrb_free(mrb: *mrb_state, ptr: *anyopaque) void;
 
