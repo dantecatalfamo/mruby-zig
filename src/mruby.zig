@@ -35,7 +35,7 @@ pub extern fn mrb_callinfo_n(ci: *mrb_callinfo) u8;
 pub extern fn mrb_callinfo_nk(ci: *mrb_callinfo) u8;
 pub extern fn mrb_callinfo_cci(ci: *mrb_callinfo) u8;
 pub extern fn mrb_callinfo_mid(ci: *mrb_callinfo) mrb_sym;
-pub extern fn mrb_callinfo_stack(ci: *mrb_callinfo) [*]*?mrb_value;
+pub extern fn mrb_callinfo_stack(ci: *mrb_callinfo) [*]?*mrb_value;
 pub extern fn mrb_callinfo_proc(ci: *mrb_callinfo) ?*RProc;
 pub extern fn mrb_gc_arena_save1(mrb: *mrb_state) c_int;
 pub extern fn mrb_gc_arena_restore1(mrb: *mrb_state, idx: c_int) void;
