@@ -28,7 +28,7 @@ pub fn main() anyerror!void {
     const str = mrb.str_new("hello");
     var pointer: u8 = 5;
     const cptr = mrb.cptr_value(&pointer);
-    const obj = mrb.obj_value(strf.rstring().?);
+    const obj = mrb.obj_value(try strf.rstring());
     const bol = mrb.bool_value(true);
 
     std.log.debug("int immediate: {}", .{ int.immediate_p() });

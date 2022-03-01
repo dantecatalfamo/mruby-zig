@@ -1618,10 +1618,10 @@ pub const mrb_state = opaque {
     pub fn int_value(self: *Self, i: mrb_int) mrb_value {
         return mrb_get_int_value(self, i);
     }
-    pub fn fixnum_value(i: mrb_int) mrb_value {
+    pub fn fixnum_value(_: *Self, i: mrb_int) mrb_value {
         return mrb_get_fixnum_value(i);
     }
-    pub fn symbol_value(i: mrb_sym) mrb_value {
+    pub fn symbol_value(_: *Self, i: mrb_sym) mrb_value {
         return mrb_get_symbol_value(i);
     }
     pub fn obj_value(_: *Self, pt: *anyopaque) mrb_value {
@@ -1631,21 +1631,21 @@ pub const mrb_state = opaque {
     ///
     /// @return
     ///      nil mrb_value object reference.
-    pub fn nil_value() mrb_value {
+    pub fn nil_value(_: *Self) mrb_value {
         return mrb_get_nil_value();
     }
     /// Returns false in Ruby.
-    pub fn false_value() mrb_value {
+    pub fn false_value(_: *Self) mrb_value {
         return mrb_get_false_value();
     }
     /// Returns true in Ruby.
-    pub fn true_value() mrb_value {
+    pub fn true_value(_: *Self) mrb_value {
         return mrb_get_true_value();
     }
     pub fn bool_value(_: *Self, boolean: mrb_bool) mrb_value {
         return mrb_get_bool_value(boolean);
     }
-    pub fn undef_value() mrb_value {
+    pub fn undef_value(_: *Self) mrb_value {
         return mrb_get_undef_value();
     }
 
@@ -2098,80 +2098,129 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
         return mrb_type(self);
     }
 
-    pub fn cptr(self: Self) *anyopaque {
+    pub fn cptr(self: Self) !*anyopaque {
+        if (!self.cptr_p())
+            return error.ConversionErorr;
         return mrb_get_cptr(self);
     }
-    pub fn ptr(self: Self) *anyopaque {
+    pub fn ptr(self: Self) !*anyopaque {
+        if (self.immediate_p())
+            return error.CovnersionError;
         return mrb_get_ptr(self);
     }
-    pub fn integer(self: Self) mrb_int {
+    pub fn integer(self: Self) !mrb_int {
+        if (!self.integer_p())
+            return error.ConversionErorr;
         return mrb_get_integer(self);
     }
-    pub fn float(self: Self) mrb_float {
+    pub fn float(self: Self) !mrb_float {
+        if (!self.float_p())
+            return error.ConversionErorr;
         return mrb_get_float(self);
     }
-    pub fn sym(self: Self) mrb_sym {
+    pub fn sym(self: Self) !mrb_sym {
+        if (!self.symbol_p())
+            return error.ConversionErorr;
         return mrb_get_sym(self);
     }
-    pub fn boolean(self: Self) mrb_bool {
+    pub fn boolean(self: Self) !mrb_bool {
+        if (!self.true_p() and !self.false_p())
+            return error.ConversionErorr;
         return mrb_get_bool(self);
     }
-    pub fn rbasic(self: Self) ?*RBasic {
-        return @ptrCast(*RBasic, self.ptr());
+
+    pub fn rbasic(self: Self) !*RBasic {
+        return @ptrCast(*RBasic, try self.ptr());
     }
-    pub fn rfloat(self: Self) ?*RFloat {
-        return @ptrCast(*RFloat, self.ptr());
+    pub fn rfloat(self: Self) !*RFloat {
+        if (!self.float_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RFloat, try self.ptr());
     }
-    pub fn rdata(self: Self) ?*RData {
-        return @ptrCast(*RData, self.ptr());
+    pub fn rdata(self: Self) !*RData {
+        if (!self.data_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RData, try self.ptr());
     }
-    pub fn rinteger(self: Self) ?*RInteger {
-        return @ptrCast(*RInteger, self.ptr());
+    pub fn rinteger(self: Self) !*RInteger {
+        if (!self.integer_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RInteger, try self.ptr());
     }
-    pub fn rcptr(self: Self) ?*RCptr {
-        return @ptrCast(*RCptr, self.ptr());
+    pub fn rcptr(self: Self) !*RCptr {
+        if (!self.cptr_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RCptr, try self.ptr());
     }
-    pub fn robject(self: Self) ?*RObject {
-        return @ptrCast(*RObject, self.ptr());
+    pub fn robject(self: Self) !*RObject {
+        if (!self.object_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RObject, try self.ptr());
     }
-    pub fn rclass(self: Self) ?*RClass {
-        return @ptrCast(*RClass, self.ptr());
+    pub fn rclass(self: Self) !*RClass {
+        if (!self.class_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RClass, try self.ptr());
     }
-    pub fn rproc(self: Self) ?*RProc {
-        return @ptrCast(*RProc, self.ptr());
+    pub fn rproc(self: Self) !*RProc {
+        if (!self.proc_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RProc, try self.ptr());
     }
-    pub fn rarray(self: Self) ?*RArray {
-        return @ptrCast(*RArray, self.ptr());
+    pub fn rarray(self: Self) !*RArray {
+        if (!self.array_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RArray, try self.ptr());
     }
-    pub fn rhash(self: Self) ?*RHash {
-        return @ptrCast(*RHash, self.ptr());
+    pub fn rhash(self: Self) !*RHash {
+        if (!self.hash_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RHash, try self.ptr());
     }
-    pub fn rstring(self: Self) ?*RString {
-        return @ptrCast(*RString, self.ptr());
+    pub fn rstring(self: Self) !*RString {
+        if (!self.string_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RString, try self.ptr());
     }
-    pub fn rrange(self: Self) ?*RRange {
-        return @ptrCast(*RRange, self.ptr());
+    pub fn rrange(self: Self) !*RRange {
+        if (!self.range_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RRange, try self.ptr());
     }
-    pub fn rexception(self: Self) ?*RException {
-        return @ptrCast(*RException, self.ptr());
+    pub fn rexception(self: Self) !*RException {
+        if (!self.exception_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RException, try self.ptr());
     }
-    pub fn renv(self: Self) ?*REnv {
-        return @ptrCast(*REnv, self.ptr());
+    pub fn renv(self: Self) !*REnv {
+        if (!self.range_p())
+            return error.ConversionErorr;
+        return @ptrCast(*REnv, try self.ptr());
     }
-    pub fn rfiber(self: Self) ?*RFiber {
-        return @ptrCast(*RFiber, self.ptr());
+    pub fn rfiber(self: Self) !*RFiber {
+        if (!self.fiber_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RFiber, try self.ptr());
     }
-    pub fn ristruct(self: Self) ?*RIStruct {
-        return @ptrCast(*RIStruct, self.ptr());
+    pub fn ristruct(self: Self) !*RIStruct {
+        if (!self.istruct_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RIStruct, try self.ptr());
     }
-    pub fn rbreak(self: Self) ?*RBreak {
-        return @ptrCast(*RBreak, self.ptr());
+    pub fn rbreak(self: Self) !*RBreak {
+        if (!self.break_p())
+            return error.ConversionErorr;
+        return @ptrCast(*RBreak, try self.ptr());
     }
-    pub fn rcomplex(self: Self) ?*RComplex {
-        return @ptrCast(*RComplex, self.ptr());
+    // TODO: RComplex is part of a gem and not properly supported for now
+    pub fn rcomplex(_: Self) !*RComplex {
+        @compileError("RComplex is a gem and not properly supported for now");
+        // return @ptrCast(*RComplex, try self.ptr());
     }
-    pub fn rrational(self: Self) ?*RRational {
-        return @ptrCast(*RRational, self.ptr());
+    // TODO: RRational is part of a gem and not properly supported for now
+    pub fn rrational(self: Self) !*RRational {
+        @compileError("RRational is a gem and not properly supported for now");
+        return @ptrCast(*RRational, try self.ptr());
     }
 
     pub fn fixnum_p(self: Self) mrb_bool {
@@ -2256,13 +2305,22 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
         return mrb_get_immediate_p(self);
     }
     pub fn frozen_p(self: Self) mrb_bool {
-        return mrb_get_frozen_p(self.rbasic().?);
+        if (self.immediate_p()) {
+            return true;
+        }
+        return mrb_get_frozen_p(self.rbasic() catch return true);
     }
     pub fn freeze(self: Self) !void {
-        return mrb_set_frozen(self.rbasic().?);
+        if (self.immediate_p()) {
+            return error.CannotFreezeImmediate;
+        }
+        return mrb_set_frozen(try self.rbasic());
     }
     pub fn unfreeze(self: Self) !void {
-        return mrb_unset_frozen(self.rbasic().?);
+        if (self.immediate_p()) {
+            return error.CannotUnfreezeImmediate;
+        }
+        return mrb_unset_frozen(try self.rbasic());
     }
 };
 
