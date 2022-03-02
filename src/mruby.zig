@@ -9,24 +9,24 @@ test "ref all decls" {
 // Struct hacks
 
 pub extern fn mrb_state_get_exc(mrb: *mrb_state) ?*RObject;
-pub extern fn mrb_state_get_top_self(mrb: *mrb_state) ?*RObject;
-pub extern fn mrb_state_get_object_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_class_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_module_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_proc_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_string_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_array_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_hash_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_range_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_float_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_integer_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_true_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_false_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_nil_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_symbol_class(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_kernel_module(mrb: *mrb_state) ?*RClass;
-pub extern fn mrb_state_get_context(mrb: *mrb_state) ?*mrb_context;
-pub extern fn mrb_state_get_root_context(mrb: *mrb_state) ?*mrb_context;
+pub extern fn mrb_state_get_top_self(mrb: *mrb_state) *RObject;
+pub extern fn mrb_state_get_object_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_class_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_module_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_proc_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_string_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_array_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_hash_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_range_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_float_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_integer_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_true_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_false_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_nil_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_symbol_class(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_kernel_module(mrb: *mrb_state) *RClass;
+pub extern fn mrb_state_get_context(mrb: *mrb_state) *mrb_context;
+pub extern fn mrb_state_get_root_context(mrb: *mrb_state) *mrb_context;
 pub extern fn mrb_context_prev(cxt: *mrb_context) ?*mrb_context;
 pub extern fn mrb_context_callinfo(cxt: *mrb_context) ?*mrb_callinfo;
 pub extern fn mrb_context_fiber_state(cxt: *mrb_context) mrb_fiber_state;
@@ -90,58 +90,58 @@ pub const mrb_state = opaque {
     pub fn exc(self: *Self) ?*RObject {
         return mrb_state_get_exc(self);
     }
-    pub fn top_self(self: *Self) ?*RObject {
+    pub fn top_self(self: *Self) *RObject {
         return mrb_state_get_top_self(self);
     }
-    pub fn object_class(self: *Self) ?*RClass {
+    pub fn object_class(self: *Self) *RClass {
         return mrb_state_get_object_class(self);
     }
-    pub fn class_class(self: *Self) ?*RClass {
+    pub fn class_class(self: *Self) *RClass {
         return mrb_state_get_class_class(self);
     }
-    pub fn module_class(self: *Self) ?*RClass {
+    pub fn module_class(self: *Self) *RClass {
         return mrb_state_get_module_class(self);
     }
-    pub fn proc_class(self: *Self) ?*RClass {
+    pub fn proc_class(self: *Self) *RClass {
         return mrb_state_get_proc_class(self);
     }
-    pub fn string_class(self: *Self) ?*RClass {
+    pub fn string_class(self: *Self) *RClass {
         return mrb_state_get_string_class(self);
     }
-    pub fn array_class(self: *Self) ?*RClass {
+    pub fn array_class(self: *Self) *RClass {
         return mrb_state_get_array_class(self);
     }
-    pub fn hash_class(self: *Self) ?*RClass {
+    pub fn hash_class(self: *Self) *RClass {
         return mrb_state_get_hash_class(self);
     }
-    pub fn range_class(self: *Self) ?*RClass {
+    pub fn range_class(self: *Self) *RClass {
         return mrb_state_get_range_class(self);
     }
-    pub fn float_class(self: *Self) ?*RClass {
+    pub fn float_class(self: *Self) *RClass {
         return mrb_state_get_float_class(self);
     }
-    pub fn integer_class(self: *Self) ?*RClass {
+    pub fn integer_class(self: *Self) *RClass {
         return mrb_state_get_integer_class(self);
     }
-    pub fn true_class(self: *Self) ?*RClass {
+    pub fn true_class(self: *Self) *RClass {
         return mrb_state_get_true_class(self);
     }
-    pub fn false_class(self: *Self) ?*RClass {
+    pub fn false_class(self: *Self) *RClass {
         return mrb_state_get_false_class(self);
     }
-    pub fn nil_class(self: *Self) ?*RClass {
+    pub fn nil_class(self: *Self) *RClass {
         return mrb_state_get_nil_class(self);
     }
-    pub fn symbol_class(self: *Self) ?*RClass {
+    pub fn symbol_class(self: *Self) *RClass {
         return mrb_state_get_symbol_class(self);
     }
-    pub fn kernel_module(self: *Self) ?*RClass {
+    pub fn kernel_module(self: *Self) *RClass {
         return mrb_state_get_kernel_module(self);
     }
-    pub fn context(self: *Self) ?*mrb_context {
+    pub fn context(self: *Self) *mrb_context {
         return mrb_state_get_context(self);
     }
-    pub fn root_contect(self: *Self) ?*mrb_context {
+    pub fn root_context(self: *Self) *mrb_context {
         return mrb_state_get_root_context(self);
     }
 
@@ -3241,7 +3241,7 @@ pub extern fn mrb_get_args(mrb: *mrb_state, format: mrb_args_format, ...) mrb_in
 
 // get method symbol
 pub fn mrb_get_mid(mrb: *mrb_state) mrb_sym {
-    return mrb.context().?.callinfo().?.mid();
+    return mrb.context().callinfo().?.mid();
 }
 
 /// Retrieve number of arguments from mrb_state.

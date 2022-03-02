@@ -11,7 +11,7 @@ pub fn main() anyerror!void {
         \\ puts "hello from ruby!"
     ;
     _ = mrb.load_string(program);
-    const kptr = mrb.kernel_module().?;
+    const kptr = mrb.kernel_module();
     const kval = kptr.value();
     mrb.define_module_function(kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
     _ = mrb.funcall(kval, "zigfunc", .{});
@@ -40,6 +40,8 @@ pub fn main() anyerror!void {
 
     std.log.debug("cptr value:", .{});
     mrb.p(cptr);
+
+    std.log.debug("context: {p}, root context: {p}", .{ mrb.context(), mrb.root_context() });
 
     // Exception test
     mrb.sys_fail("intentional system failure");
