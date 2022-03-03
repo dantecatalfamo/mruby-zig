@@ -9,6 +9,7 @@ test "ref all decls" {
 // Struct hacks
 
 pub extern fn mrb_state_get_exc(mrb: *mrb_state) ?*RObject;
+pub extern fn mrb_state_set_exc(mrb: *mrb_state, ?*RObject) void;
 pub extern fn mrb_state_get_top_self(mrb: *mrb_state) *RObject;
 pub extern fn mrb_state_get_object_class(mrb: *mrb_state) *RClass;
 pub extern fn mrb_state_get_class_class(mrb: *mrb_state) *RClass;
@@ -89,6 +90,9 @@ pub const mrb_state = opaque {
 
     pub fn exc(self: *Self) ?*RObject {
         return mrb_state_get_exc(self);
+    }
+    pub fn set_exc(self: *Self, exception: ?*RObject) void {
+        return mrb_state_set_exc(self, exception);
     }
     pub fn top_self(self: *Self) *RObject {
         return mrb_state_get_top_self(self);

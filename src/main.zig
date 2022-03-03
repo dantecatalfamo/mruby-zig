@@ -43,6 +43,24 @@ pub fn main() anyerror!void {
 
     std.log.debug("context: {p}, root context: {p}", .{ mrb.context(), mrb.root_context() });
 
+    var line: [4096]u8 = undefined;
+    const stdin = std.io.getStdIn().reader();
+    const stdout = std.io.getStdOut().writer();
+    while (true) {
+        try stdout.writeAll("=> ");
+        const line_read = try stdin.readUntilDelimiterOrEof(&line, '\n');
+        if (line_read) |valid_line| {
+            const returned = mrb.load_nstring(valid_line);
+            mrb.p(returned);
+            if (mrb.exc()) |exception| {
+                mrb.p(exception.value());
+                mrb.set_exc(null);
+            }
+        } else {
+            break;
+        }
+    }
+
     // Exception test
     mrb.sys_fail("intentional system failure");
     mrb.print_error();

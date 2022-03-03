@@ -13,6 +13,9 @@
 struct RObject *mrb_state_get_exc(mrb_state *mrb) {
     return mrb->exc;
 }
+void mrb_state_set_exc(mrb_state *mrb, struct RObject *exc) {
+    mrb->exc = exc;
+}
 struct RObject *mrb_state_get_top_self(mrb_state *mrb) {
     return mrb->top_self;
 }
