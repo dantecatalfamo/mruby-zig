@@ -1461,14 +1461,17 @@ pub const mrb_state = opaque {
     /// mrb_value status = mrb_load_string(mrb, buffer);
     /// mrb_gc_arena_restore(mrb, ai);
     // #ifndef MRB_NO_STDIO
-    pub fn load_file(self: *Self, fp: *FILE) mrb_value {
-        return mrb_load_file(self, fp);
+    pub fn load_file(self: *Self, filename: [*:0]const u8) !mrb_value {
+        const file = std.c.fopen(filename, "r") orelse return error.FileOpenError;
+        return mrb_load_file(self, file);
     }
-    pub fn load_file_cxt(self: *Self, fp: *FILE, cxt: *mrbc_context) mrb_value {
-        return mrb_load_file_cxt(self, fp, cxt);
+    pub fn load_file_cxt(self: *Self, filename: [*:0]const u8, cxt: *mrbc_context) !mrb_value {
+        const file = std.c.fopen(filename, "r") orelse return error.FileOpenError;
+        return mrb_load_file_cxt(self, file, cxt);
     }
-    pub fn load_detect_file_cxt(self: *Self, fp: *FILE, cxt: *mrbc_context) mrb_value {
-        return mrb_load_detect_file_cxt(self, fp, cxt);
+    pub fn load_detect_file_cxt(self: *Self, filename: [*:0]const u8, cxt: *mrbc_context) !mrb_value {
+        const file = std.c.fopen(filename, "r") orelse return error.FileError;
+        return mrb_load_detect_file_cxt(self, file, cxt);
     }
     // #endif
     pub fn load_string(self: *Self, s: [*:0]const u8) mrb_value {
