@@ -791,11 +791,11 @@ pub const mrb_state = opaque {
     /// @param argc The number of arguments the method has.
     /// @param ... Variadic values(not type safe!).
     /// @return [mrb_value] mruby function value.
-    pub fn funcall(self: *Self, value: mrb_value, name: [*:0]const u8, args: anytype) mrb_value {
-        return @call(.{}, mrb_funcall, .{ self, value, name, args.len } ++ args);
+    pub fn funcall(self: *Self, obj: mrb_value, method: [*:0]const u8, args: anytype) mrb_value {
+        return @call(.{}, mrb_funcall, .{ self, obj, method, args.len } ++ args);
     }
-    pub fn funcall_id(self: *Self, value: mrb_value, mid: mrb_sym, args: anytype) mrb_value {
-        return @call(.{}, mrb_funcall_id, .{ self, value, mid, args.len } ++ args);
+    pub fn funcall_id(self: *Self, obj: mrb_value, mid: mrb_sym, args: anytype) mrb_value {
+        return @call(.{}, mrb_funcall_id, .{ self, obj, mid, args.len } ++ args);
     }
 
     /// Call existing ruby functions. This is basically the type safe version of mrb_funcall.
@@ -824,13 +824,13 @@ pub const mrb_state = opaque {
     /// @param obj Pointer to the object.
     /// @return [mrb_value] mrb_value mruby function value.
     /// @see mrb_funcall
-    pub fn funcall_argv(self: *Self, value: mrb_value, name: mrb_sym, args: []const *mrb_value) mrb_value {
-        return mrb_funcall_argv(self, value, name, args.len, args.ptr);
+    pub fn funcall_argv(self: *Self, obj: mrb_value, method: mrb_sym, args: []const *mrb_value) mrb_value {
+        return mrb_funcall_argv(self, obj, method, args.len, args.ptr);
     }
 
     /// Call existing ruby functions with a block.
-    pub fn funcall_with_block(self: *Self, value: mrb_value, name: mrb_sym, args: []const *mrb_value, block: mrb_value) mrb_value {
-        return mrb_funcall_with_block(self, value, name, args.len, args.ptr, block);
+    pub fn funcall_with_block(self: *Self, obj: mrb_value, method: mrb_sym, args: []const *mrb_value, block: mrb_value) mrb_value {
+        return mrb_funcall_with_block(self, obj, method, args.len, args.ptr, block);
     }
 
     /// Create a symbol from C string. But usually it's better to use MRB_SYM,
@@ -1055,11 +1055,11 @@ pub const mrb_state = opaque {
     pub fn any_to_s(self: *Self, obj: mrb_value) mrb_value {
         return mrb_any_to_s(self, obj);
     }
-    pub fn obj_classname(self: *Self, obj: mrb_value) ?[*:0]const u8 {
-        return mrb_obj_classname(self, obj);
+    pub fn obj_classname(self: *Self, obj: mrb_value) ![*:0]const u8 {
+        return mrb_obj_classname(self, obj) orelse error.ObjectClassNameError;
     }
-    pub fn obj_class(self: *Self, obj: mrb_value) ?*RClass {
-        return mrb_obj_class(self, obj);
+    pub fn obj_class(self: *Self, obj: mrb_value) !*RClass {
+        return mrb_obj_class(self, obj) orelse error.ObjectClassError;
     }
     pub fn class_path(self: *Self, cla: *RClass) mrb_value {
         return mrb_class_path(self, cla);
@@ -1171,8 +1171,8 @@ pub const mrb_state = opaque {
     pub fn define_alias_id(self: *Self, cla: *RClass, a: mrb_sym, b: mrb_sym) void {
         return mrb_define_alias_id(self, cla, a, b);
     }
-    pub fn class_name(self: *Self, klass: *RClass) ?[*:0]const u8 {
-        return mrb_class_name(self, klass);
+    pub fn class_name(self: *Self, klass: *RClass) ![*:0]const u8 {
+        return mrb_class_name(self, klass) orelse error.ClassNameError;
     }
     pub fn define_global_const(self: *Self, name: [*:0]const u8, value: mrb_value) void {
         return mrb_define_global_const(self, name, value);
@@ -1217,12 +1217,12 @@ pub const mrb_state = opaque {
         return mrb_stack_extend(self, int);
     }
 
-    pub fn pool_open(self: *Self) ?*mrb_pool {
-        return mrb_pool_open(self);
+    pub fn pool_open(self: *Self) !*mrb_pool {
+        return mrb_pool_open(self) orelse error.PoolOpenError;
     }
     /// temporary memory allocation, only effective while GC arena is kept
-    pub fn alloca(self: *Self, size: usize) ?*anyopaque {
-        return mrb_alloca(self, size);
+    pub fn alloca(self: *Self, size: usize) !*anyopaque {
+        return mrb_alloca(self, size) orelse error.AllocaError;
     }
 
     pub fn state_atexit(self: *Self, func: mrb_atexit_func) void {
@@ -1651,8 +1651,8 @@ pub const mrb_state = opaque {
 
     // mruby/class.h
 
-    pub fn class(self: *Self, v: mrb_value) ?*RClass {
-        return mrb_get_class(self, v);
+    pub fn class(self: *Self, obj: mrb_value) !*RClass {
+        return mrb_get_class(self, obj) orelse error.ObjectClassError;
     }
     pub fn alias_method(self: *Self, cla: *RClass, a: mrb_sym, b: mrb_sym) void {
         return mrb_alias_method(self, cla, a, b);
@@ -1664,8 +1664,8 @@ pub const mrb_state = opaque {
     // mruby/data.h
 
     /// Create RData object with klass, add data pointer and data type
-    pub fn data_object_alloc(self: *Self, klass: *RClass, data_ptr: *anyopaque, data_type: *const mrb_data_type) ?*RData {
-        return mrb_data_object_alloc(self, klass, data_ptr, data_type);
+    pub fn data_object_alloc(self: *Self, klass: *RClass, data_ptr: *anyopaque, data_type: *const mrb_data_type) !*RData {
+        return mrb_data_object_alloc(self, klass, data_ptr, data_type) orelse error.OutOfMemory;
     }
     pub fn data_check_type(self: *Self, value: mrb_value, data_type: *const mrb_data_type) void {
         return mrb_data_check_type(self, value, data_type);
@@ -1986,15 +1986,15 @@ pub const mrb_state = opaque {
 
     // mruby/proc.h
 
-    pub fn proc_new_cfunc(self: *Self, func: mrb_func_t) ?*RProc {
-        return mrb_proc_new_cfunc(self, func);
+    pub fn proc_new_cfunc(self: *Self, func: mrb_func_t) !*RProc {
+        return mrb_proc_new_cfunc(self, func) orelse error.NewProcError;
     }
-    pub fn closure_new_cfunc(self: *Self, func: mrb_func_t, nlocals: c_int) ?*RProc {
-        return mrb_closure_new_cfunc(self, func, nlocals);
+    pub fn closure_new_cfunc(self: *Self, func: mrb_func_t, nlocals: c_int) !*RProc {
+        return mrb_closure_new_cfunc(self, func, nlocals) orelse error.NewProcError;
     }
     /// following functions are defined in mruby-proc-ext so please include it when using
-    pub fn proc_new_cfunc_with_env(self: *Self, func: mrb_func_t, args: []const mrb_value) ?*RProc {
-        return mrb_proc_new_cfunc_with_env(self, func, args.len, args.ptr);
+    pub fn proc_new_cfunc_with_env(self: *Self, func: mrb_func_t, args: []const mrb_value) !*RProc {
+        return mrb_proc_new_cfunc_with_env(self, func, args.len, args.ptr) orelse error.NewProcError;
     }
     pub fn proc_cfunc_env_get(self: *Self, idx: mrb_int) mrb_value {
         return mrb_proc_cfunc_env_get(self, idx);
@@ -2068,11 +2068,11 @@ pub const mrb_pool = opaque {
     pub fn pool_close(self: *Self) void {
         return mrb_pool_close(self);
     }
-    pub fn pool_alloc(self: *Self, size: usize) ?*anyopaque {
-        return mrb_pool_alloc(self, size);
+    pub fn pool_alloc(self: *Self, size: usize) !*anyopaque {
+        return mrb_pool_alloc(self, size) orelse error.OutOfMemory;
     }
-    pub fn pool_realloc(self: *Self, ptr: *anyopaque, oldlen: usize, newlen: usize) ?*anyopaque {
-        return mrb_pool_realloc(self, ptr, oldlen, newlen);
+    pub fn pool_realloc(self: *Self, ptr: *anyopaque, oldlen: usize, newlen: usize) !*anyopaque {
+        return mrb_pool_realloc(self, ptr, oldlen, newlen) orelse error.OutOfMemory;
     }
     pub fn pool_can_realloc(self: *Self, ptr: *anyopaque, size: usize) mrb_bool {
         return mrb_pool_can_realloc(self, ptr, size);
@@ -2100,7 +2100,7 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
 
     pub fn cptr(self: Self) !*anyopaque {
         if (!self.cptr_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return mrb_get_cptr(self);
     }
     /// Retrieve a ruby object pointer
@@ -2111,22 +2111,22 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
     }
     pub fn integer(self: Self) !mrb_int {
         if (!self.integer_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return mrb_get_integer(self);
     }
     pub fn float(self: Self) !mrb_float {
         if (!self.float_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return mrb_get_float(self);
     }
     pub fn symbol(self: Self) !mrb_sym {
         if (!self.symbol_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return mrb_get_sym(self);
     }
     pub fn boolean(self: Self) !mrb_bool {
         if (!self.true_p() and !self.false_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return mrb_get_bool(self);
     }
 
@@ -2135,82 +2135,82 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
     }
     pub fn rfloat(self: Self) !*RFloat {
         if (!self.float_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RFloat, try self.ptr());
     }
     pub fn rdata(self: Self) !*RData {
         if (!self.data_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RData, try self.ptr());
     }
     pub fn rinteger(self: Self) !*RInteger {
         if (!self.integer_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RInteger, try self.ptr());
     }
     pub fn rcptr(self: Self) !*RCptr {
         if (!self.cptr_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RCptr, try self.ptr());
     }
     pub fn robject(self: Self) !*RObject {
         if (!self.object_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RObject, try self.ptr());
     }
     pub fn rclass(self: Self) !*RClass {
         if (!self.class_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RClass, try self.ptr());
     }
     pub fn rproc(self: Self) !*RProc {
         if (!self.proc_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RProc, try self.ptr());
     }
     pub fn rarray(self: Self) !*RArray {
         if (!self.array_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RArray, try self.ptr());
     }
     pub fn rhash(self: Self) !*RHash {
         if (!self.hash_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RHash, try self.ptr());
     }
     pub fn rstring(self: Self) !*RString {
         if (!self.string_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RString, try self.ptr());
     }
     pub fn rrange(self: Self) !*RRange {
         if (!self.range_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RRange, try self.ptr());
     }
     pub fn rexception(self: Self) !*RException {
         if (!self.exception_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RException, try self.ptr());
     }
     pub fn renv(self: Self) !*REnv {
         if (!self.range_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*REnv, try self.ptr());
     }
     pub fn rfiber(self: Self) !*RFiber {
         if (!self.fiber_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RFiber, try self.ptr());
     }
     pub fn ristruct(self: Self) !*RIStruct {
         if (!self.istruct_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RIStruct, try self.ptr());
     }
     pub fn rbreak(self: Self) !*RBreak {
         if (!self.break_p())
-            return error.ConversionErorr;
+            return error.ConversionError;
         return @ptrCast(*RBreak, try self.ptr());
     }
     // TODO: RComplex is part of a gem and not properly supported for now
