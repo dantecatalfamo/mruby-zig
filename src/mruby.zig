@@ -974,6 +974,19 @@ pub const mrb_state = opaque {
         return mrb_obj_freeze(self, value);
     }
 
+    pub fn utf8_from_locale(str: []const u8) ?[*:0]const u8 {
+        return mrb_utf8_from_locale1(str.ptr, str.len);
+    }
+    pub fn mrb_locale_from_utf8(str: []const u8) ?[*:0]const u8 {
+        return mrb_locale_from_utf81(str.ptr, str.len);
+    }
+    pub fn locale_free(str: [*]const u8) void {
+        return mrb_locale_free1(str);
+    }
+    pub fn utf8_free(str: [*]const u8) void {
+        return mrb_utf8_free1(str);
+    }
+
     /// Closes and frees a mrb_state.
     ///
     /// @param mrb
@@ -3421,6 +3434,12 @@ pub extern fn mrb_str_new_static(mrb: *mrb_state, ptr: [*]const u8, len: usize) 
 pub fn mrb_str_new_lit(mrb: *mrb_state, lit: []const u8) mrb_value {
     return mrb_str_new_static(mrb, lit.ptr, lit.len);
 }
+
+pub extern fn mrb_utf8_from_locale1(p: [*]const u8, l: usize) ?[*:0]const u8;
+pub extern fn mrb_locale_from_utf81(p: [*]const u8, l: usize) ?[*:0]const u8;
+pub extern fn mrb_locale_free1(p: [*]const u8) void;
+pub extern fn mrb_utf8_free1(p: [*]const u8) void;
+
 
 pub extern fn mrb_obj_freeze(mrb: *mrb_state, val: mrb_value) mrb_value;
 pub fn mrb_str_new_frozen(mrb: *mrb_state, p: [*:0]const u8 , len: usize) mrb_value {
