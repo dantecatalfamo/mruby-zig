@@ -4,24 +4,7 @@ mruby bindings for zig
 
 ## Hacking
 
-- Pull in the `mruby` git submodule
-
-  ```sh
-  git submodule update --init
-  ```
-
-- Compile `mruby`.
-  In most cases this should be as simple as entering the `mruby` and running `make`
-
-  ```sh
-  cd mruby
-  make
-  cd ..
-  ```
-
-- Zig build
-
-  To run the current example `main.zig` program, type `zig build run`
+To run the current example `main.zig` program, type `zig build run`. The `build.zig` file should handle pulling in and compiling `mruby`.
 
 ## Embedding
 
