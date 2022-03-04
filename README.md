@@ -1,6 +1,6 @@
 # mruby-zig
 
-Expermimental mruby bindings for zig
+mruby bindings for zig
 
 ## Hacking
 
