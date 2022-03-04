@@ -17,10 +17,10 @@ source tree, and the files `src/mruby.zig` and `src/mruby_compat.c`.
   ```zig
   exe.addSystemIncludePath("./mruby/include");
   exe.addLibraryPath("./mruby/build/host/lib");
-  exe.linkSystemLibrary("mruby");
-  exe.linkLibC();
   exe.addCSourceFile("src/mruby_compat.c", &.{});
   exe.addPackagePath("mruby", "src/mruby.zig");
+  exe.linkSystemLibrary("mruby");
+  exe.linkLibC();
   ```
 
 - Import `mruby` into the relevant file
