@@ -317,8 +317,8 @@ pub const mrb_state = opaque {
     ///  @param name The name of the module function being defined.
     ///  @param fun The function pointer to the module function definition.
     ///  @param aspec The method parameters declaration.
-    pub fn define_module_function(self: *Self, cla: *RClass, name: [*:0]const u8, fun: mrb_func_t, aspec: mrb_aspec) void {
-        return mrb_define_module_function(self, cla, name, fun, aspec);
+    pub fn define_module_function(self: *Self, cla: *RClass, name: [*:0]const u8, fun: mrb_func_t, args: mruby_func_args) void {
+        return mrb_define_module_function(self, cla, name, fun, args.aspec());
     }
     pub fn define_module_function_id(self: *Self, cla: *RClass, name: mrb_sym, fun: mrb_func_t, aspec: mrb_aspec) void {
         return mrb_define_module_function_id(self, cla, name, fun, aspec);
@@ -3101,12 +3101,36 @@ pub extern fn mrb_define_class_under_id(mrb: *mrb_state, outer: *RClass, name: m
 pub extern fn mrb_define_module_under(mrb: *mrb_state, outer: *RClass, name: [*:0]const u8) ?*RClass;
 pub extern fn mrb_define_module_under_id(mrb: *mrb_state, outer: *RClass, name: mrb_sym) ?*RClass;
 
+/// Generate an mrb_aspec based on the required function arguments
+pub const mruby_func_args = struct {
+    req: u5 = 0,
+    opt: u5 = 0,
+    rest: bool = false,
+    post: u5 = 0,
+    keys: u5 = 0,
+    kdict: bool = false,
+    block: bool = false,
+
+    const Self = @This();
+
+    pub fn aspec(self: Self) mrb_aspec {
+        var val: mrb_aspec = 0;
+        val |= mrb_args_req(self.req);
+        val |= mrb_args_opt(self.opt);
+        val |= if (self.rest) mrb_args_rest() else 0;
+        val |= mrb_args_post(self.post);
+        val |= mrb_args_key(self.keys, @boolToInt(self.kdict));
+        val |= if (self.block) mrb_args_block() else 0;
+        std.log.debug("aspec var: {b}", .{val});
+        return val;
+    }
+};
 
 /// Function requires n arguments.
 ///
 /// @param n
 ///      The number of required arguments.
-pub fn mrb_args_req(n: u4) mrb_aspec {
+pub fn mrb_args_req(n: u5) mrb_aspec {
     return (@as(u32, n) & 0x1f) << 18;
 }
 
@@ -3114,7 +3138,7 @@ pub fn mrb_args_req(n: u4) mrb_aspec {
 ///
 /// @param n
 ///      The number of optional arguments.
-pub fn mrb_args_opt(n: u4) mrb_aspec {
+pub fn mrb_args_opt(n: u5) mrb_aspec {
     return (@as(u32, n) & 0x1f) << 13;
 }
 
@@ -3124,7 +3148,7 @@ pub fn mrb_args_opt(n: u4) mrb_aspec {
 ///      The number of required arguments.
 /// @param n2
 ///      The number of optional arguments.
-pub fn mrb_args_arg(n1: u4, n2: u4) mrb_aspec {
+pub fn mrb_args_arg(n1: u5, n2: u5) mrb_aspec {
     return mrb_args_req(n1) | mrb_args_opt(n2);
 }
 
@@ -3134,12 +3158,12 @@ pub fn mrb_args_rest() mrb_aspec {
 }
 
 ///  required arguments after rest
-pub fn mrb_args_post(n: u8) mrb_aspec {
-    return (n & 0x1f) << 7;
+pub fn mrb_args_post(n: u5) mrb_aspec {
+    return (@as(u32, n) & 0x1f) << 7;
 }
 
 ///  keyword arguments (n of keys, kdict)
-pub fn mrb_args_key(n1: u4, n2: u4) mrb_aspec {
+pub fn mrb_args_key(n1: u5, n2: u5) mrb_aspec {
     return ((@as(u32, n1) & 0x1f) << 2) | (if (n2 != 0) @as(u8, 1<<1) else 0);
 }
 

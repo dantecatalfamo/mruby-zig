@@ -19,7 +19,7 @@ pub fn main() anyerror!void {
     // Adding a zig function to ruby
     const kptr = mrb.kernel_module();
     const kval = kptr.value();
-    mrb.define_module_function(kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
+    mrb.define_module_function(kptr, "zigfunc", zigInRuby, .{});
 
     // Calling ruby methods from zig
     _ = mrb.funcall(kval, "zigfunc", .{});
@@ -60,7 +60,7 @@ pub fn main() anyerror!void {
 }
 
 export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
-    std.log.debug("Zig function called from ruby! mrb: {p}, self: {}", .{ mrb, self });
+    std.log.debug("Zig function called from ruby! mrb: {p}, self: {}", .{ mrb, self.w });
     mrb.p(mrb.get_backtrace());
     return self;
 }
