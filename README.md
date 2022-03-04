@@ -23,12 +23,23 @@ source tree, and the files `src/mruby.zig` and `src/mruby_compat.c`.
   exe.linkLibC();
   ```
 
-- Import `mruby` into the relevant file
-
-  For example: `@import("mruby")`
-
-- Start a new `mruby` interpreter
+- Import `mruby` and start a new interpreter
 
 ```zig
-  var mrb = try mruby.open();
+const std = @import("std");
+const mruby = @import("mruby");
+
+pub fn main() anyerror!void {
+
+    // Opening a state
+    var mrb = try mruby.open();
+    defer mrb.close();
+
+    mrb.show_version();
+    mrb.show_copyright();
+
+    // Loading a program from a string
+    const program = "puts \"hello from ruby!\"";
+    mrb.load_string(program);
+}
   ```
