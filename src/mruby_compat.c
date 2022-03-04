@@ -1,3 +1,6 @@
+/* Copyright (c) 2022 Dante Catalfamo */
+/* SPDX-License-Identifier: MIT */
+
 #include <mruby.h>
 #include <mruby/array.h>
 #include <mruby/data.h>

@@ -1,3 +1,6 @@
+// Copyright (c) 2022 Dante Catalfamo
+// SPDX-License-Identifier: MIT
+
 const std = @import("std");
 const assert = std.debug.assert;
 const FILE = std.c.FILE;
