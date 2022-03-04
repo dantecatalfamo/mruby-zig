@@ -27,7 +27,7 @@ pub fn build(b: *std.build.Builder) void {
     exe.addLibraryPath("./mruby/build/host/lib");
     exe.linkSystemLibrary("mruby");
     exe.linkLibC();
-    exe.addCSourceFile("src/mrb_state_hack.c", &.{});
+    exe.addCSourceFile("src/mruby_compat.c", &.{});
     exe.install();
 
     const run_cmd = exe.run();
@@ -46,7 +46,7 @@ pub fn build(b: *std.build.Builder) void {
     exe_tests.addLibraryPath("./mruby/build/host/lib");
     exe_tests.linkSystemLibrary("mruby");
     exe_tests.linkLibC();
-    exe_tests.addCSourceFile("src/mrb_state_hack.c", &.{});
+    exe_tests.addCSourceFile("src/mruby_compat.c", &.{});
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&exe_tests.step);
