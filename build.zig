@@ -27,7 +27,8 @@ pub fn build(b: *std.build.Builder) void {
     mruby_step.makeFn = buildMruby;
     mruby_step.dependOn(submodule_step);
 
-    const exe = b.addExecutable("mruby-zig", "src/main.zig");
+    const exe = b.addExecutable("mruby-zig", "examples/main.zig");
+    exe.addPackagePath("mruby", "src/mruby.zig");
     exe.step.dependOn(mruby_step);
     exe.setTarget(target);
     exe.setBuildMode(mode);

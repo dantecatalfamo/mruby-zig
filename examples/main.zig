@@ -1,5 +1,5 @@
 const std = @import("std");
-const mruby = @import("mruby.zig");
+const mruby = @import("mruby");
 
 pub fn main() anyerror!void {
 
