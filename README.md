@@ -30,16 +30,11 @@ const std = @import("std");
 const mruby = @import("mruby");
 
 pub fn main() anyerror!void {
-
     // Opening a state
     var mrb = try mruby.open();
     defer mrb.close();
 
-    mrb.show_version();
-    mrb.show_copyright();
-
     // Loading a program from a string
-    const program = "puts \"hello from ruby!\"";
-    mrb.load_string(program);
+    mrb.load_string("puts 'hello from ruby!'");
 }
   ```
