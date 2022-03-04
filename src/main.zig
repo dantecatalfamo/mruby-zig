@@ -2,59 +2,52 @@ const std = @import("std");
 const mruby = @import("mruby.zig");
 
 pub fn main() anyerror!void {
+
+    // Opening a state
     var mrb = try mruby.open();
     defer mrb.close();
-    std.log.debug("state pointer: {p}", .{ mrb });
+
     mrb.show_version();
     mrb.show_copyright();
+
+    // Loading a program from a string
     const program =
         \\ puts "hello from ruby!"
     ;
     _ = mrb.load_string(program);
+
+    // Adding a zig function to ruby
     const kptr = mrb.kernel_module();
     const kval = kptr.value();
     mrb.define_module_function(kptr, "zigfunc", zigInRuby, mruby.mrb_args_none());
+
+    // Calling ruby methods from zig
     _ = mrb.funcall(kval, "zigfunc", .{});
     _ = mrb.funcall(kval, "puts", .{ mrb.str_new_lit("hello from puts called in zig!") });
     _ = mrb.funcall(kval, "puts", .{ mrb.int_value(1337) });
+
+    // Freezing objects
     const strf = mrb.str_new("this is a string");
     std.log.debug("string frozen? {}", .{ strf.frozen_p() });
     try strf.freeze();
     std.log.debug("freezing string", .{});
     std.log.debug("string frozen? {}", .{ strf.frozen_p() });
 
-    const int = mrb.int_value(5);
-    const float = mrb.float_value(5.0);
-    const str = mrb.str_new("hello");
-    var pointer: u8 = 5;
-    const cptr = mrb.cptr_value(&pointer);
-    const obj = mrb.obj_value(try strf.rstring());
-    const bol = mrb.bool_value(true);
-
-    std.log.debug("int immediate: {}", .{ int.immediate_p() });
-    std.log.debug("float immediate: {}", .{ float.immediate_p() });
-    std.log.debug("str immediate: {}", .{ str.immediate_p() });
-    std.log.debug("cptr immediate: {}", .{ cptr.immediate_p() });
-    std.log.debug("obj immediate: {}", .{ obj.immediate_p() });
-    std.log.debug("bool immediate: {}", .{ bol.immediate_p() });
-
-    std.log.debug("cptr value:", .{});
-    mrb.p(cptr);
-
-    std.log.debug("context: {p}, root context: {p}", .{ mrb.context(), mrb.root_context() });
-
+    // Dollar store repl
     var line: [4096]u8 = undefined;
     const stdin = std.io.getStdIn().reader();
     const stdout = std.io.getStdOut().writer();
     while (true) {
-        try stdout.writeAll("=> ");
+        try stdout.writeAll("> ");
         const line_read = try stdin.readUntilDelimiterOrEof(&line, '\n');
         if (line_read) |valid_line| {
             const returned = mrb.load_nstring(valid_line);
-            mrb.p(returned);
             if (mrb.exc()) |exception| {
                 mrb.p(exception.value());
                 mrb.set_exc(null);
+            } else {
+                try stdout.writeAll(" => ");
+                mrb.p(returned);
             }
         } else {
             break;
