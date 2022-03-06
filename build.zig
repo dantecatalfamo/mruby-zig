@@ -6,15 +6,6 @@ pub fn build(b: *std.build.Builder) void {
     // means any target is allowed, and the default is native. Other options
     // for restricting supported target set are available.
     var target = b.standardTargetOptions(.{});
-    // For some reason building on Fedora while linking to libmruby.a
-    // causes a segfault on launch. For now we'll just use musl
-    // The output in GDB is the following:
-    //   Program received signal SIGSEGV, Segmentation fault.
-    //   0x00000000002ed513 in std.start.main (c_argc=1, c_argv=0x7fffffffdd38, c_envp=0x7fffffffe0a4) at /home/dante/zig/0.10.0-dev.974+bf6540ce5/files/lib/std/start.zig:450
-    //   450        while (c_envp[env_count] != null) : (env_count += 1) {}
-    if (target.isLinux()) {
-        target.abi = .musl;
-    }
 
     // Standard release options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
@@ -28,24 +19,10 @@ pub fn build(b: *std.build.Builder) void {
     mruby_step.dependOn(submodule_step);
 
     const exe = b.addExecutable("mruby-zig", "examples/main.zig");
-    exe.addPackagePath("mruby", "src/mruby.zig");
     exe.step.dependOn(mruby_step);
     exe.setTarget(target);
     exe.setBuildMode(mode);
-    // Won't compile on my macbook without this
-    // zig version 0.10.0-dev.934+acec06cfa
-    // fails with the following error:
-    //     error(compilation): clang failed with stderr: In file included from /Users/dante/src/github.com/dantecatalfamo/mruby-zig/src/mruby_compat.c:4:
-    //     In file included from /Users/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/include/mruby.h:117:
-    //     /Users/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/include/mruby/value.h:426:10: fatal error: 'mach-o/getsect.h' file not found
-    if (target.isDarwin()) {
-        exe.addFrameworkPath("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk");
-    }
-    exe.addSystemIncludePath("./mruby/include");
-    exe.addLibraryPath("./mruby/build/host/lib");
-    exe.linkSystemLibrary("mruby");
-    exe.linkLibC();
-    exe.addCSourceFile("src/mruby_compat.c", &.{});
+    addMruby(exe);
     exe.install();
 
     const run_cmd = exe.run();
@@ -60,17 +37,37 @@ pub fn build(b: *std.build.Builder) void {
     const exe_tests = b.addTest("src/main.zig");
     exe_tests.setTarget(target);
     exe_tests.setBuildMode(mode);
-    if (target.isDarwin()) {
-        exe.addFrameworkPath("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk");
-    }
-    exe_tests.addSystemIncludePath("./mruby/include");
-    exe_tests.addLibraryPath("./mruby/build/host/lib");
-    exe_tests.linkSystemLibrary("mruby");
-    exe_tests.linkLibC();
-    exe_tests.addCSourceFile("src/mruby_compat.c", &.{});
+    addMruby(exe_tests);
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&exe_tests.step);
+}
+
+pub fn addMruby(self: *std.build.LibExeObjStep) void {
+    // For some reason building on Fedora while linking to libmruby.a
+    // causes a segfault on launch. For now we'll just use musl
+    // The output in GDB is the following:
+    //   Program received signal SIGSEGV, Segmentation fault.
+    //   0x00000000002ed513 in std.start.main (c_argc=1, c_argv=0x7fffffffdd38, c_envp=0x7fffffffe0a4) at /home/dante/zig/0.10.0-dev.974+bf6540ce5/files/lib/std/start.zig:450
+    //   450        while (c_envp[env_count] != null) : (env_count += 1) {}
+    if (self.target.isLinux()) {
+        self.target.abi = .musl;
+    }
+    // Won't compile on my macbook without this
+    // zig version 0.10.0-dev.934+acec06cfa
+    // fails with the following error:
+    //     error(compilation): clang failed with stderr: In file included from /Users/dante/src/github.com/dantecatalfamo/mruby-zig/src/mruby_compat.c:4:
+    //     In file included from /Users/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/include/mruby.h:117:
+    //     /Users/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/include/mruby/value.h:426:10: fatal error: 'mach-o/getsect.h' file not found
+    if (self.target.isDarwin()) {
+        self.addFrameworkPath("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk");
+    }
+    self.addSystemIncludePath("./mruby/include");
+    self.addLibraryPath("./mruby/build/host/lib");
+    self.linkSystemLibrary("mruby");
+    self.linkLibC();
+    self.addCSourceFile("src/mruby_compat.c", &.{});
+    self.addPackagePath("mruby", "src/mruby.zig");
 }
 
 pub fn buildMruby(self: *std.build.Step) !void {
