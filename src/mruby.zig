@@ -2118,7 +2118,7 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
     const Self = @This();
 
     pub fn vType(self: Self) mrb_vtype {
-        return mrb_type(self);
+        return mrb_get_type(self);
     }
 
     pub fn cptr(self: Self) !*anyopaque {
@@ -4077,7 +4077,7 @@ pub extern fn mrb_get_undef_value() mrb_value;
 
 
 pub extern fn mrb_integer_func(o: mrb_value) mrb_int;
-pub extern fn mrb_type(o:mrb_value) mrb_vtype;
+pub extern fn mrb_get_type(o:mrb_value) mrb_vtype;
 // hacks
 pub extern fn mrb_get_ptr(v: mrb_value) *anyopaque;
 pub extern fn mrb_get_cptr(v: mrb_value) *anyopaque;

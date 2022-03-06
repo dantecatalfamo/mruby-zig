@@ -20,6 +20,8 @@ pub fn main() anyerror!void {
     const kptr = mrb.kernel_module();
     const kval = kptr.value();
     mrb.define_module_function(kptr, "zigfunc", zigInRuby, .{});
+    mrb.define_module_function(kptr, "zigOneArg", zigOneArg, .{ .req = 1 });
+    mrb.define_module_function(kptr, "zigThreeArgs", zigThreeArgs, .{ .req = 3 });
 
     // Calling ruby methods from zig
     _ = mrb.funcall(kval, "zigfunc", .{});
@@ -62,6 +64,25 @@ pub fn main() anyerror!void {
 export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
     std.log.debug("Zig function called from ruby! mrb: {p}, self: {}", .{ mrb, self.w });
     mrb.p(mrb.get_backtrace());
+    return self;
+}
+
+export fn zigOneArg(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
+    const arg = mrb.get_arg1();
+    if (arg.integer_p()) {
+        std.log.debug("Received integer: {d}", .{ arg.integer() });
+    } else {
+        std.log.debug("Received type: {}", .{ arg.vType() });
+    }
+    return self;
+}
+
+export fn zigThreeArgs(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
+    var str: [*:0]const u8 = undefined;
+    var sym: mruby.mrb_sym = undefined;
+    var int: mruby.mrb_int = undefined;
+    const num_args = mrb.get_args("zni", .{ &str, &sym, &int });
+    std.log.debug("Received {d} args. string: \"{s}\", symbol: :{s}, integer: {d}", .{ num_args, str, mrb.sym_name(sym), int });
     return self;
 }
 

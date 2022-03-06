@@ -250,6 +250,10 @@ mrb_bool mrb_get_break_p(mrb_value o) {
     return mrb_break_p(o);
 }
 
+enum mrb_vtype mrb_get_type(mrb_value o) {
+    return mrb_type(o);
+}
+
 /*
  * mruby/class.h
  */
