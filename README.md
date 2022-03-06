@@ -38,3 +38,7 @@ pub fn main() anyerror!void {
     mrb.load_string("puts 'hello from ruby!'");
 }
   ```
+
+## Example
+
+See `examples/main.zig`
