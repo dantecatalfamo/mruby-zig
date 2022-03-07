@@ -7,7 +7,9 @@ pub fn main() anyerror!void {
     var allocator = gpa.allocator();
 
     // Opening a state
-    var mrb = try mruby.open();
+    var zig_alloc = mruby.ZigMrubyAlloc.init(allocator);
+    defer zig_alloc.deinit();
+    var mrb = try mruby.open_allocator(&zig_alloc);
     defer mrb.close();
 
     mrb.show_version();

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 const std = @import("std");
+const mem = std.mem;
 const assert = std.debug.assert;
 const FILE = std.c.FILE;
 
@@ -70,6 +71,70 @@ pub fn open() !*mrb_state {
 pub fn open_allocf(f: mrb_allocf, ud: *anyopaque) !*mrb_state {
     return mrb_open_allocf(f, ud) orelse error.OpenError;
 }
+
+pub fn open_allocator(zig_alloc: *ZigMrubyAlloc) !*mrb_state {
+    return mrb_open_allocf(zigAlloc, zig_alloc) orelse error.OpenError;
+}
+
+pub const ZigMrubyAlloc = struct {
+    allocator: mem.Allocator,
+    ptr_size_map: std.AutoHashMap(usize, usize),
+
+    const log = std.log.scoped(.alloc);
+    const Self = @This();
+
+    pub fn init(allocator: mem.Allocator) Self {
+        return .{
+            .allocator = allocator,
+            .ptr_size_map = std.AutoHashMap(usize, usize).init(allocator),
+        };
+    }
+
+    pub fn deinit(self: *Self) void {
+        self.ptr_size_map.deinit();
+    }
+
+    pub fn alloc(self: *Self, size: usize) ?*anyopaque {
+        log.debug("Allocating {d} bytes", .{ size });
+        const new_memory = self.allocator.alloc(u8, size) catch return null;
+        self.ptr_size_map.put(@ptrToInt(new_memory.ptr), new_memory.len) catch return null;
+        return new_memory.ptr;
+    }
+
+    pub fn realloc(self: *Self, old_ptr: *anyopaque, new_size: usize) ?*anyopaque {
+        const old_size = self.ptr_size_map.get(@ptrToInt(old_ptr)) orelse return null;
+        const old_memory = @ptrCast([*]u8, old_ptr)[0..old_size];
+        const new_memory = self.allocator.realloc(old_memory, new_size) catch return null;
+        _ = self.ptr_size_map.remove(@ptrToInt(old_ptr));
+        log.debug("Realloc {d} -> {d}", .{ old_size, new_size });
+        self.ptr_size_map.put(@ptrToInt(new_memory.ptr), new_memory.len) catch return null;
+        return new_memory.ptr;
+    }
+
+    pub fn free(self: *Self, ptr: *anyopaque) void {
+        const size = self.ptr_size_map.get(@ptrToInt(ptr)) orelse unreachable;
+        const memory = @ptrCast([*]u8, ptr)[0..size];
+        log.debug("Freeing {d}", .{ size });
+        self.allocator.free(memory);
+        _ = self.ptr_size_map.remove(@ptrToInt(ptr));
+    }
+};
+
+export fn zigAlloc(mrb: *mrb_state, ptr: ?*anyopaque, size: usize, user_data: ?*anyopaque) ?*anyopaque {
+    _ = mrb;
+    const zig_mruby_alloc = @ptrCast(*ZigMrubyAlloc, @alignCast(@alignOf(ZigMrubyAlloc), user_data));
+    if (ptr == null and size == 0) {
+        return null;
+    } else if (ptr == null) {
+        return zig_mruby_alloc.alloc(size);
+    } else if (size == 0) {
+        zig_mruby_alloc.free(ptr.?);
+        return null;
+    } else {
+        return zig_mruby_alloc.realloc(ptr.?, size);
+    }
+}
+
 
 /// Create new mrb_state with just the MRuby core
 ///
@@ -2553,7 +2618,7 @@ pub const mrb_atexit_func = fn (mrb: *mrb_state) callconv(.C) void;
 /// - If s is NULL, ptr must be freed.
 ///
 /// See @see mrb_default_allocf for the default implementation.
-pub const mrb_allocf = fn (mrb: *mrb_state, ptr: *anyopaque, size: usize, ud: *anyopaque) callconv(.C) *anyopaque;
+pub const mrb_allocf = fn (mrb: *mrb_state, ptr: ?*anyopaque, size: usize, ud: ?*anyopaque) callconv(.C) ?*anyopaque;
 
 // TODO: make this work
 // #define MRB_VTYPE_FOREACH(f) \
