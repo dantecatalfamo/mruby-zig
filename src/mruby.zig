@@ -247,11 +247,11 @@ pub const mrb_state = opaque {
     /// @param name The name of the method being defined.
     /// @param func The function pointer to the method definition.
     /// @param aspec The method parameters declaration.
-    pub fn define_method(self: *Self, cla: *RClass, name: [*:0]const u8, func: mrb_func_t, aspec: mrb_aspec) void {
-        return mrb_define_method(self, cla, name, func, aspec);
+    pub fn define_method(self: *Self, cla: *RClass, name: [*:0]const u8, func: mrb_func_t, args: mruby_func_args) void {
+        return mrb_define_method(self, cla, name, func, args.aspec());
     }
-    pub fn define_method_id(self: *Self, cla: *RClass, mid: mrb_sym, func: mrb_func_t, aspec: mrb_aspec) void {
-        return mrb_define_method_id(self, cla, mid, func, aspec);
+    pub fn define_method_id(self: *Self, cla: *RClass, mid: mrb_sym, func: mrb_func_t, args: mruby_func_args) void {
+        return mrb_define_method_id(self, cla, mid, func, args.aspec());
     }
 
     /// Defines a class method.
@@ -277,21 +277,21 @@ pub const mrb_state = opaque {
     /// @param name The name of the class method being defined.
     /// @param fun The function pointer to the class method definition.
     /// @param aspec The method parameters declaration.
-    pub fn define_class_method(self: *Self, cla: *RClass, name: [*:0]const u8, fun: mrb_func_t, aspec: mrb_aspec) void {
-        return mrb_define_class_method(self, cla, name, fun, aspec);
+    pub fn define_class_method(self: *Self, cla: *RClass, name: [*:0]const u8, fun: mrb_func_t, args: mruby_func_args) void {
+        return mrb_define_class_method(self, cla, name, fun, args.aspec());
     }
-    pub fn define_class_method_id(self: *Self, cla: *RClass, name: mrb_sym, fun: mrb_func_t, aspec: mrb_aspec) void {
-        return mrb_define_class_method_id(self, cla, name, fun, aspec);
+    pub fn define_class_method_id(self: *Self, cla: *RClass, name: mrb_sym, fun: mrb_func_t, args: mruby_func_args) void {
+        return mrb_define_class_method_id(self, cla, name, fun, args.aspec());
     }
 
     /// Defines a singleton method
     ///
     /// @see mrb_define_class_method
-    pub fn define_singleton_method(self: *Self, cla: *RObject, name: [*:0]const u8, fun: mrb_func_t, aspec: mrb_aspec) void {
-        return mrb_define_singleton_method(self, cla, name, fun, aspec);
+    pub fn define_singleton_method(self: *Self, cla: *RObject, name: [*:0]const u8, fun: mrb_func_t, args: mruby_func_args) void {
+        return mrb_define_singleton_method(self, cla, name, fun, args.aspec());
     }
-    pub fn define_singleton_method_id(self: *Self, cla: *RObject, name: mrb_sym, fun: mrb_func_t, aspec: mrb_aspec) void {
-        return mrb_define_singleton_method_id(self, cla, name, fun, aspec);
+    pub fn define_singleton_method_id(self: *Self, cla: *RObject, name: mrb_sym, fun: mrb_func_t, args: mruby_func_args) void {
+        return mrb_define_singleton_method_id(self, cla, name, fun, args.aspec());
     }
 
     ///  Defines a module function.
@@ -320,8 +320,8 @@ pub const mrb_state = opaque {
     pub fn define_module_function(self: *Self, cla: *RClass, name: [*:0]const u8, fun: mrb_func_t, args: mruby_func_args) void {
         return mrb_define_module_function(self, cla, name, fun, args.aspec());
     }
-    pub fn define_module_function_id(self: *Self, cla: *RClass, name: mrb_sym, fun: mrb_func_t, aspec: mrb_aspec) void {
-        return mrb_define_module_function_id(self, cla, name, fun, aspec);
+    pub fn define_module_function_id(self: *Self, cla: *RClass, name: mrb_sym, fun: mrb_func_t, args: mruby_func_args) void {
+        return mrb_define_module_function_id(self, cla, name, fun, args.aspec());
     }
 
     ///  Defines a constant.
@@ -3102,6 +3102,14 @@ pub extern fn mrb_define_module_under(mrb: *mrb_state, outer: *RClass, name: [*:
 pub extern fn mrb_define_module_under_id(mrb: *mrb_state, outer: *RClass, name: mrb_sym) ?*RClass;
 
 /// Generate an mrb_aspec based on the required function arguments
+/// Options:
+///    req: u5
+///    opt: u5
+///    rest: bool
+///    post: u5
+///    keys: u5
+///    kdict: bool
+///    block: bool
 pub const mruby_func_args = struct {
     req: u5 = 0,
     opt: u5 = 0,
@@ -3121,7 +3129,6 @@ pub const mruby_func_args = struct {
         val |= mrb_args_post(self.post);
         val |= mrb_args_key(self.keys, @boolToInt(self.kdict));
         val |= if (self.block) mrb_args_block() else 0;
-        std.log.debug("aspec var: {b}", .{val});
         return val;
     }
 };
