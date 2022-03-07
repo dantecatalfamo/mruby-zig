@@ -1,7 +1,10 @@
 const std = @import("std");
+// const mruby = @import("../src/mruby.zig");
 const mruby = @import("mruby");
 
 pub fn main() anyerror!void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var allocator = gpa.allocator();
 
     // Opening a state
     var mrb = try mruby.open();
@@ -34,6 +37,23 @@ pub fn main() anyerror!void {
     try strf.freeze();
     std.log.debug("freezing string", .{});
     std.log.debug("string frozen? {}", .{ strf.frozen_p() });
+
+    // Custom class
+    const fancy_class = try mrb.define_class("FancyClass", mrb.object_class());
+
+    // Custom data types
+    var fancy_data = try allocator.create(DataType);
+    fancy_data.* = DataType{
+        .int = 1337,
+        .float = 5.0,
+        .small_array = .{ 1, 2, 3, 4 },
+        .allocator = allocator,
+    };
+    const data_obj = try mrb.data_object_alloc(fancy_class, fancy_data, &data_type_descriptor);
+    mrb.gv_set(mrb.intern("$data"), data_obj.value());
+
+    // Custom data type class methods
+    mrb.define_method(fancy_class, "int", dataTypeGetInt, .{});
 
     // Dollar store repl
     var line: [4096]u8 = undefined;
@@ -84,6 +104,32 @@ export fn zigThreeArgs(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_v
     const num_args = mrb.get_args("zni", .{ &str, &sym, &int });
     std.log.debug("Received {d} args. string: \"{s}\", symbol: :{s}, integer: {d}", .{ num_args, str, mrb.sym_name(sym), int });
     return self;
+}
+
+pub const DataType = struct {
+    int: i32,
+    float: f32,
+    small_array: [4]u8,
+    allocator: std.mem.Allocator,
+};
+
+const data_type_descriptor = mruby.mrb_data_type {
+    .struct_name = "zigDataType",
+    .dfree = dataTypeFree,
+};
+
+pub export fn dataTypeFree(mrb: *mruby.mrb_state, ptr: *anyopaque) callconv(.C) void {
+    _ = mrb;
+    const data = @ptrCast(*DataType, @alignCast(@alignOf(DataType), ptr));
+    const allocator = data.allocator;
+    std.log.debug("Freeing data type!", .{});
+    allocator.destroy(data);
+}
+
+pub export fn dataTypeGetInt(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
+    const rawptr = mrb.data_get_ptr(self, &data_type_descriptor);
+    const ptr = @ptrCast(*DataType, @alignCast(@alignOf(DataType), rawptr));
+    return mrb.int_value(ptr.int);
 }
 
 test "ref all decls" {
