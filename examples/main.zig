@@ -45,7 +45,6 @@ pub fn main() anyerror!void {
     var fancy_data = try allocator.create(DataType);
     fancy_data.* = DataType{
         .int = 1337,
-        .float = 5.0,
         .small_array = .{ 1, 2, 3, 4 },
         .allocator = allocator,
     };
@@ -54,6 +53,8 @@ pub fn main() anyerror!void {
 
     // Custom data type class methods
     mrb.define_method(fancy_class, "int", dataTypeGetInt, .{});
+    mrb.define_method(fancy_class, "int=", dataTypeSetInt, .{ .req = 1 });
+    mrb.define_method(fancy_class, "array", dataTypeGetArray, .{});
 
     // Dollar store repl
     var line: [4096]u8 = undefined;
@@ -107,8 +108,7 @@ export fn zigThreeArgs(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_v
 }
 
 pub const DataType = struct {
-    int: i32,
-    float: f32,
+    int: i64,
     small_array: [4]u8,
     allocator: std.mem.Allocator,
 };
@@ -118,7 +118,7 @@ const data_type_descriptor = mruby.mrb_data_type {
     .dfree = dataTypeFree,
 };
 
-pub export fn dataTypeFree(mrb: *mruby.mrb_state, ptr: *anyopaque) callconv(.C) void {
+pub export fn dataTypeFree(mrb: *mruby.mrb_state, ptr: *anyopaque) void {
     _ = mrb;
     const data = @ptrCast(*DataType, @alignCast(@alignOf(DataType), ptr));
     const allocator = data.allocator;
@@ -130,6 +130,25 @@ pub export fn dataTypeGetInt(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby
     const rawptr = mrb.data_get_ptr(self, &data_type_descriptor);
     const ptr = @ptrCast(*DataType, @alignCast(@alignOf(DataType), rawptr));
     return mrb.int_value(ptr.int);
+}
+
+pub export fn dataTypeSetInt(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
+    var int: i64 = undefined;
+    _ = mrb.get_args("i", .{ &int });
+    const rawptr = mrb.data_get_ptr(self, &data_type_descriptor);
+    const ptr = @ptrCast(*DataType, @alignCast(@alignOf(DataType), rawptr));
+    ptr.int = int;
+    return self;
+}
+
+pub export fn dataTypeGetArray(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
+    const rawptr = mrb.data_get_ptr(self, &data_type_descriptor);
+    const ptr = @ptrCast(*DataType, @alignCast(@alignOf(DataType), rawptr));
+    const array = mrb.ary_new();
+    for (ptr.small_array) |val| {
+        mrb.ary_push(array, mrb.int_value(val));
+    }
+    return array;
 }
 
 test "ref all decls" {
