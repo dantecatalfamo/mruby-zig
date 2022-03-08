@@ -72,8 +72,8 @@ pub fn open_allocf(f: mrb_allocf, ud: *anyopaque) !*mrb_state {
     return mrb_open_allocf(f, ud) orelse error.OpenError;
 }
 
-pub fn open_allocator(zig_alloc: *ZigMrubyAlloc) !*mrb_state {
-    return mrb_open_allocf(zigAlloc, zig_alloc) orelse error.OpenError;
+pub fn open_allocator(zig_alloc: *MrubyAllocator) !*mrb_state {
+    return mrb_open_allocf(zigMrubyAlloc, zig_alloc) orelse error.OpenError;
 }
 
 pub const MrubyAllocator = struct {
@@ -118,7 +118,7 @@ pub const MrubyAllocator = struct {
 
 export fn zigMrubyAlloc(mrb: *mrb_state, ptr: ?*anyopaque, size: usize, user_data: ?*anyopaque) ?*anyopaque {
     _ = mrb;
-    const zig_mruby_alloc = @ptrCast(*ZigMrubyAlloc, @alignCast(@alignOf(ZigMrubyAlloc), user_data));
+    const zig_mruby_alloc = @ptrCast(*MrubyAllocator, @alignCast(@alignOf(MrubyAllocator), user_data));
     if (ptr == null and size == 0) {
         return null;
     } else if (ptr == null) {
