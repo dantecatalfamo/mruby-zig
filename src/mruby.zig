@@ -72,6 +72,7 @@ pub fn open_allocf(f: mrb_allocf, ud: *anyopaque) !*mrb_state {
     return mrb_open_allocf(f, ud) orelse error.OpenError;
 }
 
+/// Create new mrb_state with zig allocator.
 pub fn open_allocator(zig_alloc: *MrubyAllocator) !*mrb_state {
     return mrb_open_allocf(zigMrubyAlloc, zig_alloc) orelse error.OpenError;
 }
