@@ -8,13 +8,16 @@ pub fn main() anyerror!void {
     defer _ = gpa.deinit();
 
     // const LoggingAlloc = std.heap.LoggingAllocator(.debug, .err);
-    // var test_alloc = LoggingAlloc.init(allocator).allocator();
+    // var logging_alloc = LoggingAlloc.init(allocator).allocator();
 
-    // Opening a state using a zig allocator instead of malloc
-    // Alternatively to use malloc, call `mruby.open()`
+    // To open a state that uses a zig allocator instead of malloc,
+    // initialize an `mruby.MrubyAllocator` struct using the allocator
+    // of your choice, and pass a pointer to it to `mruby.open_allocator`.
+    // Call `deinit()` on it to clean up when done.
     var mrb_alloc = mruby.MrubyAllocator.init(allocator);
     defer mrb_alloc.deinit();
 
+    // Alternatively to use malloc, call `mruby.open()`
     var mrb = try mruby.open_allocator(&mrb_alloc);
     defer mrb.close();
 
