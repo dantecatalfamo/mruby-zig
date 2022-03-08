@@ -8,11 +8,11 @@ pub fn main() anyerror!void {
     defer _ = gpa.deinit();
 
     // Opening a state using a zig allocator instead of malloc
+    // Alternatively to use malloc, call `mruby.open()`
     var mrb_alloc = mruby.MrubyAllocator.init(allocator);
     defer mrb_alloc.deinit();
 
     var mrb = try mruby.open_allocator(&mrb_alloc);
-    // Alternatively to use malloc, call `mruby.open()`
     defer mrb.close();
 
     mrb.show_version();
