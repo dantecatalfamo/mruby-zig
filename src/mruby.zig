@@ -76,11 +76,10 @@ pub fn open_allocator(zig_alloc: *ZigMrubyAlloc) !*mrb_state {
     return mrb_open_allocf(zigAlloc, zig_alloc) orelse error.OpenError;
 }
 
-pub const ZigMrubyAlloc = struct {
+pub const MrubyAllocator = struct {
     allocator: mem.Allocator,
     ptr_size_map: std.AutoHashMap(usize, usize),
 
-    const log = std.log.scoped(.alloc);
     const Self = @This();
 
     pub fn init(allocator: mem.Allocator) Self {
@@ -95,7 +94,6 @@ pub const ZigMrubyAlloc = struct {
     }
 
     pub fn alloc(self: *Self, size: usize) ?*anyopaque {
-        log.debug("Allocating {d} bytes", .{ size });
         const new_memory = self.allocator.alloc(u8, size) catch return null;
         self.ptr_size_map.put(@ptrToInt(new_memory.ptr), new_memory.len) catch return null;
         return new_memory.ptr;
@@ -106,7 +104,6 @@ pub const ZigMrubyAlloc = struct {
         const old_memory = @ptrCast([*]u8, old_ptr)[0..old_size];
         const new_memory = self.allocator.realloc(old_memory, new_size) catch return null;
         _ = self.ptr_size_map.remove(@ptrToInt(old_ptr));
-        log.debug("Realloc {d} -> {d}", .{ old_size, new_size });
         self.ptr_size_map.put(@ptrToInt(new_memory.ptr), new_memory.len) catch return null;
         return new_memory.ptr;
     }
@@ -114,13 +111,12 @@ pub const ZigMrubyAlloc = struct {
     pub fn free(self: *Self, ptr: *anyopaque) void {
         const size = self.ptr_size_map.get(@ptrToInt(ptr)) orelse unreachable;
         const memory = @ptrCast([*]u8, ptr)[0..size];
-        log.debug("Freeing {d}", .{ size });
         self.allocator.free(memory);
         _ = self.ptr_size_map.remove(@ptrToInt(ptr));
     }
 };
 
-export fn zigAlloc(mrb: *mrb_state, ptr: ?*anyopaque, size: usize, user_data: ?*anyopaque) ?*anyopaque {
+export fn zigMrubyAlloc(mrb: *mrb_state, ptr: ?*anyopaque, size: usize, user_data: ?*anyopaque) ?*anyopaque {
     _ = mrb;
     const zig_mruby_alloc = @ptrCast(*ZigMrubyAlloc, @alignCast(@alignOf(ZigMrubyAlloc), user_data));
     if (ptr == null and size == 0) {

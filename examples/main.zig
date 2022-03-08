@@ -6,10 +6,12 @@ pub fn main() anyerror!void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     var allocator = gpa.allocator();
 
-    // Opening a state
-    var zig_alloc = mruby.ZigMrubyAlloc.init(allocator);
-    defer zig_alloc.deinit();
-    var mrb = try mruby.open_allocator(&zig_alloc);
+    // Opening a state using a zig allocator instead of malloc
+    var mrb_alloc = mruby.MrubyAllocator.init(allocator);
+    defer mrb_alloc.deinit();
+
+    var mrb = try mruby.open_allocator(&mrb_alloc);
+    // Alternatively to use malloc, call `mruby.open()`
     defer mrb.close();
 
     mrb.show_version();
