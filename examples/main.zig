@@ -5,6 +5,7 @@ const mruby = @import("mruby");
 pub fn main() anyerror!void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     var allocator = gpa.allocator();
+    defer _ = gpa.deinit();
 
     // Opening a state using a zig allocator instead of malloc
     var mrb_alloc = mruby.MrubyAllocator.init(allocator);
