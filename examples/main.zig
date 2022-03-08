@@ -58,6 +58,11 @@ pub fn main() anyerror!void {
     mrb.define_method(fancy_class, "int=", dataTypeSetInt, .{ .req = 1 });
     mrb.define_method(fancy_class, "array", dataTypeGetArray, .{});
 
+    // Exception test
+    mrb.sys_fail("intentional system failure");
+    mrb.print_error();
+    mrb.set_exc(null);
+
     // Dollar store repl
     var line: [4096]u8 = undefined;
     const stdin = std.io.getStdIn().reader();
@@ -78,10 +83,6 @@ pub fn main() anyerror!void {
             break;
         }
     }
-
-    // Exception test
-    mrb.sys_fail("intentional system failure");
-    mrb.print_error();
 }
 
 export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
