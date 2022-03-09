@@ -25,10 +25,11 @@ pub fn main() anyerror!void {
     mrb.show_copyright();
 
     // Loading a program from a string
-    const program =
-        \\ puts "hello from ruby!"
-    ;
+    const program = "puts 'hello from ruby!'";
     _ = mrb.load_string(program);
+
+    // Loading a program from file
+    _ = try mrb.load_file("examples/hello.rb");
 
     // Adding a zig function to ruby
     const kptr = mrb.kernel_module();
