@@ -91,6 +91,13 @@ pub const MrubyAllocator = struct {
     }
 
     pub fn deinit(self: *Self) void {
+        var iter = self.ptr_size_map.iterator();
+        while (iter.next()) |entry| {
+            const ptr = @intToPtr([*]u8, entry.key_ptr.*);
+            const size = entry.value_ptr.*;
+            const memory = ptr[0..size];
+            self.allocator.free(memory);
+        }
         self.ptr_size_map.deinit();
     }
 
