@@ -1084,7 +1084,8 @@ pub const mrb_state = opaque {
     pub fn p(self: *Self, value: mrb_value) void {
         return mrb_p(self, value);
     }
-    pub fn obj_id(obj: mrb_value) mrb_int {
+    pub fn obj_id(self: *Self, obj: mrb_value) mrb_int {
+        _ = self;
         return mrb_obj_id(obj);
     }
     pub fn obj_to_sym(self: *Self, name: mrb_value) mrb_sym {
