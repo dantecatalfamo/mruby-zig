@@ -242,8 +242,9 @@ pub const mrb_state = opaque {
     /// @param super The new class parent.
     /// @return [struct RClass *] Reference to the newly defined class.
     /// @see mrb_define_class_under
-    pub fn define_class(self: *Self, name: [*:0]const u8, super: *RClass) !*RClass {
-        return mrb_define_class(self, name, super) orelse error.DefineClassError;
+    pub fn define_class(self: *Self, name: [*:0]const u8, super: ?*RClass) !*RClass {
+        const super_class = super orelse self.object_class();
+        return mrb_define_class(self, name, super_class) orelse error.DefineClassError;
     }
     pub fn define_class_id(self: *Self, name: mrb_sym, super: *RClass) !*RClass {
         return mrb_define_class_id(self, name, super) orelse error.DefineClassError;
