@@ -74,8 +74,7 @@ pub fn buildMruby(self: *std.build.Step) !void {
     _ = self;
     var allocator = std.heap.page_allocator;
     try std.os.chdir("mruby");
-    var process = try std.ChildProcess.init(&.{"rake"}, allocator);
-    defer process.deinit();
+    var process = std.ChildProcess.init(&.{"rake"}, allocator);
     _ = try process.spawnAndWait();
     try std.os.chdir("..");
 }
@@ -83,7 +82,6 @@ pub fn buildMruby(self: *std.build.Step) !void {
 pub fn fetchSubmodule(self: *std.build.Step) !void {
     _ = self;
     var allocator = std.heap.page_allocator;
-    var process = try std.ChildProcess.init(&.{"git", "submodule", "update", "--init"}, allocator);
-    defer process.deinit();
+    var process = std.ChildProcess.init(&.{"git", "submodule", "update", "--init"}, allocator);
     _ = try process.spawnAndWait();
 }
