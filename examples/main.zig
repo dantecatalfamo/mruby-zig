@@ -68,6 +68,12 @@ pub fn main() anyerror!void {
     mrb.define_method(fancy_class, "int=", dataTypeSetInt, .{ .req = 1 });
     mrb.define_method(fancy_class, "array", dataTypeGetArray, .{});
 
+    // Get and set instance variables
+    const boring_class = try mrb.define_class("BoringClass", null);
+    mrb.define_method(boring_class, "set_var", boringClassSetVar, .{ .req = 1});
+    mrb.define_method(boring_class, "get_var", boringClassGetVar, .{});
+
+
     // Exception test
     mrb.sys_fail("intentional system failure");
     mrb.print_error();
@@ -104,7 +110,7 @@ export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_valu
 export fn zigOneArg(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
     const arg = mrb.get_arg1();
     if (arg.integer_p()) {
-        std.log.debug("Received integer: {d}", .{ arg.integer() });
+        std.log.debug("Received integer: {d}", .{ arg.integer() catch unreachable });
     } else {
         std.log.debug("Received type: {}", .{ arg.vType() });
     }
@@ -162,6 +168,17 @@ pub export fn dataTypeGetArray(mrb: *mruby.mrb_state, self: mruby.mrb_value) mru
         mrb.ary_push(array, mrb.int_value(val));
     }
     return array;
+}
+
+pub export fn boringClassSetVar(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
+    const arg = mrb.get_arg1();
+    mrb.iv_set(self, mrb.intern("@var"), arg);
+    return self;
+}
+
+pub export fn boringClassGetVar(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
+    const iv = mrb.iv_get(self, mrb.intern("@var"));
+    return iv;
 }
 
 test "ref all decls" {
