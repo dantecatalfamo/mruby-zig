@@ -1,4 +1,5 @@
 const std = @import("std");
+const path = std.fs.path;
 
 pub fn build(b: *std.build.Builder) void {
     // Standard target options allows the person running `zig build` to choose
@@ -68,12 +69,19 @@ pub fn addMruby(self: *std.build.LibExeObjStep) void {
     if (self.target.isDarwin()) {
         self.addFrameworkPath("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk");
     }
-    self.addSystemIncludePath("./mruby/include");
-    self.addLibraryPath("./mruby/build/host/lib");
+    var allocator = std.heap.page_allocator;
+    const src_dir = path.dirname(@src().file) orelse ".";
+    const mruby_path = path.join(allocator, &.{ src_dir, "mruby" }) catch unreachable;
+    const include_path = path.join(allocator, &.{ mruby_path, "include" }) catch unreachable;
+    const library_path = path.join(allocator, &.{ mruby_path, "build", "host", "lib" }) catch unreachable;
+    const compat_path = path.join(allocator, &.{ src_dir, "src", "mruby_compat.c" }) catch unreachable;
+    const package_path = path.join(allocator, &.{ src_dir, "src", "mruby.zig" }) catch unreachable;
+    self.addSystemIncludePath(include_path);
+    self.addLibraryPath(library_path);
     self.linkSystemLibrary("mruby");
     self.linkLibC();
-    self.addCSourceFile("src/mruby_compat.c", &.{});
-    self.addPackagePath("mruby", "src/mruby.zig");
+    self.addCSourceFile(compat_path, &.{});
+    self.addPackagePath("mruby", package_path);
 }
 
 pub fn buildMruby(self: *std.build.Step) !void {
