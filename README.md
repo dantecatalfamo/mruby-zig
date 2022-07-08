@@ -22,10 +22,9 @@ source tree, and the files `src/mruby.zig` and `src/mruby_compat.c`.
       const mruby_step = mruby.addMrubyStep(b);
       const exe = b.addExecutable("example", "src/main.zig");
       exe.step.dependOn(mruby_step);
-      addMruby(exe);
+      mruby.addMruby(exe);
       [...]
   }
-
   ```
 
 - Import `mruby` and start a new interpreter
