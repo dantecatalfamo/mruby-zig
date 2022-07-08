@@ -69,8 +69,9 @@ pub fn addMruby(self: *std.build.LibExeObjStep) void {
     if (self.target.isDarwin()) {
         self.addFrameworkPath("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk");
     }
-    var allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer allocator.deinit();
+    var allocator = arena.allocator();
 
     const src_dir = path.dirname(@src().file) orelse ".";
     const mruby_path = path.join(allocator, &.{ src_dir, "mruby" }) catch unreachable;
