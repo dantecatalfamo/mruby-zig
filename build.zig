@@ -70,7 +70,7 @@ pub fn addMruby(self: *std.build.LibExeObjStep) void {
         self.addFrameworkPath("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk");
     }
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer allocator.deinit();
+    defer arena.deinit();
     var allocator = arena.allocator();
 
     const src_dir = path.dirname(@src().file) orelse ".";
