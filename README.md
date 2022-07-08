@@ -15,12 +15,17 @@ source tree, and the files `src/mruby.zig` and `src/mruby_compat.c`.
 - Add the following lines to `build.zig`, with the paths changed to match the correct location
 
   ```zig
-  exe.addSystemIncludePath("./mruby/include");
-  exe.addLibraryPath("./mruby/build/host/lib");
-  exe.addCSourceFile("src/mruby_compat.c", &.{});
-  exe.addPackagePath("mruby", "src/mruby.zig");
-  exe.linkSystemLibrary("mruby");
-  exe.linkLibC();
+  const mruby = @import("mruby/build.zig");
+
+  pub fn build(b: *std.build.Builder) void {
+      [...]
+      const mruby_step = mruby.addMrubyStep(b);
+      const exe = b.addExecutable("example", "src/main.zig");
+      exe.step.dependOn(mruby_step);
+      addMruby(exe);
+      [...]
+  }
+
   ```
 
 - Import `mruby` and start a new interpreter
