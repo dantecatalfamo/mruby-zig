@@ -90,8 +90,13 @@ pub fn addMruby(self: *std.build.LibExeObjStep) void {
 
 pub fn buildMruby(self: *std.build.Step) !void {
     _ = self;
-    var allocator = std.heap.page_allocator;
-    try std.os.chdir("mruby");
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    var allocator = arena.allocator();
+
+    const src_dir = path.dirname(@src().file) orelse ".";
+    const mruby_path = path.join(allocator, &.{ src_dir, "mruby" }) catch unreachable;
+    try std.os.chdir(mruby_path);
     var process = std.ChildProcess.init(&.{"rake"}, allocator);
     _ = try process.spawnAndWait();
     try std.os.chdir("..");
