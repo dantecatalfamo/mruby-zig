@@ -20,12 +20,7 @@ pub fn build(b: *std.build.Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
-    const submodule_step = b.step("submodule", "Pull in git submodule");
-    submodule_step.makeFn = fetchSubmodule;
-
-    const mruby_step = b.step("mruby", "Build mruby");
-    mruby_step.makeFn = buildMruby;
-    mruby_step.dependOn(submodule_step);
+    const mruby_step = addMrubyStep(b);
 
     const exe = b.addExecutable("mruby-zig", "examples/main.zig");
     exe.step.dependOn(mruby_step);
@@ -50,6 +45,17 @@ pub fn build(b: *std.build.Builder) void {
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&exe_tests.step);
+}
+
+pub fn addMrubyStep(b: *std.build.Builder) *std.build.Step {
+    const submodule_step = b.step("submodule", "Pull in git submodule");
+    submodule_step.makeFn = fetchSubmodule;
+
+    const mruby_step = b.step("mruby", "Build mruby");
+    mruby_step.makeFn = buildMruby;
+    mruby_step.dependOn(submodule_step);
+
+    return mruby_step;
 }
 
 pub fn addMruby(self: *std.build.LibExeObjStep) void {
