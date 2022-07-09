@@ -55,9 +55,7 @@ pub fn addMruby(exe: *std.build.LibExeObjStep) void {
     if (exe.target.isDarwin()) {
         exe.addFrameworkPath("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk");
     }
-    var arena = std.heap.ArenaAllocator.init(exe.builder.allocator);
-    defer arena.deinit();
-    var allocator = arena.allocator();
+    var allocator = exe.builder.allocator;
 
     var build_mruby_step = BuildMrubyStep.init(exe.builder);
 
