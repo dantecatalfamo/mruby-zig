@@ -19,9 +19,7 @@ source tree, and the files `src/mruby.zig` and `src/mruby_compat.c`.
 
   pub fn build(b: *std.build.Builder) void {
       [...]
-      const mruby_step = mruby.addMrubyStep(b);
       const exe = b.addExecutable("example", "src/main.zig");
-      exe.step.dependOn(mruby_step);
       mruby.addMruby(exe);
       [...]
   }

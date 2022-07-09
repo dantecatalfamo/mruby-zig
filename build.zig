@@ -21,10 +21,7 @@ pub fn build(b: *std.build.Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
-    const mruby_step = addMrubyStep(b);
-
     const exe = b.addExecutable("mruby-zig", "examples/main.zig");
-    exe.step.dependOn(mruby_step);
     exe.setTarget(target);
     exe.setBuildMode(mode);
     addMruby(exe);
@@ -48,30 +45,21 @@ pub fn build(b: *std.build.Builder) void {
     test_step.dependOn(&exe_tests.step);
 }
 
-pub fn addMrubyStep(b: *std.build.Builder) *std.build.Step {
-    const submodule_step = b.step("submodule", "Pull in git submodule");
-    submodule_step.makeFn = fetchSubmodule;
-
-    const mruby_step = b.step("mruby", "Build mruby");
-    mruby_step.makeFn = buildMruby;
-    mruby_step.dependOn(submodule_step);
-
-    return mruby_step;
-}
-
-pub fn addMruby(self: *std.build.LibExeObjStep) void {
+pub fn addMruby(exe: *std.build.LibExeObjStep) void {
     // Won't compile on my macbook without this
     // zig version 0.10.0-dev.934+acec06cfa
     // fails with the following error:
     //     error(compilation): clang failed with stderr: In file included from /Users/dante/src/github.com/dantecatalfamo/mruby-zig/src/mruby_compat.c:4:
     //     In file included from /Users/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/include/mruby.h:117:
     //     /Users/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/include/mruby/value.h:426:10: fatal error: 'mach-o/getsect.h' file not found
-    if (self.target.isDarwin()) {
-        self.addFrameworkPath("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk");
+    if (exe.target.isDarwin()) {
+        exe.addFrameworkPath("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk");
     }
-    var arena = std.heap.ArenaAllocator.init(self.builder.allocator);
+    var arena = std.heap.ArenaAllocator.init(exe.builder.allocator);
     defer arena.deinit();
     var allocator = arena.allocator();
+
+    var build_mruby_step = BuildMrubyStep.init(exe.builder);
 
     const src_dir = path.dirname(@src().file) orelse ".";
     const mruby_path = path.join(allocator, &.{ src_dir, "mruby" }) catch unreachable;
@@ -80,31 +68,35 @@ pub fn addMruby(self: *std.build.LibExeObjStep) void {
     const compat_path = path.join(allocator, &.{ src_dir, "src", "mruby_compat.c" }) catch unreachable;
     const package_path = path.join(allocator, &.{ src_dir, "src", "mruby.zig" }) catch unreachable;
 
-    self.addSystemIncludePath(include_path);
-    self.addLibraryPath(library_path);
-    self.linkSystemLibrary("mruby");
-    self.linkLibC();
-    self.addCSourceFile(compat_path, &.{});
-    self.addPackagePath("mruby", package_path);
+    exe.addSystemIncludePath(include_path);
+    exe.addLibraryPath(library_path);
+    exe.linkSystemLibrary("mruby");
+    exe.linkLibC();
+    exe.addCSourceFile(compat_path, &.{});
+    exe.addPackagePath("mruby", package_path);
+    exe.step.dependOn(&build_mruby_step.step);
 }
 
-pub fn buildMruby(self: *std.build.Step) !void {
-    _ = self;
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    var allocator = arena.allocator();
+pub const BuildMrubyStep = struct {
+    step: std.build.Step,
+    builder: *std.build.Builder,
 
-    const src_dir = path.dirname(@src().file) orelse ".";
-    const mruby_path = path.join(allocator, &.{ src_dir, "mruby" }) catch unreachable;
-    try std.os.chdir(mruby_path);
-    var process = std.ChildProcess.init(&.{"rake"}, allocator);
-    _ = try process.spawnAndWait();
-    try std.os.chdir("..");
-}
+    pub fn init(builder: *std.build.Builder) *BuildMrubyStep {
+        const self = builder.allocator.create(BuildMrubyStep) catch unreachable;
+        self.* = BuildMrubyStep {
+            .builder = builder,
+            .step = std.build.Step.init(.custom, "build mruby", builder.allocator, make),
+        };
+        return self;
+    }
 
-pub fn fetchSubmodule(self: *std.build.Step) !void {
-    _ = self;
-    var allocator = std.heap.page_allocator;
-    var process = std.ChildProcess.init(&.{"git", "submodule", "update", "--init"}, allocator);
-    _ = try process.spawnAndWait();
-}
+    fn make(step: *std.build.Step) !void {
+        const self = @fieldParentPtr(BuildMrubyStep, "step", step);
+        const src_dir = path.dirname(@src().file) orelse ".";
+        const mruby_path = path.join(self.builder.allocator, &.{ src_dir, "mruby" }) catch unreachable;
+        try std.os.chdir(mruby_path);
+        var process = std.ChildProcess.init(&.{"rake"}, self.builder.allocator);
+        _ = try process.spawnAndWait();
+        try std.os.chdir("..");
+    }
+};
