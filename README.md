@@ -15,12 +15,12 @@ source tree, and the files `src/mruby.zig` and `src/mruby_compat.c`.
 - Add the following lines to `build.zig`, with the paths changed to match the correct location
 
   ```zig
-  const mruby = @import("mruby/build.zig");
+  const addMruby = @import("mruby/build.zig").addMruby;
 
   pub fn build(b: *std.build.Builder) void {
       [...]
       const exe = b.addExecutable("example", "src/main.zig");
-      mruby.addMruby(exe);
+      addMruby(exe);
       [...]
   }
   ```
