@@ -1,6 +1,10 @@
 # mruby-zig
 
-mruby bindings for zig
+[mruby](https://mruby.org/) bindings for [zig](https://ziglang.org/)!
+
+Mruby is the lightweight implementation of the Ruby language complying with part of the ISO standard.
+
+Mruby documentation can be found [here](https://mruby.org/docs/api/).
 
 ## Embedding
 
