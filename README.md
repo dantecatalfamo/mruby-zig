@@ -2,15 +2,11 @@
 
 mruby bindings for zig
 
-## Hacking
-
-To run the current example `main.zig` program, type `zig build run`. The `build.zig` file should handle pulling in and compiling `mruby`.
-
 ## Embedding
 
-To embed `mruby` into another zig project, you need to add a couple of
-lines to your build file. You will also need a copy of the `mruby`
-source tree, and the files `src/mruby.zig` and `src/mruby_compat.c`.
+To embed `mruby` into another zig project, you just need to
+recursively clone this repository and add a couple of lines to your
+`build.zig`.
 
 - Add the following lines to `build.zig`, with the paths changed to match the correct location
 
