@@ -15,7 +15,7 @@ source tree, and the files `src/mruby.zig` and `src/mruby_compat.c`.
 - Add the following lines to `build.zig`, with the paths changed to match the correct location
 
   ```zig
-  const addMruby = @import("mruby/build.zig").addMruby;
+  const addMruby = @import("mruby-zig/build.zig").addMruby;
 
   pub fn build(b: *std.build.Builder) void {
       [...]
