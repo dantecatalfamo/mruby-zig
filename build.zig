@@ -53,7 +53,7 @@ pub fn addMruby(exe: *std.build.LibExeObjStep) void {
     //     In file included from /Users/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/include/mruby.h:117:
     //     /Users/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/include/mruby/value.h:426:10: fatal error: 'mach-o/getsect.h' file not found
     if (exe.target.isDarwin()) {
-        exe.addFrameworkPath("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk");
+        exe.addFrameworkPath("/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk");
     }
     var allocator = exe.builder.allocator;
 
