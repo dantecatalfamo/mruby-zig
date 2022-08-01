@@ -1778,8 +1778,8 @@ pub const mrb_state = opaque {
 
     // mruby/error.h
 
-    pub fn sys_fail(self: *Self, mesg: [*:0]const u8) void {
-        return mrb_sys_fail(self, mesg);
+    pub fn sys_fail(self: *Self, mesg: [*:0]const u8) noreturn {
+        mrb_sys_fail(self, mesg);
     }
     pub fn exc_new_str(self: *Self, cla: *RClass, str: mrb_value) mrb_value {
         return mrb_exc_new_str(self, cla, str);
@@ -4241,7 +4241,7 @@ pub extern fn mrb_rdata_type(data: *RData) ?*const mrb_data_type;
 //            mruby/error.h            //
 /////////////////////////////////////////
 
-pub extern fn mrb_sys_fail(mrb: *mrb_state, mesg: [*:0]const u8) void;
+pub extern fn mrb_sys_fail(mrb: *mrb_state, mesg: [*:0]const u8) noreturn;
 pub extern fn mrb_exc_new_str(mrb: *mrb_state, cla: *RClass, str: mrb_value) mrb_value;
 pub fn mrb_exc_new_lit(mrb: *mrb_state, cla: *RClass, lit: []const u8) mrb_value {
     return mrb_exc_new_str(mrb, cla, mrb_str_new_lit(mrb, lit));
