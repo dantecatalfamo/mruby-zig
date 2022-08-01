@@ -7,15 +7,6 @@ pub fn build(b: *std.build.Builder) void {
     // means any target is allowed, and the default is native. Other options
     // for restricting supported target set are available.
     var target = b.standardTargetOptions(.{});
-    // For some reason building on Fedora while linking to libmruby.a
-    // causes a segfault on launch. For now we'll just use musl
-    // The output in GDB is the following:
-    //   Program received signal SIGSEGV, Segmentation fault.
-    //   0x00000000002ed513 in std.start.main (c_argc=1, c_argv=0x7fffffffdd38, c_envp=0x7fffffffe0a4) at /home/dante/zig/0.10.0-dev.974+bf6540ce5/files/lib/std/start.zig:450
-    //   450        while (c_envp[env_count] != null) : (env_count += 1) {}
-    if (target.isLinux()) {
-        target.abi = .musl;
-    }
 
     // Standard release options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
@@ -93,7 +84,7 @@ pub const BuildMrubyStep = struct {
         const src_dir = path.dirname(@src().file) orelse ".";
         const mruby_path = path.join(self.builder.allocator, &.{ src_dir, "mruby" }) catch unreachable;
         try std.os.chdir(mruby_path);
-        var process = std.ChildProcess.init(&.{"rake"}, self.builder.allocator);
+        var process = std.ChildProcess.init(&.{"rake", "CC=zig cc -ffast-math", "AR=zig ar", "--verbose"}, self.builder.allocator);
         _ = try process.spawnAndWait();
         try std.os.chdir("..");
     }

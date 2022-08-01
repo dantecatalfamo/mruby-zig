@@ -73,12 +73,6 @@ pub fn main() anyerror!void {
     mrb.define_method(boring_class, "set_var", boringClassSetVar, .{ .req = 1});
     mrb.define_method(boring_class, "get_var", boringClassGetVar, .{});
 
-
-    // Exception test
-    mrb.sys_fail("intentional system failure");
-    mrb.print_error();
-    mrb.set_exc(null);
-
     // Dollar store repl
     var line: [4096]u8 = undefined;
     const stdin = std.io.getStdIn().reader();
