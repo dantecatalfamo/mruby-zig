@@ -86,8 +86,6 @@ pub const BuildMrubyStep = struct {
         try std.os.chdir(mruby_path);
         // Use `zig cc` to compile code for consistency.
         // `-ffast-math` used to avoid strange complex number compilation error
-        // If `-ffast-math` is passed in through CFLAGS it still
-        // produces the error, but not when as a part of CC. ¯\_(ツ)_/¯
         //
         // [mruby-zig]$ zig build
         // mkdir -p /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/build/host/bin
@@ -117,6 +115,8 @@ pub const BuildMrubyStep = struct {
         // error: the following build command failed with exit code 1:
         // /home/dante/src/github.com/dantecatalfamo/mruby-zig/zig-cache/o/ea89ac36fa5fcd5b5e7bec7d5258adf6/build /home/dante/.asdf/installs/zig/master/zig /home/dante/src/github.com/dantecatalfamo/mruby-zig /home/dante/src/github.com/dantecatalfamo/mruby-zig/zig-cache /home/dante/.cache/zig
         //
+        // If `-ffast-math` is passed in through CFLAGS it still
+        // produces the error, but not when as a part of CC. ¯\_(ツ)_/¯
         // Related issue: https://github.com/ziglang/zig/issues/9259
         // StackOverflow:  https://stackoverflow.com/questions/49438158/why-is-muldc3-called-when-two-stdcomplex-are-multiplied
         var process = std.ChildProcess.init(&.{"rake", "CC=zig cc -ffast-math", "AR=zig ar", "--verbose"}, self.builder.allocator);
