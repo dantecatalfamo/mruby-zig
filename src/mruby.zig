@@ -2058,11 +2058,11 @@ pub const mrb_state = opaque {
 
     // mruby/numberic.h
 
-    pub fn num_plus(self: *Self, x: mrb_value, y: mrb_value) mrb_value {
-        return mrb_num_plus(self, x, y);
+    pub fn num_add(self: *Self, x: mrb_value, y: mrb_value) mrb_value {
+        return mrb_num_add(self, x, y);
     }
-    pub fn num_minus(self: *Self, x: mrb_value, y: mrb_value) mrb_value {
-        return mrb_num_minus(self, x, y);
+    pub fn num_sub(self: *Self, x: mrb_value, y: mrb_value) mrb_value {
+        return mrb_num_sub(self, x, y);
     }
     pub fn num_mul(self: *Self, x: mrb_value, y: mrb_value) mrb_value {
         return mrb_num_mul(self, x, y);
@@ -4544,8 +4544,8 @@ pub extern fn mrb_load_irep_buf_cxt(mrb: *mrb_state, irep_code: *const anyopaque
 //            mruby/numeric.h            //
 ///////////////////////////////////////////
 
-pub extern fn mrb_num_plus(mrb: *mrb_state, x: mrb_value, y: mrb_value) mrb_value;
-pub extern fn mrb_num_minus(mrb: *mrb_state, x: mrb_value, y: mrb_value) mrb_value;
+pub extern fn mrb_num_add(mrb: *mrb_state, x: mrb_value, y: mrb_value) mrb_value;
+pub extern fn mrb_num_sub(mrb: *mrb_state, x: mrb_value, y: mrb_value) mrb_value;
 pub extern fn mrb_num_mul(mrb: *mrb_state, x: mrb_value, y: mrb_value) mrb_value;
 
 pub extern fn mrb_integer_to_str(mrb: *mrb_state, x: mrb_value, base: mrb_int) mrb_value;
