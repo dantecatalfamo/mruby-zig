@@ -1021,10 +1021,10 @@ pub const mrb_state = opaque {
         return mrb_str_new_cstr(self, str);
     }
     pub fn str_new_static(self: *Self, str: []const u8) mrb_value {
-        return mrb_str_new_static(self, str.ptr, str.len);
+        return mrb_str_new_static(self, str.ptr, @intCast(mrb_int, str.len));
     }
     pub fn str_new_lit(self: *Self, lit: []const u8) mrb_value {
-        return mrb_str_new_static(self, lit.ptr, lit.len);
+        return mrb_str_new_static(self, lit.ptr, @intCast(mrb_int, lit.len));
     }
 
     pub fn obj_freeze(self: *Self, value: mrb_value) mrb_value {
@@ -1039,7 +1039,7 @@ pub const mrb_state = opaque {
         return mrb_obj_freeze(self, value);
     }
     pub fn str_new_static_frozen(self: *Self, str: []const u8) mrb_value {
-        const value = mrb_str_new_static(self, str.ptr, str.len);
+        const value = mrb_str_new_static(self, str.ptr, @intCast(mrb_int, str.len));
         return mrb_obj_freeze(self, value);
     }
     pub fn str_new_lit_frozen(self: *Self, lit: []const u8) mrb_value {
@@ -1166,7 +1166,7 @@ pub const mrb_state = opaque {
     }
 
     pub fn exc_new(self: *Self, cla: *RClass, str: []const u8) mrb_value {
-        return mrb_exc_new(self, cla, str.ptr, str.len);
+        return mrb_exc_new(self, cla, str.ptr, @intCast(mrb_int, str.len));
     }
     pub fn exc_raise(self: *Self, exception: mrb_value) mrb_noreturn {
         return mrb_exc_raise(self, exception);
@@ -1249,6 +1249,9 @@ pub const mrb_state = opaque {
     }
     pub fn ensure_int_type(self: *Self, value: mrb_value) mrb_value {
         return mrb_ensure_int_type(self, value);
+    }
+    pub fn ensure_integer_type(self: *Self, value: mrb_value) mrb_value {
+        return mrb_ensure_integer_type(self, value);
     }
 
     /// string type checking (contrary to the name, it doesn't convert)
@@ -3535,9 +3538,9 @@ pub extern fn mrb_str_new(mrb: *mrb_state, p: [*]const u8, len: mrb_int) mrb_val
 
 /// Turns a C string into a Ruby string value.
 pub extern fn mrb_str_new_cstr(mrb: *mrb_state, str: [*:0]const u8) mrb_value;
-pub extern fn mrb_str_new_static(mrb: *mrb_state, ptr: [*]const u8, len: usize) mrb_value;
+pub extern fn mrb_str_new_static(mrb: *mrb_state, ptr: [*]const u8, len: mrb_int) mrb_value;
 pub fn mrb_str_new_lit(mrb: *mrb_state, lit: []const u8) mrb_value {
-    return mrb_str_new_static(mrb, lit.ptr, lit.len);
+    return mrb_str_new_static(mrb, lit.ptr, @intCast(mrb_int, lit.len));
 }
 
 pub extern fn mrb_utf8_from_locale1(p: [*]const u8, l: usize) ?[*:0]const u8;
@@ -3555,7 +3558,7 @@ pub fn mrb_str_new_cstr_frozen(mrb: *mrb_state, p: [*:0]const u8) mrb_value {
     const value = mrb_str_new_cstr(mrb, p);
     return mrb_obj_freeze(mrb, value);
 }
-pub fn mrb_str_new_static_frozen(mrb: *mrb_state, p: [*:0]const u8, len: usize) mrb_value {
+pub fn mrb_str_new_static_frozen(mrb: *mrb_state, p: [*:0]const u8, len: mrb_int) mrb_value {
     const value = mrb_str_new_static(mrb, p, len);
     return mrb_obj_freeze(mrb, value);
 }
@@ -3668,7 +3671,7 @@ pub extern fn mrb_obj_is_kind_of(mrb: *mrb_state, obj: mrb_value, cla: *RClass) 
 pub extern fn mrb_obj_inspect(mrb: *mrb_state, self: mrb_value) mrb_value;
 pub extern fn mrb_obj_clone(mrb: *mrb_state, self: mrb_value) mrb_value;
 
-pub extern fn mrb_exc_new(mrb: *mrb_state, cla: *RClass, ptr: [*]const u8, len: usize) mrb_value;
+pub extern fn mrb_exc_new(mrb: *mrb_state, cla: *RClass, ptr: [*]const u8, len: mrb_int) mrb_value;
 pub extern fn mrb_exc_raise(mrb: *mrb_state, exc: mrb_value) mrb_noreturn;
 pub extern fn mrb_raise(mrb: *mrb_state, cla: *RClass, msg: [*:0]const u8) mrb_noreturn;
 pub extern fn mrb_raisef(mrb: *mrb_state, cla: *RClass, fmt: [*:0]const u8, ...) mrb_noreturn;
@@ -3705,6 +3708,7 @@ pub extern fn mrb_check_hash_type(mrb: *mrb_state, hash: mrb_value) mrb_value;
 pub extern fn mrb_ensure_string_type(mrb: *mrb_state, str: mrb_value) mrb_value;
 pub extern fn mrb_check_string_type(mrb: *mrb_state, str: mrb_value) mrb_value;
 pub extern fn mrb_ensure_int_type(mrb: *mrb_state, val: mrb_value) mrb_value;
+pub extern fn mrb_ensure_integer_type(mrb: *mrb_state, val: mrb_value) mrb_value;
 
 /// string type checking (contrary to the name, it doesn't convert)
 pub extern fn mrb_check_type(mrb: *mrb_state, x: mrb_value, t: mrb_vtype) void;
@@ -4797,7 +4801,7 @@ pub extern fn mrb_str_resize(mrb: *mrb_state, str: mrb_value, len: mrb_int) mrb_
 /// @return [mrb_value] An object as a Ruby sub-string.
 pub extern fn mrb_str_substr(mrb: *mrb_state, str: mrb_value, beg: mrb_int, len: mrb_int) mrb_value;
 
-pub extern fn mrb_str_new_capa(mrb: *mrb_state, capa: usize) mrb_value;
+pub extern fn mrb_str_new_capa(mrb: *mrb_state, capa: mrb_int) mrb_value;
 
 /// NULL terminated C string from mrb_value
 pub extern fn mrb_string_cstr(meb: *mrb_state, str: mrb_value) [*:0]const u8;
