@@ -117,6 +117,7 @@ pub const BuildMrubyStep = struct {
         //
         // If `-ffast-math` is passed in through CFLAGS it still
         // produces the error, but not when as a part of CC. ¯\_(ツ)_/¯
+        //
         // Related issue: https://github.com/ziglang/zig/issues/9259
         // StackOverflow:  https://stackoverflow.com/questions/49438158/why-is-muldc3-called-when-two-stdcomplex-are-multiplied
         var process = std.ChildProcess.init(&.{"rake", "CC=zig cc -ffast-math", "AR=zig ar", "--verbose"}, self.builder.allocator);
