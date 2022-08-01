@@ -84,6 +84,41 @@ pub const BuildMrubyStep = struct {
         const src_dir = path.dirname(@src().file) orelse ".";
         const mruby_path = path.join(self.builder.allocator, &.{ src_dir, "mruby" }) catch unreachable;
         try std.os.chdir(mruby_path);
+        // Use `zig cc` to compile code for consistency.
+        // `-ffast-math` used to avoid strange complex number compilation error
+        // If `-ffast-math` is passed in through CFLAGS it still
+        // produces the error, but not when as a part of CC. ¯\_(ツ)_/¯
+        //
+        // [mruby-zig]$ zig build
+        // mkdir -p /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/build/host/bin
+        // LD    build/host/bin/mirb
+        // zig cc -target x86_64-linux-gnu  -o "/home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/build/host/bin/mirb" "/home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/build/host/mrbgems/mruby-bin-mirb/tools/mirb/mirb.o" "/home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/build/host/lib/libmruby.a"  -lm
+        // LLD Link... ld.lld: error: undefined symbol: __divdc3
+        // >>> referenced by cmath.c:162 (mrbgems/mruby-cmath/src/cmath.c:162)
+        // >>>               cmath.o:(cmath_log) in archive /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/build/host/lib/libmruby.a
+        // >>> did you mean: __divdf3
+        // >>> defined in: /home/dante/.cache/zig/o/a4bd34886613d2e269c83a864437187f/libcompiler_rt.a(/home/dante/.cache/zig/o/a4bd34886613d2e269c83a864437187f/compiler_rt.o)
+        // rake aborted!
+        // Command failed with status (1): [zig cc -target x86_64-linux-gnu  -o "/home...]
+        // /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/lib/mruby/build/command.rb:37:in `_run'
+        // /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/lib/mruby/build/command.rb:217:in `run'
+        // /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/tasks/bin.rake:17:in `block (4 levels) in <top (required)>'
+        // /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/Rakefile:42:in `block in <top (required)>'
+        // Tasks: TOP => build => /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/bin/mirb => /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/build/host/bin/mirb
+        // (See full trace by running task with --trace)
+        // LLD Link... ld.lld: error: undefined symbol: __divdc3
+        // >>> referenced by cmath.c:162 (mrbgems/mruby-cmath/src/cmath.c:162)
+        // >>>               cmath.o:(cmath_log) in archive /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/build/host/lib/libmruby.a
+        // >>> did you mean: __divdf3
+        // >>> defined in: /home/dante/.cache/zig/o/83760f4c975d893977be512204091f81/libcompiler_rt.a(/home/dante/.cache/zig/o/83760f4c975d893977be512204091f81/compiler_rt.o)
+        // error: LLDReportedFailure
+        // mruby-zig...The following command exited with error code 1:
+        // /home/dante/.asdf/installs/zig/master/zig build-exe /home/dante/src/github.com/dantecatalfamo/mruby-zig/examples/main.zig -lmruby -lc /home/dante/src/github.com/dantecatalfamo/mruby-zig/src/mruby_compat.c --cache-dir /home/dante/src/github.com/dantecatalfamo/mruby-zig/zig-cache --global-cache-dir /home/dante/.cache/zig --name mruby-zig -target native-native-gnu -mcpu=skylake+sgx --pkg-begin mruby /home/dante/src/github.com/dantecatalfamo/mruby-zig/src/mruby.zig --pkg-end -isystem /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/include -L /home/dante/src/github.com/dantecatalfamo/mruby-zig/mruby/build/host/lib --enable-cache
+        // error: the following build command failed with exit code 1:
+        // /home/dante/src/github.com/dantecatalfamo/mruby-zig/zig-cache/o/ea89ac36fa5fcd5b5e7bec7d5258adf6/build /home/dante/.asdf/installs/zig/master/zig /home/dante/src/github.com/dantecatalfamo/mruby-zig /home/dante/src/github.com/dantecatalfamo/mruby-zig/zig-cache /home/dante/.cache/zig
+        //
+        // Related issue: https://github.com/ziglang/zig/issues/9259
+        // StackOverflow:  https://stackoverflow.com/questions/49438158/why-is-muldc3-called-when-two-stdcomplex-are-multiplied
         var process = std.ChildProcess.init(&.{"rake", "CC=zig cc -ffast-math", "AR=zig ar", "--verbose"}, self.builder.allocator);
         _ = try process.spawnAndWait();
         try std.os.chdir("..");
