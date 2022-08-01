@@ -1013,7 +1013,7 @@ pub const mrb_state = opaque {
     }
 
     pub fn str_new(self: *Self, str: []const u8) mrb_value {
-        return mrb_str_new(self, str.ptr, str.len);
+        return mrb_str_new(self, str.ptr, @intCast(mrb_int, str.len));
     }
 
     /// Turns a C string into a Ruby string value.
@@ -1031,7 +1031,7 @@ pub const mrb_state = opaque {
         return mrb_obj_freeze(self, value);
     }
     pub fn str_new_frozen(self: *Self, str: []const u8) mrb_value {
-        const value = mrb_str_new(self, str.ptr, str.len);
+        const value = mrb_str_new(self, str.ptr, @intCast(mrb_int, str.len));
         return mrb_obj_freeze(self, value);
     }
     pub fn str_new_cstr_frozen(self: *Self, str: [*:0]const u8) mrb_value {
@@ -3531,7 +3531,7 @@ pub extern fn mrb_free(mrb: *mrb_state, ptr: *anyopaque) void;
 //  */
 // #define MRB_OBJ_ALLOC(mrb, tt, klass) ((MRB_VTYPE_TYPEOF(tt)*)mrb_obj_alloc(mrb, tt, klass))
 
-pub extern fn mrb_str_new(mrb: *mrb_state, p: [*]const u8, len: usize) mrb_value;
+pub extern fn mrb_str_new(mrb: *mrb_state, p: [*]const u8, len: mrb_int) mrb_value;
 
 /// Turns a C string into a Ruby string value.
 pub extern fn mrb_str_new_cstr(mrb: *mrb_state, str: [*:0]const u8) mrb_value;
@@ -3547,7 +3547,7 @@ pub extern fn mrb_utf8_free1(p: [*]const u8) void;
 
 
 pub extern fn mrb_obj_freeze(mrb: *mrb_state, val: mrb_value) mrb_value;
-pub fn mrb_str_new_frozen(mrb: *mrb_state, p: [*:0]const u8 , len: usize) mrb_value {
+pub fn mrb_str_new_frozen(mrb: *mrb_state, p: [*:0]const u8 , len: mrb_int) mrb_value {
     const value = mrb_str_new(mrb, p, len);
     return mrb_obj_freeze(mrb,value);
 }
