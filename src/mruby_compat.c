@@ -113,16 +113,16 @@ void mrb_gc_arena_restore1(mrb_state *mrb, int idx) {
     mrb->gc.arena_idx = idx;
 }
 
-char *mrb_utf8_from_locale1(p, l) {
-    return mrb_utf8_from_locale(p, l);
+char *mrb_utf8_from_locale1(const char *p, int len) {
+    return mrb_utf8_from_locale(p, len);
 }
-char *mrb_locale_from_utf81(p, l) {
-    return mrb_locale_from_utf8(p, l);
+char *mrb_locale_from_utf81(const char *p, int len) {
+    return mrb_locale_from_utf8(p, len);
 }
-void mrb_locale_free1(p) {
+void mrb_locale_free1(void *p) {
     mrb_locale_free(p);
 }
-void mrb_utf8_free1(p) {
+void mrb_utf8_free1(void *p) {
     mrb_utf8_free(p);
 }
 

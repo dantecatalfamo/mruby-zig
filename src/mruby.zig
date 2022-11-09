@@ -1761,14 +1761,14 @@ pub const mrb_state = opaque {
     // mruby/data.h
 
     /// Create RData object with klass, add data pointer and data type
-    pub fn data_object_alloc(self: *Self, klass: *RClass, data_ptr: *anyopaque, data_type: *const mrb_data_type) !*RData {
+    pub fn data_object_alloc(self: *Self, klass: *RClass, data_ptr: *anyopaque, comptime data_type: *const mrb_data_type) !*RData {
         return mrb_data_object_alloc(self, klass, data_ptr, data_type) orelse error.OutOfMemory;
     }
     pub fn data_check_type(self: *Self, value: mrb_value, data_type: *const mrb_data_type) void {
         return mrb_data_check_type(self, value, data_type);
     }
     /// Get data pointer from RData object pointed to by mrb_value
-    pub fn data_get_ptr(self: *Self, value: mrb_value, data_type: *const mrb_data_type) ?*anyopaque {
+    pub fn data_get_ptr(self: *Self, value: mrb_value, comptime data_type: *const mrb_data_type) ?*anyopaque {
         return mrb_data_get_ptr(self, value, data_type);
     }
     pub fn data_check_get_ptr(self: *Self, value: mrb_value, data_type: *const mrb_data_type) ?*anyopaque {
@@ -2617,8 +2617,8 @@ pub const RRational = opaque {
 /// @param mrb The mruby state
 /// @param self The self object
 /// @return [mrb_value] The function's return value
-pub const mrb_func_t = fn (mrb: *mrb_state, self: mrb_value) callconv(.C) mrb_value;
-pub const mrb_atexit_func = fn (mrb: *mrb_state) callconv(.C) void;
+pub const mrb_func_t = *const fn (mrb: *mrb_state, self: mrb_value) callconv(.C) mrb_value;
+pub const mrb_atexit_func = *const fn (mrb: *mrb_state) callconv(.C) void;
 
 /// Function pointer type of custom allocator used in @see mrb_open_allocf.
 ///
@@ -2627,7 +2627,7 @@ pub const mrb_atexit_func = fn (mrb: *mrb_state) callconv(.C) void;
 /// - If s is NULL, ptr must be freed.
 ///
 /// See @see mrb_default_allocf for the default implementation.
-pub const mrb_allocf = fn (mrb: *mrb_state, ptr: ?*anyopaque, size: usize, ud: ?*anyopaque) callconv(.C) ?*anyopaque;
+pub const mrb_allocf = *const fn (mrb: *mrb_state, ptr: ?*anyopaque, size: usize, ud: ?*anyopaque) callconv(.C) ?*anyopaque;
 
 // TODO: make this work
 // #define MRB_VTYPE_FOREACH(f) \
@@ -4224,7 +4224,7 @@ pub extern fn mrb_get_class(mrb: *mrb_state, v: mrb_value) ?*RClass;
 
 pub const mrb_data_type = extern struct {
     struct_name: [*:0]const u8,
-    dfree: fn (mrb: *mrb_state, ptr: *anyopaque) callconv(.C) void,
+    dfree: *const fn (mrb: *mrb_state, ptr: *anyopaque) callconv(.C) void,
 };
 /// Create RData object with klass, add data pointer and data type
 pub extern fn mrb_data_object_alloc(mrb: *mrb_state, klass: *RClass, data_ptr: *anyopaque, data_type: *const mrb_data_type) ?*RData;
