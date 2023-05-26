@@ -804,7 +804,7 @@ pub const mrb_state = opaque {
     /// @see mrb_args_format
     /// @see mrb_kwargs
     pub fn get_args(self: *Self, fmt: mrb_args_format, args: anytype) mrb_int {
-        return @call(.{}, mrb_get_args, .{ self, fmt } ++ args);
+        return @call(.auto, mrb_get_args, .{ self, fmt } ++ args);
     }
 
     /// get method symbol
@@ -869,10 +869,10 @@ pub const mrb_state = opaque {
     /// @param ... Variadic values(not type safe!).
     /// @return [mrb_value] mruby function value.
     pub fn funcall(self: *Self, obj: mrb_value, method: [*:0]const u8, args: anytype) mrb_value {
-        return @call(.{}, mrb_funcall, .{ self, obj, method, args.len } ++ args);
+        return @call(.auto, mrb_funcall, .{ self, obj, method, args.len } ++ args);
     }
     pub fn funcall_id(self: *Self, obj: mrb_value, mid: mrb_sym, args: anytype) mrb_value {
-        return @call(.{}, mrb_funcall_id, .{ self, obj, mid, args.len } ++ args);
+        return @call(.auto, mrb_funcall_id, .{ self, obj, mid, args.len } ++ args);
     }
 
     /// Call existing ruby functions. This is basically the type safe version of mrb_funcall.
@@ -1175,10 +1175,10 @@ pub const mrb_state = opaque {
         return mrb_raise(self, cla, msg);
     }
     pub fn raisef(self: *Self, cla: *RClass, fmt: [*:0]const u8, args: anytype) mrb_noreturn {
-        return @call(.{}, mrb_raisef, .{ self, cla, fmt } ++ args);
+        return @call(.auto, mrb_raisef, .{ self, cla, fmt } ++ args);
     }
     pub fn name_error(self: *Self, id: mrb_sym, fmt: [*:0]const u8, args: anytype) mrb_noreturn {
-        return @call(.{}, mrb_name_error, .{ self, id, fmt } ++ args);
+        return @call(.auto, mrb_name_error, .{ self, id, fmt } ++ args);
     }
     pub fn frozen_error(self: *Self, frozen_obj: *anyopaque) mrb_noreturn {
         return mrb_frozen_error(self, frozen_obj);
@@ -1187,10 +1187,10 @@ pub const mrb_state = opaque {
         return mrb_argnum_error(self, argc, min, max);
     }
     pub fn warn(self: *Self, fmt: [*:0]const u8, args: anytype) void {
-        return @call(.{}, mrb_warn, .{ self, fmt } ++ args );
+        return @call(.auto, mrb_warn, .{ self, fmt } ++ args);
     }
     pub fn bug(self: *Self, fmt: [*:0]const u8, args: anytype) mrb_noreturn {
-        return @call(.{}, mrb_bug, .{ self, fmt } ++ args);
+        return @call(.auto, mrb_bug, .{ self, fmt } ++ args);
     }
     pub fn print_backtrace(self: *Self) void {
         return mrb_print_backtrace(self);
@@ -1331,7 +1331,7 @@ pub const mrb_state = opaque {
     }
 
     pub fn format(self: *Self, fmt: [*:0]const u8, args: anytype) mrb_value {
-        return @call(.{}, mrb_format, .{ self, fmt } ++ args);
+        return @call(.auto, mrb_format, .{ self, fmt } ++ args);
     }
 
     // mruby/array.h
@@ -1803,7 +1803,7 @@ pub const mrb_state = opaque {
         return mrb_get_backtrace(self);
     }
     pub fn no_method_error(self: *Self, id: mrb_sym, args: mrb_value, fmt: [*:0]const u8, vars: anytype) mrb_noreturn {
-        return @call(.{}, mrb_no_method_error, .{ self, id, args, fmt } ++ vars);
+        return @call(.auto, mrb_no_method_error, .{ self, id, args, fmt } ++ vars);
     }
     pub fn f_raise(self: *Self, value: mrb_value) mrb_value {
         return mrb_f_raise(self, value);
@@ -3978,7 +3978,7 @@ pub const mrbc_context = opaque {};
 pub extern fn mrbc_context_new(mrb: *mrb_state) ?*mrbc_context;
 pub extern fn mrbc_context_free(mrb: *mrb_state, cxt: *mrbc_context) void;
 pub extern fn mrbc_filename(mrb: *mrb_state, cxt: *mrbc_context, s: [*:0]const u8) ?[*:0]const u8;
-pub extern fn mrbc_partial_hook(mrb: *mrb_state, cxt: *mrbc_context, partial_hook: fn (state: *mrb_parser_state) callconv(.C) c_int, data: *anyopaque) void;
+pub extern fn mrbc_partial_hook(mrb: *mrb_state, cxt: *mrbc_context, partial_hook: *const fn (*mrb_parser_state) callconv(.C) c_int, data: *anyopaque) void;
 pub extern fn mrbc_cleanup_local_variables(mrb: *mrb_state, cxt: *mrbc_context) void;
 
 /// AST node structure
@@ -4087,7 +4087,7 @@ pub extern fn mrb_mod_cv_set(mrb: *mrb_state, cla: *RClass, sym: mrb_sym, v: mrb
 pub extern fn mrb_cv_set(mrb: *mrb_state, mod: mrb_value, sym: mrb_sym, v: mrb_value) void;
 pub extern fn mrb_cv_defined(mrb: *mrb_state, mod: mrb_value, sym: mrb_sym) mrb_bool;
 
-pub const mrb_iv_foreach_func = fn (mrb: *mrb_state, sym: mrb_sym, val: mrb_value, ptr: *anyopaque) callconv(.C) c_int;
+pub const mrb_iv_foreach_func = *const fn (mrb: *mrb_state, sym: mrb_sym, val: mrb_value, ptr: *anyopaque) callconv(.C) c_int;
 pub extern fn mrb_iv_foreach(mrb: *mrb_state, obj: mrb_value, func: mrb_iv_foreach_func, ptr: *anyopaque) void;
 
 
@@ -4259,7 +4259,7 @@ pub extern fn mrb_get_backtrace(mrb: *mrb_state) mrb_value;
 pub extern fn mrb_no_method_error(mrb: *mrb_state, id: mrb_sym, args: mrb_value, fmt: [*:0]const u8, ...) mrb_noreturn;
 pub extern fn mrb_f_raise(mrb: *mrb_state, value: mrb_value) mrb_value;
 
-pub const mrb_protect_error_func = fn (mrb: *mrb_state, userdata: *anyopaque) callconv(.C) mrb_value;
+pub const mrb_protect_error_func = *const fn (mrb: *mrb_state, userdata: *anyopaque) callconv(.C) mrb_value;
 
 /// Protect
 pub extern fn mrb_protect_error(mrb: *mrb_state, body: mrb_protect_error_func, userdata: *anyopaque, err: *mrb_bool) mrb_value;
@@ -4460,7 +4460,7 @@ pub extern fn mrb_hash_dup(mrb: *mrb_state, hash: mrb_value) mrb_value;
 pub extern fn mrb_hash_merge(mrb: *mrb_state, hash1: mrb_value, hash2: mrb_value) void;
 
 /// return non zero to break the loop
-pub const mrb_hash_foreach_func = fn (mrb: *mrb_state, key: mrb_value, val: mrb_value, data: *anyopaque) callconv(.C) c_int;
+pub const mrb_hash_foreach_func = *const fn (mrb: *mrb_state, key: mrb_value, val: mrb_value, data: *anyopaque) callconv(.C) c_int;
 pub extern fn mrb_hash_foreach(mrb: *mrb_state, hash: *RHash, func: mrb_hash_foreach_func, ptr: *anyopaque) void;
 
 
