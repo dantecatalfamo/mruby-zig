@@ -28,7 +28,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     b.installArtifact(exe);
-    addMruby(b, exe);
+    const build_mruby_step = addMruby(b, exe);
 
     // ...
 }
