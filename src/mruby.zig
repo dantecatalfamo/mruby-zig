@@ -139,7 +139,6 @@ export fn zigMrubyAlloc(mrb: *mrb_state, ptr: ?*anyopaque, size: usize, user_dat
     }
 }
 
-
 /// Create new mrb_state with just the MRuby core
 ///
 /// @param f
@@ -153,7 +152,6 @@ export fn zigMrubyAlloc(mrb: *mrb_state, ptr: ?*anyopaque, size: usize, user_dat
 pub fn open_core(f: mrb_allocf, ud: *anyopaque) !*mrb_state {
     return mrb_open_core(f, ud) orelse error.OpenError;
 }
-
 
 pub const mrb_state = opaque {
     const Self = @This();
@@ -552,7 +550,7 @@ pub const mrb_state = opaque {
 
     /// @see mrb_obj_new
     pub fn class_new_instance(self: *Self, argc: usize, argv: [*]const mrb_value, cla: *RClass) mrb_value {
-      return mrb_class_new_instance(self, argc, argv, cla);
+        return mrb_class_new_instance(self, argc, argv, cla);
     }
 
     /// Creates a new instance of Class, Class.
@@ -2186,7 +2184,7 @@ pub const mrb_ssize = isize;
 pub const mrb_int = isize;
 pub const mrb_uint = usize;
 pub const mrb_float = f64; // HACK: assume 64-bit float for now
-pub const mrb_value = extern struct {  // HACK: assume word boxing for now
+pub const mrb_value = extern struct { // HACK: assume word boxing for now
     w: usize,
 
     const Self = @This();
@@ -2425,12 +2423,12 @@ pub const mrb_value = extern struct {  // HACK: assume word boxing for now
 pub const iv_tbl = opaque {};
 
 pub const mrb_fiber_state = enum(c_int) {
-  MRB_FIBER_CREATED,
-  MRB_FIBER_RUNNING,
-  MRB_FIBER_RESUMED,
-  MRB_FIBER_SUSPENDED,
-  MRB_FIBER_TRANSFERRED,
-  MRB_FIBER_TERMINATED,
+    MRB_FIBER_CREATED,
+    MRB_FIBER_RUNNING,
+    MRB_FIBER_RESUMED,
+    MRB_FIBER_SUSPENDED,
+    MRB_FIBER_TRANSFERRED,
+    MRB_FIBER_TERMINATED,
 };
 
 // Opaque types
@@ -2463,7 +2461,6 @@ pub const RData = opaque {
     pub fn data_type(self: *Self) ?*mrb_data_type {
         return mrb_rdata_type(self);
     }
-
 };
 pub const RInteger = opaque {
     const Self = @This();
@@ -2496,7 +2493,6 @@ pub const RClass = opaque {
     pub fn class_real(self: *Self) ?*Self {
         return mrb_class_real(self);
     }
-
 };
 pub const RProc = opaque {
     const Self = @This();
@@ -2518,7 +2514,6 @@ pub const RArray = opaque {
     pub fn capa(self: *Self) mrb_int {
         return mrb_ary_capa(self);
     }
-
 };
 pub const RHash = opaque {
     const Self = @This();
@@ -2609,7 +2604,6 @@ pub const RRational = opaque {
     }
 };
 
-
 /// Function pointer type for a function callable by mruby.
 ///
 /// The arguments to the function are stored on the mrb_state. To get them see mrb_get_args
@@ -2661,33 +2655,33 @@ pub const mrb_allocf = *const fn (mrb: *mrb_state, ptr: ?*anyopaque, size: usize
 //   f(MRB_TT_RATIONAL,    struct RRational,   "Rational")
 
 pub const mrb_vtype = enum(c_int) {
-  MRB_TT_FALSE,
-  MRB_TT_TRUE,
-  MRB_TT_SYMBOL,
-  MRB_TT_UNDEF,
-  MRB_TT_FREE,
-  MRB_TT_FLOAT,
-  MRB_TT_INTEGER,
-  MRB_TT_CPTR,
-  MRB_TT_OBJECT,
-  MRB_TT_CLASS,
-  MRB_TT_MODULE,
-  MRB_TT_ICLASS,
-  MRB_TT_SCLASS,
-  MRB_TT_PROC,
-  MRB_TT_ARRAY,
-  MRB_TT_HASH,
-  MRB_TT_STRING,
-  MRB_TT_RANGE,
-  MRB_TT_EXCEPTION,
-  MRB_TT_ENV,
-  MRB_TT_DATA,
-  MRB_TT_FIBER,
-  MRB_TT_STRUCT,
-  MRB_TT_ISTRUCT,
-  MRB_TT_BREAK,
-  MRB_TT_COMPLEX,
-  MRB_TT_RATIONAL,
+    MRB_TT_FALSE,
+    MRB_TT_TRUE,
+    MRB_TT_SYMBOL,
+    MRB_TT_UNDEF,
+    MRB_TT_FREE,
+    MRB_TT_FLOAT,
+    MRB_TT_INTEGER,
+    MRB_TT_CPTR,
+    MRB_TT_OBJECT,
+    MRB_TT_CLASS,
+    MRB_TT_MODULE,
+    MRB_TT_ICLASS,
+    MRB_TT_SCLASS,
+    MRB_TT_PROC,
+    MRB_TT_ARRAY,
+    MRB_TT_HASH,
+    MRB_TT_STRING,
+    MRB_TT_RANGE,
+    MRB_TT_EXCEPTION,
+    MRB_TT_ENV,
+    MRB_TT_DATA,
+    MRB_TT_FIBER,
+    MRB_TT_STRUCT,
+    MRB_TT_ISTRUCT,
+    MRB_TT_BREAK,
+    MRB_TT_COMPLEX,
+    MRB_TT_RATIONAL,
 };
 
 /// Defines a new class.
@@ -2972,7 +2966,7 @@ pub extern fn mrb_obj_new(mrb: *mrb_state, cla: *RClass, argc: usize, argv: [*]c
 
 /// @see mrb_obj_new
 pub fn mrb_class_new_instance(mrb: *mrb_state, argc: usize, argv: [*]const mrb_value, cla: *RClass) mrb_value {
-  return mrb_obj_new(mrb,cla,argc,argv);
+    return mrb_obj_new(mrb, cla, argc, argv);
 }
 
 /// Creates a new instance of Class, Class.
@@ -3245,7 +3239,7 @@ pub fn mrb_args_post(n: u5) mrb_aspec {
 
 ///  keyword arguments (n of keys, kdict)
 pub fn mrb_args_key(n1: u5, n2: u5) mrb_aspec {
-    return ((@as(u32, n1) & 0x1f) << 2) | (if (n2 != 0) @as(u8, 1<<1) else 0);
+    return ((@as(u32, n1) & 0x1f) << 2) | (if (n2 != 0) @as(u8, 1 << 1) else 0);
 }
 
 /// Function takes a block argument
@@ -3354,7 +3348,7 @@ pub const mrb_kwargs = extern struct {
     /// keyword argument values
     values: *mrb_value,
     /// keyword rest (dict)
-    rest: *mrb_value
+    rest: *mrb_value,
 };
 
 /// Retrieve arguments from mrb_state.
@@ -3454,7 +3448,6 @@ pub extern fn mrb_funcall_argv(mrb: *mrb_state, val: mrb_value, name: mrb_sym, a
 /// Call existing ruby functions with a block.
 pub extern fn mrb_funcall_with_block(mrb: *mrb_state, val: mrb_value, name: mrb_sym, argc: usize, argv: [*]const *mrb_value, block: mrb_value) mrb_value;
 
-
 /// `strlen` for character string literals (use with caution or `strlen` instead)
 ///  Adjacent string literals are concatenated in C/C++ in translation phase 6.
 ///  If `lit` is not one, the compiler will report a syntax error:
@@ -3548,11 +3541,10 @@ pub extern fn mrb_locale_from_utf81(p: [*]const u8, l: usize) ?[*:0]const u8;
 pub extern fn mrb_locale_free1(p: [*]const u8) void;
 pub extern fn mrb_utf8_free1(p: [*]const u8) void;
 
-
 pub extern fn mrb_obj_freeze(mrb: *mrb_state, val: mrb_value) mrb_value;
-pub fn mrb_str_new_frozen(mrb: *mrb_state, p: [*:0]const u8 , len: mrb_int) mrb_value {
+pub fn mrb_str_new_frozen(mrb: *mrb_state, p: [*:0]const u8, len: mrb_int) mrb_value {
     const value = mrb_str_new(mrb, p, len);
-    return mrb_obj_freeze(mrb,value);
+    return mrb_obj_freeze(mrb, value);
 }
 pub fn mrb_str_new_cstr_frozen(mrb: *mrb_state, p: [*:0]const u8) mrb_value {
     const value = mrb_str_new_cstr(mrb, p);
@@ -3765,11 +3757,9 @@ pub extern fn mrb_show_copyright(mrb: *mrb_state) void;
 
 pub extern fn mrb_format(mrb: *mrb_state, format: [*:0]const u8, ...) mrb_value;
 
-
 /////////////////////////////////////////
 //            mruby/array.h            //
 /////////////////////////////////////////
-
 
 pub const mrb_shared_array = struct {
     redcnt: c_int,
@@ -4009,7 +3999,6 @@ pub extern fn mrb_load_nstring(mrb: *mrb_state, s: [*]const u8, len: usize) mrb_
 pub extern fn mrb_load_string_cxt(mrb: *mrb_state, s: [*:0]const u8, cxt: *mrbc_context) mrb_value;
 pub extern fn mrb_load_nstring_cxt(mrb: *mrb_state, s: [*]const u8, len: usize, cxt: *mrbc_context) mrb_value;
 
-
 ////////////////////////////////////////////
 //            mruby/variable.h            //
 ////////////////////////////////////////////
@@ -4090,7 +4079,6 @@ pub extern fn mrb_cv_defined(mrb: *mrb_state, mod: mrb_value, sym: mrb_sym) mrb_
 pub const mrb_iv_foreach_func = *const fn (mrb: *mrb_state, sym: mrb_sym, val: mrb_value, ptr: *anyopaque) callconv(.C) c_int;
 pub extern fn mrb_iv_foreach(mrb: *mrb_state, obj: mrb_value, func: mrb_iv_foreach_func, ptr: *anyopaque) void;
 
-
 /////////////////////////////////////////
 //            mruby/value.h            //
 /////////////////////////////////////////
@@ -4152,14 +4140,12 @@ pub extern fn mrb_get_true_value() mrb_value;
 pub extern fn mrb_get_bool_value(boolean: mrb_bool) mrb_value;
 pub extern fn mrb_get_undef_value() mrb_value;
 
-
 /////////////////////////////////////////////////
 //            mruby/<boxing_type>.h            //
 /////////////////////////////////////////////////
 
-
 pub extern fn mrb_integer_func(o: mrb_value) mrb_int;
-pub extern fn mrb_get_type(o:mrb_value) mrb_vtype;
+pub extern fn mrb_get_type(o: mrb_value) mrb_vtype;
 // hacks
 pub extern fn mrb_get_ptr(v: mrb_value) *anyopaque;
 pub extern fn mrb_get_cptr(v: mrb_value) *anyopaque;
@@ -4197,8 +4183,6 @@ pub extern fn mrb_get_istruct_p(o: mrb_value) mrb_bool;
 pub extern fn mrb_get_break_p(o: mrb_value) mrb_bool;
 pub extern fn mrb_get_immediate_p(o: mrb_value) mrb_bool;
 
-
-
 /////////////////////////////////////////
 //            mruby/class.h            //
 /////////////////////////////////////////
@@ -4213,10 +4197,8 @@ pub extern fn mrb_class_real(cl: *RClass) ?*RClass;
 // hack
 pub extern fn mrb_get_class(mrb: *mrb_state, v: mrb_value) ?*RClass;
 
-
 // pub const mrb_mt_foreach_func = fn (mrb: *mrb_state, sym: mrb_sym, method: mrb_method_t, data: *anyopaque) c_int;
 // pub extern fn mrb_mt_foreach(mrb: *mrb_state, cla: *RClass, func: *mrb_mt_foreach_func, data: *anyopaque) void;
-
 
 ////////////////////////////////////////
 //            mruby/data.h            //
@@ -4239,7 +4221,6 @@ pub fn mrb_rdata(obj: mrb_value) ?*RData {
 }
 pub extern fn mrb_rdata_data(data: *RData) ?*anyopaque;
 pub extern fn mrb_rdata_type(data: *RData) ?*const mrb_data_type;
-
 
 /////////////////////////////////////////
 //            mruby/error.h            //
@@ -4463,18 +4444,17 @@ pub extern fn mrb_hash_merge(mrb: *mrb_state, hash1: mrb_value, hash2: mrb_value
 pub const mrb_hash_foreach_func = *const fn (mrb: *mrb_state, key: mrb_value, val: mrb_value, data: *anyopaque) callconv(.C) c_int;
 pub extern fn mrb_hash_foreach(mrb: *mrb_state, hash: *RHash, func: mrb_hash_foreach_func, ptr: *anyopaque) void;
 
-
 ////////////////////////////////////////
 //            mruby/irep.h            //
 ////////////////////////////////////////
 
 pub const irep_pool_type = enum(c_int) {
-    IREP_TT_STR   = 0,          // string (need free)
-    IREP_TT_SSTR  = 2,          // string (static)
-    IREP_TT_INT32 = 1,          // 32bit integer
-    IREP_TT_INT64 = 3,          // 64bit integer
-    IREP_TT_BIGINT = 7,         // big integer (not yet supported)
-    IREP_TT_FLOAT = 5,          // float (double/float)
+    IREP_TT_STR = 0, // string (need free)
+    IREP_TT_SSTR = 2, // string (static)
+    IREP_TT_INT32 = 1, // 32bit integer
+    IREP_TT_INT64 = 3, // 64bit integer
+    IREP_TT_BIGINT = 7, // big integer (not yet supported)
+    IREP_TT_FLOAT = 5, // float (double/float)
 };
 
 pub const mrb_pool_value = opaque {};
@@ -4486,8 +4466,8 @@ pub const mrb_catch_type = enum(u8) {
 
 pub const mrb_irep_catch_handler = extern struct {
     catch_type: mrb_catch_type,
-    begin: [4]u8,  // The starting address to match the handler. Includes this.
-    end: [4]u8,    // The endpoint address that matches the handler. Not Includes this.
+    begin: [4]u8, // The starting address to match the handler. Includes this.
+    end: [4]u8, // The endpoint address that matches the handler. Not Includes this.
     target: [4]u8, // The address to jump to if a match is made.
 };
 
@@ -4495,9 +4475,9 @@ pub const mrb_irep_debug_info = opaque {};
 
 /// Program data array struct
 pub const mrb_irep = extern struct {
-    nlocals: u16,        // Number of local variables
-    nregs: u16,          // Number of register variables
-    clen: u16,           // Number of catch handlers
+    nlocals: u16, // Number of local variables
+    nregs: u16, // Number of register variables
+    clen: u16, // Number of catch handlers
     flags: u16,
 
     iseq: [*]const mrb_code,
@@ -4542,7 +4522,6 @@ pub extern fn mrb_load_irep_cxt(mrb: *mrb_state, irep_code: [*]const u8, context
 /// @param [const void*] irep code
 /// @param [size_t] size of irep buffer.
 pub extern fn mrb_load_irep_buf_cxt(mrb: *mrb_state, irep_code: *const anyopaque, size: usize, context: *mrbc_context) mrb_value;
-
 
 ///////////////////////////////////////////
 //            mruby/numeric.h            //
@@ -4591,10 +4570,10 @@ pub extern fn mrb_range_ptr(mrb: *mrb_state, range: mrb_value) ?*RRange;
 ///
 pub extern fn mrb_range_new(mrb: *mrb_state, start: mrb_value, end: mrb_value, exclude: mrb_bool) mrb_value;
 
-pub const mrb_range_beg_len_t = enum (c_int) {
-  MRB_RANGE_TYPE_MISMATCH = 0,  // (failure) not range
-  MRB_RANGE_OK = 1,             // (success) range
-  MRB_RANGE_OUT = 2             // (failure) out of range
+pub const mrb_range_beg_len_t = enum(c_int) {
+    MRB_RANGE_TYPE_MISMATCH = 0, // (failure) not range
+    MRB_RANGE_OK = 1, // (success) range
+    MRB_RANGE_OUT = 2, // (failure) out of range
 };
 
 pub extern fn mrb_range_beg_len(mrb: *mrb_state, range: mrb_value, begp: *mrb_int, lenp: *mrb_int, len: mrb_int, trunc: mrb_bool) mrb_range_beg_len_t;
@@ -4602,9 +4581,7 @@ pub extern fn mrb_range_beg1(mrb: *mrb_state, range: mrb_value) mrb_value;
 pub extern fn mrb_range_end1(mrb: *mrb_state, range: mrb_value) mrb_value;
 pub extern fn mrb_range_excl_p1(mrb: *mrb_state, range: mrb_value) mrb_bool;
 
-
 // mruby/string.h
-
 
 pub extern fn mrb_str_modify(mrb: *mrb_state, s: *RString) void;
 /// mrb_str_modify() with keeping ASCII flag if set
