@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     b.installArtifact(exe);
-    const build_mruby = addMruby(b, exe);
+    const build_mruby = addMruby(b, exe, &.{"--verbose"});
 
     const compile_mruby_srcs = b.addSystemCommand(&[_][]const u8{
         "mruby/build/host/bin/mrbc",
@@ -38,7 +38,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    _ = addMruby(b, unit_tests);
+    _ = addMruby(b, unit_tests, &.{"--verbose"});
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
@@ -46,7 +46,11 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_unit_tests.step);
 }
 
-pub fn addMruby(owner: *std.Build, exe: *std.Build.Step.Compile) *std.Build.Step.Run {
+pub fn addMruby(
+    owner: *std.Build,
+    exe: *std.Build.Step.Compile,
+    comptime args: []const []const u8,
+) *std.Build.Step.Run {
     const allocator = owner.allocator;
 
     const src_dir = path.dirname(@src().file) orelse ".";
@@ -68,18 +72,21 @@ pub fn addMruby(owner: *std.Build, exe: *std.Build.Step.Compile) *std.Build.Step
     });
     exe.addModule("mruby", mod);
 
-    const build_mruby = owner.addSystemCommand(&[_][]const u8{
+    const default_args = &[_][]const u8{
         "rake",
-        "--verbose",
         "--no-search",
         "-C",
         mruby_path,
         "-f",
         rakefile_path,
-        "CC=zig cc",
-        "CXX=zig c++",
-        "AR=zig ar",
-    });
+    };
+
+    const build_mruby = owner.addSystemCommand(default_args ++ args);
+
+    build_mruby.setEnvironmentVariable("CC", "zig cc");
+    build_mruby.setEnvironmentVariable("CXX", "zig c++");
+    build_mruby.setEnvironmentVariable("AR", "zig ar");
+
     exe.step.dependOn(&build_mruby.step);
 
     return build_mruby;

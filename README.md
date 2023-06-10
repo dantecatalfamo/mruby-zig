@@ -28,7 +28,26 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     b.installArtifact(exe);
-    const build_mruby_step = addMruby(b, exe);
+
+    // Run default rake task
+    const build_mruby_step = addMruby(b, exe, &.{});
+
+    // Add options to rake
+    // const build_mruby_step = addMruby(b, exe, &.{"--verbose"});
+
+    // Run specific tasks
+    // const build_mruby_step = addMruby(b, exe, &.{
+    //   "all",
+    //   "test",
+    // });
+
+    // Use a specific `build_config.rb`
+    // const relative_root_dir = std.fs.path.dirname(@src().file) orelse ".";
+    // const root_dir = std.fs.realpathAlloc(b.allocator, relative_root_dir) catch @panic("realpathAlloc");
+    // const config_path = std.fs.path.join(b.allocator, &.{ //
+    //     root_dir, "src", "build_config.rb",
+    // }) catch unreachable;
+    // build_mruby_step.setEnvironmentVariable("MRUBY_CONFIG", config_path);
 
     // ...
 }
