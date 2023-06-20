@@ -30,6 +30,10 @@ pub fn main() anyerror!void {
     // Loading a program from file
     _ = try mrb.load_file("examples/hello.rb");
 
+    // Loading a program from bytecode
+    const mruby_bytecode = @ptrCast([*]const u8, @embedFile("bytecode.mrb"));
+    _ = mrb.load_irep(mruby_bytecode);
+
     // Adding a zig function to ruby
     const kptr = mrb.kernel_module();
     const kval = kptr.value();

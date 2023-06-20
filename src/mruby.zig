@@ -2583,10 +2583,10 @@ pub const RBreak = opaque {
         return mrb_break_proc_set1(self, proc);
     }
     pub fn tag_get(self: *Self) rbreak_tag {
-        return mrb_break_tag_get1(self);
+        return mrb_break_tag_get(self);
     }
     pub fn tag_set(self: *Self, tag: rbreak_tag) void {
-        return mrb_break_tag_set1(self, tag);
+        return mrb_break_tag_set(self, tag);
     }
 };
 pub const RComplex = opaque {
@@ -4281,8 +4281,8 @@ pub extern fn mrb_break_value_get1(brk: *RBreak) mrb_value;
 pub extern fn mrb_break_value_set1(brk: *RBreak, val: mrb_value) void;
 pub extern fn mrb_break_proc_get1(brk: *RBreak) ?*const RProc;
 pub extern fn mrb_break_proc_set1(brk: *RBreak, proc: *RProc) void;
-pub extern fn mrb_break_tag_get1(brk: *RBreak) rbreak_tag;
-pub extern fn mrb_break_tag_set1(brk: *RBreak, tag: rbreak_tag) void;
+pub extern fn mrb_break_tag_get(brk: *RBreak) rbreak_tag;
+pub extern fn mrb_break_tag_set(brk: *RBreak, tag: rbreak_tag) void;
 
 // TODO: gc.h functions
 

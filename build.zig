@@ -12,7 +12,16 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     b.installArtifact(exe);
-    addMruby(b, exe);
+    const build_mruby = addMruby(b, exe, &.{"--verbose"});
+
+    const compile_mruby_srcs = b.addSystemCommand(&[_][]const u8{
+        "mruby/build/host/bin/mrbc",
+        "-o",
+        "examples/bytecode.mrb",
+        "examples/bytecode.rb",
+    });
+    compile_mruby_srcs.step.dependOn(&build_mruby.step);
+    exe.step.dependOn(&compile_mruby_srcs.step);
 
     const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
@@ -29,7 +38,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    addMruby(b, unit_tests);
+    _ = addMruby(b, unit_tests, &.{"--verbose"});
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
@@ -37,7 +46,11 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_unit_tests.step);
 }
 
-pub fn addMruby(owner: *std.Build, exe: *std.Build.Step.Compile) void {
+pub fn addMruby(
+    owner: *std.Build,
+    exe: *std.Build.Step.Compile,
+    comptime args: []const []const u8,
+) *std.Build.Step.Run {
     const allocator = owner.allocator;
 
     const src_dir = path.dirname(@src().file) orelse ".";
@@ -46,6 +59,7 @@ pub fn addMruby(owner: *std.Build, exe: *std.Build.Step.Compile) void {
     const library_path = path.join(allocator, &.{ mruby_path, "build", "host", "lib" }) catch unreachable;
     const compat_path = path.join(allocator, &.{ src_dir, "src", "mruby_compat.c" }) catch unreachable;
     const package_path = path.join(allocator, &.{ src_dir, "src", "mruby.zig" }) catch unreachable;
+    const rakefile_path = path.join(allocator, &.{ mruby_path, "Rakefile" }) catch unreachable;
 
     exe.addSystemIncludePath(include_path);
     exe.addLibraryPath(library_path);
@@ -58,14 +72,22 @@ pub fn addMruby(owner: *std.Build, exe: *std.Build.Step.Compile) void {
     });
     exe.addModule("mruby", mod);
 
-    const build_mruby = owner.addSystemCommand(&[_][]const u8{
+    const default_args = &[_][]const u8{
         "rake",
-        "--verbose",
-        "--directory",
+        "--no-search",
+        "-C",
         mruby_path,
-        "CC=zig cc",
-        "CXX=zig c++",
-        "AR=zig ar",
-    });
+        "-f",
+        rakefile_path,
+    };
+
+    const build_mruby = owner.addSystemCommand(default_args ++ args);
+
+    build_mruby.setEnvironmentVariable("CC", "zig cc");
+    build_mruby.setEnvironmentVariable("CXX", "zig c++");
+    build_mruby.setEnvironmentVariable("AR", "zig ar");
+
     exe.step.dependOn(&build_mruby.step);
+
+    return build_mruby;
 }
