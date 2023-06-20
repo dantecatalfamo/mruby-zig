@@ -330,10 +330,10 @@ const struct RProc *mrb_break_proc_get1(struct RBreak *brk) {
 void mrb_break_proc_set1(struct RBreak *brk, struct RProc *proc) {
     mrb_break_proc_set(brk, proc);
 }
-uint32_t mrb_break_tag_get1(struct RBreak *brk) {
+uint32_t mrb_break_tag_get(struct RBreak *brk) {
     return mrb_break_tag_get(brk);
 }
-void mrb_break_tag_set1(struct RBreak *brk, uint32_t tag) {
+void mrb_break_tag_set(struct RBreak *brk, uint32_t tag) {
     return mrb_break_tag_set(brk, tag);
 }
 
