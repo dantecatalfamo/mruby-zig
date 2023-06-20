@@ -1,5 +1,4 @@
 const std = @import("std");
-// const mruby = @import("../src/mruby.zig");
 const mruby = @import("mruby");
 
 pub fn main() anyerror!void {
@@ -40,15 +39,15 @@ pub fn main() anyerror!void {
 
     // Calling ruby methods from zig
     _ = mrb.funcall(kval, "zigfunc", .{});
-    _ = mrb.funcall(kval, "puts", .{ mrb.str_new_lit("hello from puts called in zig!") });
-    _ = mrb.funcall(kval, "puts", .{ mrb.int_value(1337) });
+    _ = mrb.funcall(kval, "puts", .{mrb.str_new_lit("hello from puts called in zig!")});
+    _ = mrb.funcall(kval, "puts", .{mrb.int_value(1337)});
 
     // Freezing objects
     const strf = mrb.str_new("this is a string");
-    std.log.debug("string frozen? {}", .{ strf.frozen_p() });
+    std.log.debug("string frozen? {}", .{strf.frozen_p()});
     try strf.freeze();
     std.log.debug("freezing string", .{});
-    std.log.debug("string frozen? {}", .{ strf.frozen_p() });
+    std.log.debug("string frozen? {}", .{strf.frozen_p()});
 
     // Custom class
     const fancy_class = try mrb.define_class("FancyClass", mrb.object_class());
@@ -70,7 +69,7 @@ pub fn main() anyerror!void {
 
     // Get and set instance variables
     const boring_class = try mrb.define_class("BoringClass", null);
-    mrb.define_method(boring_class, "set_var", boringClassSetVar, .{ .req = 1});
+    mrb.define_method(boring_class, "set_var", boringClassSetVar, .{ .req = 1 });
     mrb.define_method(boring_class, "get_var", boringClassGetVar, .{});
 
     // Dollar store repl
@@ -104,9 +103,9 @@ export fn zigInRuby(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_valu
 export fn zigOneArg(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
     const arg = mrb.get_arg1();
     if (arg.integer_p()) {
-        std.log.debug("Received integer: {d}", .{ arg.integer() catch unreachable });
+        std.log.debug("Received integer: {d}", .{arg.integer() catch unreachable});
     } else {
-        std.log.debug("Received type: {}", .{ arg.vType() });
+        std.log.debug("Received type: {}", .{arg.vType()});
     }
     return self;
 }
@@ -126,7 +125,7 @@ pub const DataType = struct {
     allocator: std.mem.Allocator,
 };
 
-const data_type_descriptor = mruby.mrb_data_type {
+const data_type_descriptor = mruby.mrb_data_type{
     .struct_name = "zigDataType",
     .dfree = dataTypeFree,
 };
@@ -147,7 +146,7 @@ pub export fn dataTypeGetInt(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby
 
 pub export fn dataTypeSetInt(mrb: *mruby.mrb_state, self: mruby.mrb_value) mruby.mrb_value {
     var int: i64 = undefined;
-    _ = mrb.get_args("i", .{ &int });
+    _ = mrb.get_args("i", .{&int});
     const rawptr = mrb.data_get_ptr(self, &data_type_descriptor);
     const ptr = @ptrCast(*DataType, @alignCast(@alignOf(DataType), rawptr));
     ptr.int = int;

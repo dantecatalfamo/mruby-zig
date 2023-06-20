@@ -1,0 +1,48 @@
+---
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    env:
+      CI: true
+      HOMEBREW_NO_INSTALL_CLEANUP: true
+      DEBIAN_FRONTEND: noninteractive
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          # - windows-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Install rake
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: false
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Install Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.11.0-dev.3289+16dbb960f
+
+      - name: Lint
+        run: zig fmt --check src/*.zig && echo "OK"
+
+      - name: Build
+        run: |
+          zig build -fsummary -Doptimize=ReleaseSafe
+          file ./zig-out/bin/*
+          du -hs ./zig-out/bin/*
+
+      - name: Test
+        run: zig build test -fsummary

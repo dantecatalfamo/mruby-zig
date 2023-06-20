@@ -14,16 +14,25 @@ recursively clone this repository and add a couple of lines to your
 
 - Add the following lines to `build.zig`, with the paths changed to match the correct location
 
-  ```zig
-  const addMruby = @import("mruby-zig/build.zig").addMruby;
+```zig
+const addMruby = @import("mruby-zig/build.zig").addMruby;
 
-  pub fn build(b: *std.build.Builder) void {
-      [...]
-      const exe = b.addExecutable("example", "src/main.zig");
-      addMruby(exe);
-      [...]
-  }
-  ```
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const exe = b.addExecutable(.{
+        .name = "example",
+        .root_source_file = .{ .path = "src/main.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+    b.installArtifact(exe);
+    addMruby(b, exe);
+
+    // ...
+}
+```
 
 - Import `mruby` and start a new interpreter
 
